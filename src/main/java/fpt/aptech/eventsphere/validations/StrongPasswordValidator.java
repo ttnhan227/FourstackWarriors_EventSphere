@@ -1,4 +1,4 @@
-package fpt.aptech.eventsphere.validation;
+package fpt.aptech.eventsphere.validations;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

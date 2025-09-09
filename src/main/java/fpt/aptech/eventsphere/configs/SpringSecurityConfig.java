@@ -1,7 +1,8 @@
-package fpt.aptech.eventsphere.config;
+package fpt.aptech.eventsphere.configs;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -17,7 +18,7 @@ public class SpringSecurityConfig {
     private UserDetailsService userDetailsService;
 
     @Bean
-    public static PasswordEncoder passwordEncoder(){
+    public static PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
@@ -29,21 +30,21 @@ public class SpringSecurityConfig {
     @Bean
     public SecurityFilterChain fillterChain(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests(
-                (auth) -> auth
-                        .requestMatchers("/register/**").permitAll()
-                        .requestMatchers("/index").permitAll()
-                        .requestMatchers("/").permitAll()
-                        .requestMatchers("/users").permitAll()
-        )
+                        (auth) -> auth
+                                .requestMatchers("/register/**").permitAll()
+                                .requestMatchers("/index").permitAll()
+                                .requestMatchers("/").permitAll()
+                                .requestMatchers("/users").permitAll()
+                )
                 .formLogin(
                         (form) -> form
                                 .loginPage("/login").defaultSuccessUrl("/users")
                                 .loginProcessingUrl("/login").permitAll()
-                        )
+                )
                 .logout(
                         (logout) -> logout
                                 .logoutUrl("/logout").logoutSuccessUrl("/logout").permitAll()
-                        )
+                )
                 .build();
     }
 }

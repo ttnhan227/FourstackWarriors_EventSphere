@@ -1,13 +1,16 @@
-package fpt.aptech.eventsphere.config;
+package fpt.aptech.eventsphere.configs;
 
-import fpt.aptech.eventsphere.models.*;
-import fpt.aptech.eventsphere.repositories.*;
+import fpt.aptech.eventsphere.models.Roles;
+import fpt.aptech.eventsphere.models.UserDetails;
+import fpt.aptech.eventsphere.models.Users;
+import fpt.aptech.eventsphere.repositories.RoleRepository;
+import fpt.aptech.eventsphere.repositories.UserDetailsRepository;
+import fpt.aptech.eventsphere.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
