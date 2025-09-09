@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+</head>
+<body>
+    <h3>Register form</h3>
+    <div th:if="${param.success}"> Register successful....</div>
+    <form th:action="@{/register/save}" th:object="${user}" method="post">
+        <input type="text" th:field="*{fname}" placeholder="Enter your first name..." /><br/><br/>
+        <input type="text" th:field="*{lname}" placeholder="Enter your last name..." /><br/><br/>
+        <input type="text" th:field="*{email}" placeholder="Enter your Mail..." /><br/><br/>
+        <input type="password" th:field="*{password}" placeholder="Enter your Password..." /><br/><br/>
+        <input type="number" th:field="*{phone}" placeholder="Enter your phone number..." /><br/><br/>
+        <input type="submit" value="Create new account" />
+        <a th:href="@{/login}">or Login</a>
+    </form>
+</body>
+</html>

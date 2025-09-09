@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>users</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/script.js}"></script>
+</head>
+<body>
+    <h3>Users list</h3>
+    <a th:href="@{/logout}">Logout</a> ||
+    <a th:href="@{/register}">Register</a><br/><br/>
+<!--    <a th:href="@{/login}">Login</a><br/><br/>-->
+<!--    <a th:href="@{/users/add}">Add new user</a><br/><br/>-->
+<!--    <a th:href="@{/users/delete}">Delete user</a><br/><br/>-->
+<!--    <a th:href="@{/users/update}">Update user</a><br/><br/>-->
+<!--    <a th:href="@{/users/search}">Search user</a><br/><br/>-->
+<!--    <a th:href="@{/users/list}">List users</a><br/><br/>-->
+<!--    <a th:href="@{/users/list/page}">List users with pagination</a><br/><br/>-->
+<!--    <a th:href="@{/users/list/sort}">List users with sorting</a><br/><br/>-->
+    <table>
+        <tr>
+            <th>#Id</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Action</th>
+        </tr>
+        <tr th:each="it : ${list}">
+            <td th:text="${it.id}"></td>
+            <td th:text="${it.name}"></td>
+            <td th:text="${it.email}"></td>
+            <td th:text="${it.phone}"></td>
+
+        </tr>
+    </table>
+</body>
+</html>

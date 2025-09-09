@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+</head>
+<body>
+    <h3>login</h3>
+    <form th:action="@{/login}" method="post" role="form">
+        <input type="text" name="username" placeholder="Enter your Mail..." /><br/><br/>
+        <input type="password" name="password" placeholder="Enter your Password..." /><br/><br/>
+        <input type="submit" value="Login" />
+        <a th:href="@{/register}">or Register</a>
+    </form>
+</body>
+</html>
