@@ -1,26 +1,25 @@
 package fpt.aptech.eventsphere.controllers;
 
-import fpt.aptech.eventsphere.services.UtilityService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
+@RequestMapping("/")
 public class HomeController {
-
-    UtilityService utilityService;
-
-    @Autowired
-    public HomeController(UtilityService utilityService) {
-        this.utilityService = utilityService;
+    
+    @GetMapping("")
+    public String home() {
+        return "home/index";
     }
-
-    @GetMapping("/")
-    public String index(Model model) {
-        model.addAttribute("title", "Dashboard");
-        model.addAttribute("user_count", utilityService.countUsers());
-        model.addAttribute("event_count", utilityService.countEvents());
-        return "index";
+    
+    @GetMapping("/generic")
+    public String generic() {
+        return "home/generic";
+    }
+    
+    @GetMapping("/elements")
+    public String elements() {
+        return "home/elements";
     }
 }
