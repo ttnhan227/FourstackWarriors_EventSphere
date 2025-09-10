@@ -450,6 +450,29 @@ print 'It took ' + i + ' iterations to sort the deck.';
 									</form>
 								</section>
 
+									<!-- Auth Section -->
+									<section class="auth-section" style="margin: 1.5em 0;">
+										<ul class="actions stacked" style="margin-bottom: 0;">
+											<li th:if="${#authorization.expression('isAuthenticated()')}" style="text-align: center;">
+												<span class="welcome-text">Welcome, <span th:text="${#authentication.principal.username}"></span>!</span>
+											</li>
+											<li th:if="${#authorization.expression('isAuthenticated()')}">
+												<form th:action="@{/logout}" method="post" style="margin: 0;">
+													<button type="submit" class="button fit" style="margin: 0.5em 0;">
+														<i class="fas fa-sign-out-alt"></i> Logout
+													</button>
+												</form>
+											</li>
+											<li th:if="${!#authorization.expression('isAuthenticated()')}">
+												<a th:href="@{/auth/login}" class="button primary fit" style="margin: 0.5em 0 0 0;">Login</a>
+											</li>
+											<li th:if="${!#authorization.expression('isAuthenticated()')}">
+												<a th:href="@{/auth/register}" class="button fit" style="margin: 0.5em 0;">Register</a>
+											</li>
+										</ul>
+									</section>
+	
+
 							<!-- Menu -->
 								<nav id="menu">
 									<header class="major">

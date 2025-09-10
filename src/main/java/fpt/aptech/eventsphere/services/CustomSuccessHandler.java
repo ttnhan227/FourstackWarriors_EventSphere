@@ -23,7 +23,7 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
         if (authorities.contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
             response.sendRedirect("/admin/index");
         } else if (authorities.contains(new SimpleGrantedAuthority("ROLE_PARTICIPANT"))) {
-            response.sendRedirect("/participant/dashboard");
+            response.sendRedirect("/");
         } else if (authorities.contains(new SimpleGrantedAuthority("ROLE_ORGANIZER"))) {
             response.sendRedirect("/organizer/index");
         } else {
