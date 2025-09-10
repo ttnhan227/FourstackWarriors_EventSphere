@@ -1,0 +1,109 @@
+<!DOCTYPE HTML>
+<!--
+	Editorial by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Editorial by HTML5 UP</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" th:href="@{/css/home/main.css}" />
+    <link rel="stylesheet" th:href="@{/css/home/fontawesome-all.min.css}" />
+</head>
+<body class="is-preload">
+
+<!-- Wrapper -->
+<div id="wrapper">
+
+    <!-- Main -->
+    <div id="main">
+        <div class="inner">
+
+            <!-- Header -->
+            <header id="header">
+                <span>All Events</span>
+            </header>
+
+            <!-- Section -->
+            <section>
+                <div class="posts">
+                    <article th:each="event : ${list}">
+                        <a href="#" class="image"><img th:src="@{/images/home/pic01.jpg}" alt="" /></a>
+                        <h3 th:text="${event.getTitle()}"></h3>
+                        Venue: <h4 th:text="${event.getVenue()}"></h4>
+                        Time: <h4 th:text="${#temporals.format(event.getDate(), 'yyyy-MM-dd')} + ' ' + ${#temporals.format(event.getTime(), 'HH:mm')}"></h4>
+                        <p th:text="${event.getDescription()}"></p>
+                        <ul class="actions">
+                            <li><a href="#" class="button">Details</a></li>
+                        </ul>
+                    </article>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div id="sidebar">
+        <div class="inner">
+
+            <!-- Search -->
+            <section id="search" class="alt">
+                <form method="post" action="#">
+                    <input type="text" name="query" id="query" placeholder="Search" />
+                </form>
+            </section>
+
+            <!-- Menu -->
+            <nav id="menu">
+                <header class="major">
+                    <h2>Menu</h2>
+                </header>
+                <ul>
+                    <li><a th:href="@{/organizer/index}">All Events</a></li>
+                    <li><a th:href="@{/organizer/create}">Create</a></li>
+                </ul>
+            </nav>
+
+            <!-- Section -->
+            <section>
+                <header class="major">
+                    <h2>Get in touch</h2>
+                </header>
+                <p>Sed varius enim lorem ullamcorper dolore aliquam aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin sed aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
+                <ul class="contact">
+                    <li class="icon solid fa-envelope"><a href="#">information@untitled.tld</a></li>
+                    <li class="icon solid fa-phone">(000) 000-0000</li>
+                    <li class="icon solid fa-home">1234 Somewhere Road #8254<br />
+                        Nashville, TN 00000-0000</li>
+                </ul>
+            </section>
+
+            <!-- Footer -->
+            <footer id="footer">
+                <p class="copyright">&copy; Untitled. All rights reserved. Demo Images: <a href="https://unsplash.com">Unsplash</a>. Design: <a href="https://html5up.net">HTML5 UP</a>.</p>
+            </footer>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- Scripts -->
+<script src="/js/jquery.min.js"></script>
+<script src="/js/browser.min.js"></script>
+<script src="/js/breakpoints.min.js"></script>
+<script src="/js/util.js"></script>
+<script src="/js/main.js"></script>
+
+<!-- Scripts -->
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/browser.min.js}"></script>
+<script th:src="@{/js/breakpoints.min.js}"></script>
+<script th:src="@{/js/util.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+
+</body>
+</html>
