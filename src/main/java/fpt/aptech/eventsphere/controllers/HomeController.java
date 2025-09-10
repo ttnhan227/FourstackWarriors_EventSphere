@@ -30,6 +30,6 @@ public class HomeController {
 
     @GetMapping("/admin/index")
     public String admin() {
-        return "index";
+        return "admin/dashboard";
     }
 }
