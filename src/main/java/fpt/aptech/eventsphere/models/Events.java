@@ -25,7 +25,8 @@ public class Events {
     @Column(name = "title", length = 150, nullable = false)
     private String title;
 
-    @Lob
+    @NotBlank(message = "Description must not be empty")
+    @Size(max = 1024, message = "Description must not exceed 1024 characters")
     @Column(name = "description")
     private String description;
 
