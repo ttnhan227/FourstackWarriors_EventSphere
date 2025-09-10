@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+>
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1, user-scalable=no" name="viewport"/>
@@ -37,7 +37,7 @@
 </head>
 <body>
 <!-- Sidebar Fragment -->
-<div th:fragment="sidebar" id="sidebar">
+<div id="sidebar" th:fragment="sidebar">
     <div class="inner">
 
         <!-- Search -->
@@ -77,6 +77,9 @@
             </header>
             <ul>
                 <li><a th:href="@{/}">Homepage</a></li>
+                <li th:if="${#authorization.expression('hasRole(''PARTICIPANT'')')}">
+                    <a th:href="@{/participant/dashboard}">My Dashboard</a>
+                </li>
                 <li><a th:href="@{/generic}">Generic</a></li>
                 <li><a th:href="@{/elements}">Elements</a></li>
                 <li>
