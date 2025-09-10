@@ -1,5 +1,6 @@
 package fpt.aptech.eventsphere.configs;
 
+import fpt.aptech.eventsphere.services.CustomSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,7 +29,8 @@ public class SpringSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain fillterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                            CustomSuccessHandler successHandler) throws Exception {
         return http.authorizeHttpRequests(
                         (auth) -> auth
                                 .requestMatchers(
@@ -46,8 +48,9 @@ public class SpringSecurityConfig {
                 )
                 .formLogin(
                         (form) -> form
-                                .loginPage("/login").defaultSuccessUrl("/users")
-                                .loginProcessingUrl("/login").permitAll()
+                                .loginPage("/login")
+                                .successHandler(successHandler)
+                                .permitAll()
                 )
                 .logout(
                         (logout) -> logout
