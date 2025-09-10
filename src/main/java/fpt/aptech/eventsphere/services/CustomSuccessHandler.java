@@ -16,10 +16,18 @@ import java.util.Collection;
 public class CustomSuccessHandler implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
-                                      HttpServletResponse response,
-                                      Authentication authentication)
+                                        HttpServletResponse response,
+                                        Authentication authentication)
             throws IOException, ServletException {
-        // Redirect all users to the home page after login
-        response.sendRedirect("/");
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        if (authorities.contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
+            response.sendRedirect("/admin/index");
+        } else if (authorities.contains(new SimpleGrantedAuthority("ROLE_PARTICIPANT"))) {
+            response.sendRedirect("/participant/dashboard");
+        } else if (authorities.contains(new SimpleGrantedAuthority("ROLE_ORGANIZER"))) {
+            response.sendRedirect("/organizer/index");
+        } else {
+            response.sendRedirect("/access-denied");
+        }
     }
 }
