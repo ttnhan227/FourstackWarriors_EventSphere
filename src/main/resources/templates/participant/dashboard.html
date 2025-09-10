@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title>Participant Dashboard - EventSphere</title>
+    <link rel="stylesheet" th:href="@{/css/participant/dashboard.css}">
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Dashboard Header -->
+    <section class="dashboard-header">
+        <div class="container">
+            <h1>Welcome to Your Dashboard</h1>
+            <p>Manage your event participation and activities</p>
+        </div>
+    </section>
+
+    <!-- Stats Cards -->
+    <section class="dashboard-stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Total Registrations</h3>
+                        <p class="stat-number" th:text="${totalRegistrations}">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Events Attended</h3>
+                        <p class="stat-number" th:text="${attendedEvents}">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Upcoming Events -->
+    <section class="dashboard-section">
+        <div class="container">
+            <h2>Upcoming Events</h2>
+            <div th:if="${upcomingEvents.empty}" class="no-events">
+                <p>No upcoming events found. <a th:href="@{/events/upcoming}">Browse events</a> to register.</p>
+            </div>
+            <div th:unless="${upcomingEvents.empty}" class="events-grid">
+                <div th:each="event : ${upcomingEvents}" class="event-card">
+                    <div class="event-date">
+                        <span class="event-day" th:text="${#temporals.dayOfMonth(event.date)}">15</span>
+                        <span class="event-month" th:text="${#temporals.monthNameShort(event.date)}">JUN</span>
+                    </div>
+                    <div class="event-details">
+                        <h3><a th:href="@{/events/} + ${event.eventId}" th:text="${event.title}">Event Title</a></h3>
+                        <p class="event-time">
+                            <i class="far fa-clock"></i>
+                            <span th:text="${#temporals.format(event.time, 'HH:mm')}">10:00</span> - 
+                            <span th:if="${event.endTime != null}" 
+                                  th:text="${#temporals.format(event.endTime, 'HH:mm')}">12:00</span>
+                            <span th:unless="${event.endTime != null}">TBD</span>
+                        </p>
+                        <p class="event-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span th:text="${event.venue != null} ? ${event.venue} : 'Location TBD'"></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Past Events -->
+    <section class="dashboard-section">
+        <div class="container">
+            <h2>Past Events</h2>
+            <div th:if="${pastEvents.empty}" class="no-events">
+                <p>No past events found.</p>
+            </div>
+            <div th:unless="${pastEvents.empty}" class="events-grid">
+                <div th:each="event : ${pastEvents}" class="event-card past">
+                    <div class="event-date">
+                        <span class="event-day" th:text="${#temporals.dayOfMonth(event.date)}">15</span>
+                        <span class="event-month" th:text="${#temporals.monthNameShort(event.date)}">MAY</span>
+                    </div>
+                    <div class="event-details">
+                        <h3><a th:href="@{/events/} + ${event.eventId}" th:text="${event.title}">Event Title</a></h3>
+                        <p class="event-time">
+                            <i class="far fa-clock"></i>
+                            <span th:text="${#temporals.format(event.time, 'HH:mm')}">10:00</span> - 
+                            <span th:if="${event.endTime != null}" 
+                                  th:text="${#temporals.format(event.endTime, 'HH:mm')}">12:00</span>
+                            <span th:unless="${event.endTime != null}">TBD</span>
+                        </p>
+                        <div class="event-actions">
+                            <a th:href="@{/events/} + ${event.eventId} + '/feedback'" class="button small">
+                                <i class="far fa-comment-alt"></i> Leave Feedback
+                            </a>
+                            <a th:href="@{/events/} + ${event.eventId} + '/certificate'" class="button small">
+                                <i class="fas fa-certificate"></i> Get Certificate
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- JavaScript -->
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/participant/dashboard.js}"></script>
+</th:block>
+</body>
+</html>
