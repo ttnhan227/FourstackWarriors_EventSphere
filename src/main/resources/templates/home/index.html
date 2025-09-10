@@ -10,7 +10,32 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" th:href="@{/css/home/main.css}" />
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+        <style>
+            .welcome-text {
+                margin-right: 15px;
+                color: #4a6da7;
+                font-weight: 500;
+            }
+            .logout-form {
+                margin: 0;
+                padding: 0;
+                display: inline;
+            }
+            .logout-form button {
+                background: none;
+                border: none;
+                color: #4a6da7;
+                cursor: pointer;
+                padding: 0 15px;
+                font-size: 0.8em;
+                height: 2.75em;
+                line-height: 2.75em;
+            }
+            .logout-form button:hover {
+                background-color: rgba(74, 109, 167, 0.1);
+            }
+        </style>
 	</head>
 	<body class="is-preload">
 
@@ -23,15 +48,29 @@
 
 							<!-- Header -->
 								<header id="header">
-									<a th:href="@{/}" class="logo"><strong>EventSphere</strong></a>
-									<ul class="icons">
-										<li><a th:href="@{/register}" class="button">Register</a></li>
-										<li><a th:href="@{/login}" class="button primary">Login</a></li>
-										<li><a href="#" class="icon brands fa-twitter"><span class="label">Twitter</span></a></li>
-										<li><a href="#" class="icon brands fa-facebook-f"><span class="label">Facebook</span></a></li>
-										<li><a href="#" class="icon brands fa-instagram"><span class="label">Instagram</span></a></li>
-									</ul>
-								</header>
+                                    <a th:href="@{/}" class="logo"><strong>EventSphere</strong></a>
+                                    <ul class="icons">
+                                        <li th:if="${#authorization.expression('isAuthenticated()')}">
+                                            <span class="welcome-text">Welcome, <span th:text="${#authentication.principal.username}"></span>!</span>
+                                        </li>
+                                        <li th:if="${#authorization.expression('isAuthenticated()')}">
+                                            <form th:action="@{/logout}" method="post" class="logout-form">
+                                                <button type="submit" class="button">
+                                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                                </button>
+                                            </form>
+                                        </li>
+                                        <li th:if="${!#authorization.expression('isAuthenticated()')}">
+                                            <a th:href="@{/auth/register}" class="button">Register</a>
+                                        </li>
+                                        <li th:if="${!#authorization.expression('isAuthenticated()')}">
+                                            <a th:href="@{/auth/login}" class="button primary">Login</a>
+                                        </li>
+                                        <li><a href="#" class="icon brands fa-twitter"><span class="label">Twitter</span></a></li>
+                                        <li><a href="#" class="icon brands fa-facebook-f"><span class="label">Facebook</span></a></li>
+                                        <li><a href="#" class="icon brands fa-instagram"><span class="label">Instagram</span></a></li>
+                                    </ul>
+                                </header>
 
 							<!-- Banner -->
 								<section id="banner">

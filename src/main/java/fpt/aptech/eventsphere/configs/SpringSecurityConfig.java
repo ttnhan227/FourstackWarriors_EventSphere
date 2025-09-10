@@ -30,32 +30,39 @@ public class SpringSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
-                                            CustomSuccessHandler successHandler) throws Exception {
-        return http.authorizeHttpRequests(
-                        (auth) -> auth
-                                .requestMatchers(
-                                        "/css/**",
-                                        "/js/**",
-                                        "/images/**",
-                                        "/sass/**",
-                                        "/webfonts/**",
-                                        "/register/**",
-                                        "/index",
-                                        "/",
-                                        "/users"
-                                ).permitAll()
-                                .anyRequest().authenticated()
-                )
-                .formLogin(
-                        (form) -> form
-                                .loginPage("/login")
-                                .successHandler(successHandler)
-                                .permitAll()
-                )
-                .logout(
-                        (logout) -> logout
-                                .logoutUrl("/logout").logoutSuccessUrl("/logout").permitAll()
-                )
-                .build();
+                                         CustomSuccessHandler successHandler) throws Exception {
+        http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    "/css/**",
+                    "/js/**",
+                    "/images/**",
+                    "/webfonts/**",
+                    "/auth/register",
+                    "/auth/forgot-password",
+                    "/auth/reset-password",
+                    "/login",
+                    "/"
+                ).permitAll()
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginPage("/auth/login")
+                .loginProcessingUrl("/login")
+                .successHandler(successHandler)
+                .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/auth/login?logout")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .permitAll()
+            )
+            .exceptionHandling(exception -> exception
+                .accessDeniedPage("/access-denied")
+            );
+
+        return http.build();
     }
 }
