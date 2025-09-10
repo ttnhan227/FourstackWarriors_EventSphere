@@ -20,16 +20,13 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
                                         Authentication authentication)
             throws IOException, ServletException {
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        if(authorities.contains(new SimpleGrantedAuthority("ROLE_ADMIN"))){
+        if (authorities.contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
             response.sendRedirect("/admin/index");
-        }
-        else if(authorities.contains(new SimpleGrantedAuthority("ROLE_PARTICIPANT"))){
-            response.sendRedirect("/");
-        }
-        else if(authorities.contains(new SimpleGrantedAuthority("ROLE_ORGANIZER"))){
+        } else if (authorities.contains(new SimpleGrantedAuthority("ROLE_PARTICIPANT"))) {
+            response.sendRedirect("/participant/dashboard");
+        } else if (authorities.contains(new SimpleGrantedAuthority("ROLE_ORGANIZER"))) {
             response.sendRedirect("/organizer/index");
-        }
-        else{
+        } else {
             response.sendRedirect("/access-denied");
         }
     }
