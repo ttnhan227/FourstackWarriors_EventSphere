@@ -1,16 +1,83 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/html">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>login</title>
+    <title>Login - EventSphere</title>
+    <link rel="stylesheet" th:href="@{/plugins/fontawesome-free/css/all.min.css}">
+    <link rel="stylesheet" th:href="@{/dist/css/adminlte.min.css}">
 </head>
-<body>
-    <h3>login</h3>
-    <form th:action="@{/login}" method="post" role="form">
-        <input type="text" name="username" placeholder="Enter your Mail..." /><br/><br/>
-        <input type="password" name="password" placeholder="Enter your Password..." /><br/><br/>
-        <input type="submit" value="Login" />
-        <a th:href="@{/register}">or Register</a>
-    </form>
+<body class="hold-transition login-page">
+<div class="login-box">
+    <div class="login-logo">
+        <a href="#"><b>Event</b>Sphere</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body login-card-body">
+            <p class="login-box-msg">Sign in to start your session</p>
+
+            <!-- Error message -->
+            <div th:if="${param.error}" class="alert alert-danger">
+                Invalid email or password.
+            </div>
+
+            <!-- Logout message -->
+            <div th:if="${param.logout}" class="alert alert-success">
+                You have been logged out successfully.
+            </div>
+
+            <form th:action="@{/login}" method="post">
+                <div class="input-group mb-3">
+                    <input type="email" name="username" class="form-control" placeholder="Email" required>
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-envelope"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group mb-3">
+                    <input type="password" name="password" class="form-control" placeholder="Password" required>
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-lock"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-8">
+                        <div class="icheck-primary">
+                            <input type="checkbox" id="remember">
+                            <label for="remember">Remember Me</label>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                    </div>
+                </div>
+            </form>
+
+            <p class="mb-1">
+                <a href="#">Forgot password?</a>
+            </p>
+            <p class="mb-0">
+                <a th:href="@{/register}" class="text-center">Register a new account</a>
+            </p>
+
+            <!-- Test accounts -->
+            <div class="mt-3">
+                <small class="text-muted">
+                    <strong>Test Accounts:</strong><br>
+                    Admin: admin@eventsphere.com / AdminPass123!<br>
+                    Organizer: organizer1@fpt.edu.vn / OrgPass123!<br>
+                    Student: student1@fpt.edu.vn / StudentPass123!
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/plugins/jquery/jquery.min.js}"></script>
+<script th:src="@{/plugins/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/dist/js/adminlte.min.js}"></script>
 </body>
 </html>
