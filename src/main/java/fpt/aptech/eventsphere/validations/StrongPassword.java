@@ -1,4 +1,4 @@
-package fpt.aptech.eventsphere.validation;
+package fpt.aptech.eventsphere.validations;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
@@ -10,6 +10,9 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface StrongPassword {
-    String message() default "Password must be at least 8 characters long and include uppercase letters, lowercase letters, numbers, and special characters";    Class<?>[] groups() default {};
+    String message() default "Password must be at least 8 characters long and include uppercase letters, lowercase letters, numbers, and special characters";
+
+    Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 }
