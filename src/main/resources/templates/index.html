@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
     <title th:text="${title} ?: 'Dashboard'">Dashboard - EventSphere</title>
@@ -89,7 +89,7 @@
                                             <span class="info-box-icon bg-info"><i class="far fa-calendar-alt"></i></span>
                                             <div class="info-box-content">
                                                 <span class="info-box-text">Sự kiện</span>
-                                                <span class="info-box-number">10</span>
+                                                <span class="info-box-number" th:text="${event_count}"></span>
                                             </div>
                                         </div>
                                     </div>
@@ -98,7 +98,7 @@
                                             <span class="info-box-icon bg-success"><i class="far fa-user"></i></span>
                                             <div class="info-box-content">
                                                 <span class="info-box-text">Người dùng</span>
-                                                <span class="info-box-number">9</span>
+                                                <span class="info-box-number" th:text="${user_count}"></span>
                                             </div>
                                         </div>
                                     </div>
