@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{_fragments/layout}" th:with="currentPage=main">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventSphere - <th:block layout:fragment="title">Home</th:block></title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" th:href="@{/images/favicon.ico}">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" th:href="@{/css/home/main.css}">
+    <link rel="stylesheet" th:href="@{/css/home/fontawesome-all.min.css}">
+    
+    <!-- Layout CSS -->
+    <th:block layout:fragment="styles">
+        <!-- Page-specific CSS will be inserted here -->
+    </th:block>
+</head>
+<body class="is-preload">
+    <!-- Header -->
+    <header id="header" class="alt">
+        <nav id="nav">
+            <ul>
+                <li class="current"><a th:href="@{/}">Home</a></li>
+                <li>
+                    <a href="#" class="icon solid fa-angle-down">Events</a>
+                    <ul>
+                        <li><a th:href="@{/events/upcoming}">Upcoming Events</a></li>
+                        <li><a th:href="@{/events/past}">Past Events</a></li>
+                        <li><a th:href="@{/events/create}">Create Event</a></li>
+                    </ul>
+                </li>
+                <li><a th:href="@{/about}">About Us</a></li>
+                <li><a th:href="@{/contact}">Contact</a></li>
+                <li sec:authorize="isAnonymous()">
+                    <a th:href="@{/login}" class="button">Sign In</a>
+                </li>
+                <li sec:authorize="isAuthenticated()">
+                    <a href="#" class="icon solid fa-user">
+                        <span sec:authentication="name">User</span>
+                    </a>
+                    <ul>
+                        <li><a th:href="@{/profile}">My Profile</a></li>
+                        <li><a th:href="@{/my-events}">My Events</a></li>
+                        <li><a th:href="@{/settings}">Settings</a></li>
+                        <li>
+                            <form th:action="@{/logout}" method="post" class="d-inline">
+                                <button type="submit" class="button small">Sign Out</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <div layout:fragment="content">
+        <!-- Page content will be inserted here -->
+    </div>
+
+    <!-- Footer -->
+    <footer id="footer">
+        <div class="inner">
+            <div class="footer-content">
+                <section>
+                    <h3>EventSphere</h3>
+                    <p>Your premier destination for managing and discovering amazing events.</p>
+                    <ul class="icons">
+                        <li><a href="#" class="icon brands fa-facebook-f"><span class="label">Facebook</span></a></li>
+                        <li><a href="#" class="icon brands fa-twitter"><span class="label">Twitter</span></a></li>
+                        <li><a href="#" class="icon brands fa-instagram"><span class="label">Instagram</span></a></li>
+                        <li><a href="#" class="icon brands fa-linkedin-in"><span class="label">LinkedIn</span></a></li>
+                    </ul>
+                </section>
+                <section>
+                    <h4>Quick Links</h4>
+                    <ul class="alt">
+                        <li><a th:href="@{/about}">About Us</a></li>
+                        <li><a th:href="@{/contact}">Contact</a></li>
+                        <li><a th:href="@{/privacy}">Privacy Policy</a></li>
+                        <li><a th:href="@{/terms}">Terms of Service</a></li>
+                    </ul>
+                </section>
+                <section>
+                    <h4>Contact Us</h4>
+                    <ul class="contact">
+                        <li class="icon solid fa-envelope">
+                            <a href="mailto:info@eventsphere.com">info@eventsphere.com</a>
+                        </li>
+                        <li class="icon solid fa-phone">(123) 456-7890</li>
+                        <li class="icon solid fa-map-marker-alt">
+                            123 Event Street<br />
+                            San Francisco, CA 94103
+                        </li>
+                    </ul>
+                </section>
+            </div>
+            <div class="copyright">
+                &copy; <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2025</span> EventSphere. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script th:src="@{/js/jquery.min.js}"></script>
+    <script th:src="@{/js/browser.min.js}"></script>
+    <script th:src="@{/js/breakpoints.min.js}"></script>
+    <script th:src="@{/js/util.js}"></script>
+    <script th:src="@{/js/main.js}"></script>
+    
+    <!-- Page-specific scripts -->
+    <th:block layout:fragment="scripts">
+        <!-- Page-specific JavaScript will be inserted here -->
+    </th:block>
+</body>
+</html>
