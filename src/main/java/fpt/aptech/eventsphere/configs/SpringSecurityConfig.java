@@ -31,10 +31,18 @@ public class SpringSecurityConfig {
     public SecurityFilterChain fillterChain(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests(
                         (auth) -> auth
-                                .requestMatchers("/register/**").permitAll()
-                                .requestMatchers("/index").permitAll()
-                                .requestMatchers("/").permitAll()
-                                .requestMatchers("/users").permitAll()
+                                .requestMatchers(
+                                        "/css/**",
+                                        "/js/**",
+                                        "/images/**",
+                                        "/sass/**",
+                                        "/webfonts/**",
+                                        "/register/**",
+                                        "/index",
+                                        "/",
+                                        "/users"
+                                ).permitAll()
+                                .anyRequest().authenticated()
                 )
                 .formLogin(
                         (form) -> form
