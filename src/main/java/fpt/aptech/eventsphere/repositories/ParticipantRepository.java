@@ -14,12 +14,12 @@ public interface ParticipantRepository extends JpaRepository<Users, Integer> {
     
     @Query("SELECT e FROM Events e JOIN Registrations r ON e.eventId = r.event.eventId " +
            "WHERE r.student.userId = :userId AND e.startDate >= CURRENT_DATE " +
-           "ORDER BY e.startDate, e.endDate")
+           "ORDER BY e.startDate")
     List<Events> findUpcomingRegisteredEvents(@Param("userId") Integer userId);
     
     @Query("SELECT e FROM Events e JOIN Registrations r ON e.eventId = r.event.eventId " +
-           "WHERE r.student.userId = :userId AND e.startDate < CURRENT_DATE " +
-           "ORDER BY e.startDate DESC, e.endDate DESC")
+           "WHERE r.student.userId = :userId AND e.endDate < CURRENT_DATE " +
+           "ORDER BY e.endDate DESC")
     List<Events> findPastRegisteredEvents(@Param("userId") Integer userId);
     
     @Query("SELECT COUNT(r) FROM Registrations r WHERE r.student.userId = :userId")

@@ -1,0 +1,72 @@
+<!DOCTYPE HTML>
+<!--
+	Editorial by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>Editorial by HTML5 UP</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+    <link rel="stylesheet" th:href="@{/css/home/main.css}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+</head>
+<body class="is-preload">
+
+<!-- Wrapper -->
+<div id="wrapper">
+
+    <!-- Main -->
+    <div id="main">
+        <div class="inner">
+
+            <!-- Header -->
+            <header id="header">
+                <h1>List Events</h1>
+            </header>
+
+            <!-- Section -->
+            <section>
+                <div class="posts">
+                    <article th:each="event : ${list}">
+                        <a href="#" class="image"><img th:src="@{/images/home/pic01.jpg}" alt=""/></a>
+                        <h3 th:text="${event.getTitle()}"></h3>
+                        Venue: <h4 th:text="${event.getVenue().name}"></h4>
+                        Start date: <h4 th:text="${#temporals.format(event.startDate, 'yyyy/MM/dd HH:mm')}"></h4>
+                        End date: <h4 th:text="${#temporals.format(event.endDate, 'yyyy/MM/dd HH:mm')}"></h4>
+                        Total Seats: <h4 th:text="${event.eventSeating.totalSeats}"></h4>
+                        Available Seats: <h4 th:text="${event.eventSeating.getAvailableSeat()}"></h4>
+                        <p th:text="${event.getDescription()}"></p>
+                        <ul class="actions">
+                            <li><a href="#" class="button">Details</a></li>
+                        </ul>
+                    </article>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div th:replace="~{org/orgLayout :: sidebar}"></div>
+
+
+</div>
+
+<!-- Scripts -->
+<script src="/js/jquery.min.js"></script>
+<script src="/js/browser.min.js"></script>
+<script src="/js/breakpoints.min.js"></script>
+<script src="/js/util.js"></script>
+<script src="/js/main.js"></script>
+
+<!-- Scripts -->
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/browser.min.js}"></script>
+<script th:src="@{/js/breakpoints.min.js}"></script>
+<script th:src="@{/js/util.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+
+</body>
+</html>
