@@ -2,6 +2,7 @@ package fpt.aptech.eventsphere.services;
 
 import fpt.aptech.eventsphere.dto.ParticipantRegistrationDto;
 import fpt.aptech.eventsphere.models.Events;
+import fpt.aptech.eventsphere.models.Registrations;
 import fpt.aptech.eventsphere.models.Users;
 
 import java.util.List;
@@ -20,6 +21,17 @@ public interface ParticipantService {
     int getTotalRegistrations();
     int getAttendedEventsCount();
     
-    // Registration
+    // User registration
     Users registerParticipant(ParticipantRegistrationDto registrationDto);
+    
+    // Event registration
+    Registrations registerForEvent(Integer eventId);
+    
+    void cancelRegistration(Integer eventId);
+    
+    boolean isUserRegisteredForEvent(Integer eventId);
+    
+    int getAvailableSeats(Integer eventId);
+    
+    List<Registrations> getUserRegistrations();
 }

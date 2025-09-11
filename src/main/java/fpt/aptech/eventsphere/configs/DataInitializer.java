@@ -212,7 +212,33 @@ public class DataInitializer implements CommandLineRunner {
             );
             event3 = eventRepository.save(event3);
 
-            System.out.println("Created 3 sample events");
+            Events event4 = createEvent(
+                    "Past Tech Meetup",
+                    "A meetup for tech enthusiasts that already happened.",
+                    "MEETUP",
+                    LocalDateTime.now().minusDays(10),
+                    LocalDateTime.now().minusDays(10).plusHours(3),
+                    venue,
+                    organizer,
+                    75,
+                    false
+            );
+            event4 = eventRepository.save(event4);
+
+            Events event5 = createEvent(
+                    "Archived Webinar",
+                    "An online webinar that was recorded and archived.",
+                    "WEBINAR",
+                    LocalDateTime.now().minusDays(20),
+                    LocalDateTime.now().minusDays(20).plusHours(2),
+                    venue,
+                    organizer,
+                    300,
+                    true
+            );
+            event5 = eventRepository.save(event5);
+
+            System.out.println("Created 5 sample events");
         }
     }
 

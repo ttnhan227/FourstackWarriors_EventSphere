@@ -11,10 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -110,16 +108,24 @@ public class ParticipantEventController {
         }
     }
 
-    @GetMapping("/events/view/{id}")
+    @GetMapping("/events/{id}")
     public String viewEvent(@PathVariable("id") int id, Model model) {
         try {
             logger.info("Attempting to find event with ID: {}", id);
-            // Use a custom query to fetch the event with its organizer
-            Events event = eventRepository.findByIdWithOrganizer(id);
+            // Use a custom query to fetch the event with its organizer and venue
+            Events event = eventRepository.findByIdWithOrganizerAndVenue(id);
             
             if (event != null) {
                 logger.info("Found event: {}", event.getTitle());
+                
+                // Check if current user is registered for this event
+                boolean isRegistered = participantService.isUserRegisteredForEvent(id);
+                int availableSeats = participantService.getAvailableSeats(id);
+                
                 model.addAttribute("event", event);
+                model.addAttribute("isRegistered", isRegistered);
+                model.addAttribute("availableSeats", availableSeats);
+                
                 return "participant/events/view";
             } else {
                 logger.warn("Event not found with ID: {}", id);
@@ -130,6 +136,28 @@ public class ParticipantEventController {
             model.addAttribute("error", "Error loading event: " + e.getMessage());
             return "error/error";
         }
+    }
+    
+    @PostMapping("/events/{eventId}/register")
+    public String registerForEvent(@PathVariable("eventId") int eventId, RedirectAttributes redirectAttributes) {
+        try {
+            participantService.registerForEvent(eventId);
+            redirectAttributes.addFlashAttribute("success", "Successfully registered for the event!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/participant/events/" + eventId;
+    }
+    
+    @PostMapping("/events/{eventId}/cancel")
+    public String cancelRegistration(@PathVariable("eventId") int eventId, RedirectAttributes redirectAttributes) {
+        try {
+            participantService.cancelRegistration(eventId);
+            redirectAttributes.addFlashAttribute("success", "Successfully cancelled your registration!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/participant/events/" + eventId;
     }
 
     @GetMapping("/events/past")

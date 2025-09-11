@@ -38,12 +38,10 @@ public class Events {
 
     @Column(name = "startDate")
     @NotNull(message = "please enter start date")
-    @FutureOrPresent(message = "Start date must be today or in the future")
     private LocalDateTime startDate;
 
     @Column(name = "endDate")
     @NotNull(message = "please enter end date")
-    @Future(message = "End date must be in the future")
     private LocalDateTime endDate;
 
     @Column(name = "image_url", length = 512)

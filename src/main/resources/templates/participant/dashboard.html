@@ -85,7 +85,7 @@
                 </header>
                 <div class="posts">
                     <article th:each="event : ${events}">
-                        <a th:href="@{/participant/events/view/{id}(id=${event.eventId})}" class="image">
+                        <a th:href="@{/participant/events/{id}(id=${event.eventId})}" class="image">
                             <img th:src="${event.imageUrl != null ? event.imageUrl : '/images/event-placeholder.jpg'}" 
                                  th:attr="src=${event.imageUrl != null ? event.imageUrl : '/images/event-placeholder.jpg'}" 
                                  alt="Event Image" 

@@ -46,36 +46,100 @@
                                  th:src="${event.imageUrl != null ? event.imageUrl : '/images/events/event-placeholder.jpg'}"/>
                         </span>
 
+                        <!-- Registration Status -->
+                        <div class="box" style="margin-bottom: 2em;">
+                            <div class="row gtr-50 gtr-uniform">
+                                <div class="col-12">
+                                    <h3>Registration</h3>
+                                    <div th:if="${availableSeats > 0}" class="box alt">
+                                        <span class="icon solid fa-ticket-alt"></span>
+                                        <span th:text="${availableSeats} + ' seats available'"></span>
+                                    </div>
+                                    <div th:if="${availableSeats <= 0}" class="box alt">
+                                        <span class="icon solid fa-exclamation-triangle"></span>
+                                        <span>This event is fully booked</span>
+                                    </div>
+                                    
+                                    <div th:if="${!isRegistered}" class="mt-3">
+                                        <form th:action="@{/participant/events/{eventId}/register(eventId=${event.eventId})}" method="post" th:if="${availableSeats > 0}">
+                                            <button class="button primary fit" type="submit">
+                                                <span class="icon solid fa-user-plus"></span> Register Now
+                                            </button>
+                                        </form>
+                                        <button class="button disabled fit" th:if="${availableSeats <= 0}" disabled>
+                                            <span class="icon solid fa-ban"></span> Registration Full
+                                        </button>
+                                    </div>
+                                    
+                                    <div th:if="${isRegistered}" class="mt-3">
+                                        <div class="box alt">
+                                            <span class="icon solid fa-check-circle"></span>
+                                            <span>You are registered for this event</span>
+                                        </div>
+                                        <form th:action="@{/participant/events/{eventId}/cancel(eventId=${event.eventId})}" method="post" class="mt-2">
+                                            <button class="button small" type="submit" onclick="return confirm('Are you sure you want to cancel your registration?');">
+                                                <span class="icon solid fa-user-minus"></span> Cancel Registration
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Description -->
                         <h3>About This Event</h3>
                         <p th:utext="${#strings.escapeXml(event.description)?.replaceAll('\n', '&lt;br/&gt;')}">
                         </p>
 
                         <!-- Event Details -->
-                        <h3>Event Details</h3>
-                        <ul>
-                            <li>
-                                <strong><i class="fas fa-calendar-alt"></i> Date & Time:</strong>
-                                <span th:text="${#temporals.format(event.startDate, 'EEEE, MMMM d, yyyy')}"></span>,
-                                <span th:text="${#temporals.format(event.startDate, 'h:mm a')} + ' - ' +
-                                               ${#temporals.format(event.endDate, 'h:mm a')}"></span>
-                            </li>
-                            <li>
-                                <strong><i class="fas fa-map-marker-alt"></i> Location:</strong>
-                                <span th:if="${event.venue != null}" th:text="${event.venue.name}"></span>
-                                <span th:unless="${event.venue != null}">Venue not specified</span>
-                            </li>
-                            <li>
-                                <strong><i class="fas fa-user"></i> Organizer:</strong>
-                                <span th:text="${event.organizer.email}"></span>
-                            </li>
-                            <li th:if="${eventSeating != null}">
-                                <strong><i class="fas fa-chair"></i> Seating:</strong>
-                                <span th:text="${eventSeating.seatingType}"></span> –
-                                <span style="color:green;" th:if="${eventSeating.availableSeats > 0}"
-                                      th:text="${eventSeating.availableSeats} + ' seats available'"></span>
-                                <span style="color:red;" th:unless="${eventSeating.availableSeats > 0}">Sold Out</span>
-                            </li>
+                        <div class="col-4 col-12-medium">
+                            <div class="box">
+                                <h3>Event Details</h3>
+                                <p>
+                                    <span class="icon solid fa-calendar"></span>
+                                    <strong>Date & Time:</strong><br>
+                                    <span th:text="${#temporals.format(event.startDate, 'EEEE, MMMM d, yyyy hh:mm a')}"></span>
+                                    <span th:if="${event.endDate != null}">
+                                        <br>to <span th:text="${#temporals.format(event.endDate, 'EEEE, MMMM d, yyyy hh:mm a')}"></span>
+                                    </span>
+                                </p>
+                                <p>
+                                    <span class="icon solid fa-map-marker-alt"></span>
+                                    <strong>Location:</strong><br>
+                                    <span th:if="${event.venue != null}" th:text="${event.venue.name}"></span>
+                                    <span th:if="${event.venue == null}">Online</span>
+                                </p>
+                                <p th:if="${event.organizer != null}">
+                                    <span class="icon solid fa-user-tie"></span>
+                                    <strong>Organizer:</strong><br>
+                                    <span th:text="${event.organizer.email}"></span>
+                                </p>
+                                <p>
+                                    <span class="icon solid fa-calendar-check"></span>
+                                    <strong>Event Date:</strong><br>
+                                    <span th:text="${#temporals.format(event.startDate, 'EEEE, MMMM d, yyyy hh:mm a')}"></span>
+                                </p>
+                            </div>
+                            
+                            <!-- Quick Actions -->
+                            <div class="box" th:if="${isRegistered}">
+                                <h3>Your Registration</h3>
+                                <p>
+                                    <span class="icon solid fa-check-circle"></span>
+                                    <strong>Status:</strong> Confirmed
+                                </p>
+                                <p>
+                                    <span class="icon solid fa-calendar-check"></span>
+                                    <strong>Registered on:</strong>
+                                    <span th:text="${#temporals.format(#temporals.createNow(), 'MMMM d, yyyy')}"></span>
+                                </p>
+                                <form th:action="@{/participant/events/{eventId}/cancel(eventId=${event.eventId})}" method="post" class="mt-2">
+                                    <button class="button small" type="submit" onclick="return confirm('Are you sure you want to cancel your registration?');">
+                                        <span class="icon solid fa-user-minus"></span> Cancel Registration
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                         </ul>
                     </div>
 
@@ -83,9 +147,6 @@
                     <div class="col-4 col-12-medium">
                         <!-- Register -->
                         <ul class="actions stacked">
-                            <li>
-                                <a class="button primary icon solid fa-ticket" href="#">Register Now</a>
-                            </li>
                             <li>
                                 <a class="button icon solid fa-share" href="#">Share</a>
                             </li>
@@ -131,9 +192,67 @@
 
 </div>
 
+<!-- Flash Messages -->
+<div th:if="${success}" class="flash-message success">
+    <div class="box">
+        <span class="icon solid fa-check-circle"></span>
+        <span th:text="${success}"></span>
+    </div>
+</div>
+<div th:if="${error}" class="flash-message error">
+    <div class="box">
+        <span class="icon solid fa-exclamation-circle"></span>
+        <span th:text="${error}"></span>
+    </div>
+</div>
+
+<style>
+    .flash-message {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        z-index: 1000;
+        max-width: 400px;
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    .flash-message .box {
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .flash-message.success .box {
+        background-color: #e7f7e7;
+        border-left: 4px solid #4CAF50;
+    }
+    
+    .flash-message.error .box {
+        background-color: #ffebee;
+        border-left: 4px solid #f44336;
+    }
+    
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    .mt-2 { margin-top: 0.5rem; }
+    .mt-3 { margin-top: 1rem; }
+</style>
+
 <!-- Scripts -->
 <script th:src="@{/js/jquery.min.js}"></script>
 <script th:src="@{/js/browser.min.js}"></script>
+<script>
+    // Auto-hide flash messages after 5 seconds
+    $(document).ready(function() {
+        setTimeout(function() {
+            $('.flash-message').fadeOut('slow');
+        }, 5000);
+    });
+</script>
 <script th:src="@{/js/breakpoints.min.js}"></script>
 <script th:src="@{/js/util.js}"></script>
 <script th:src="@{/js/main.js}"></script>
