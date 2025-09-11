@@ -6,12 +6,15 @@
     <meta content="width=device-width, initial-scale=1, user-scalable=no" name="viewport"/>
     <link rel="stylesheet" th:href="@{/css/home/main.css}"/>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+    <!-- Cropper.js CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
     <style>
         /* Avatar Upload */
         .avatar-upload {
             position: relative;
             display: inline-block;
             cursor: pointer;
+            margin: 0 auto 20px;
         }
 
         .avatar-upload input[type="file"] {
@@ -24,11 +27,86 @@
             object-fit: cover;
             border-radius: 50%;
             border: 3px solid #ddd;
-            transition: 0.3s;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .avatar-upload img:hover {
             opacity: 0.8;
+            transform: scale(1.05);
+            border-color: #4CAF50;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .cropper-container {
+            margin: 15px auto;
+            max-width: 100%;
+            background: transparent !important;
+            overflow: visible !important;
+        }
+
+        .cropper-view-box {
+            outline: none;
+            border-radius: 50%;
+            box-shadow: 0 0 0 1px #fff;
+        }
+
+        .cropper-face {
+            background-color: transparent !important;
+        }
+
+        .cropper-modal {
+            background: rgba(0, 0, 0, 0.5) !important;
+        }
+
+        .cropper-line,
+        .cropper-point {
+            background-color: #fff;
+        }
+
+        #imagePreview {
+            max-width: 100%;
+            max-height: 70vh;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .cropper-wrap-box,
+        .cropper-canvas,
+        .cropper-crop-box {
+            border-radius: 0;
         }
 
         /* Stats */
@@ -61,13 +139,6 @@
 
 <body class="is-preload">
 
-<!-- Loading Overlay -->
-<div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(5px); z-index: 1000; display: flex; justify-content: center; align-items: center;">
-    <div class="spinner-border text-primary" role="status">
-        <span class="sr-only">Loading...</span>
-    </div>
-</div>
-
 <div id="wrapper">
 
     <!-- Main -->
@@ -97,15 +168,39 @@
                         <div class="box" style="text-align:center;">
 
                             <!-- Avatar Upload -->
-                            <form enctype="multipart/form-data" method="post"
-                                  th:action="@{/profile/upload-picture}">
-                                <label class="avatar-upload">
-                                    <img alt="Profile Picture"
-                                         th:src="${profile.avatar != null} ? ${profile.avatar + '?t=' + #dates.format(#dates.createNow(), 'yyyyMMddHHmmss')} : '/images/default-avatar.png'"/>
-                                    <input accept="image/*" id="imageFile" name="imageFile"
-                                           onchange="sessionStorage.setItem('uploadingProfilePicture', 'true'); showLoadingOverlay(); this.form.submit();" type="file">
-                                </label>
-                            </form>
+                            <div class="avatar-upload">
+                                <img alt="Profile Picture" class="cursor-pointer" id="avatarPreview"
+                                     onclick="document.getElementById('avatarInput').click()"
+                                     th:src="${profile.avatar != null} ? ${profile.avatar + '?t=' + #dates.format(#dates.createNow(), 'yyyyMMddHHmmss')} : '/images/default-avatar.png'"/>
+
+                                <!-- Hidden file input -->
+                                <form enctype="multipart/form-data" id="avatarForm" method="post"
+                                      th:action="@{/profile/upload-picture}">
+                                    <input accept="image/*" id="avatarInput" name="imageFile"
+                                           onchange="previewImage(this)"
+                                           style="display: none;" type="file">
+                                    <input id="croppedImage" name="croppedImage" type="hidden">
+                                </form>
+
+                                <!-- Image Crop Modal -->
+                                <div class="modal" id="cropModal">
+                                    <div class="modal-content"
+                                         style="background: white; padding: 20px; border-radius: 8px; width: 500px; max-width: 90%; max-height: 90vh; display: flex; flex-direction: column;">
+                                        <h3>Edit Profile Picture</h3>
+                                        <div style="flex: 1; overflow: auto; margin: 10px 0; text-align: center; min-height: 300px; display: flex; align-items: center; justify-content: center;">
+                                            <img id="imagePreview"
+                                                 style="max-width: 100%; max-height: 60vh; display: block;"/>
+                                        </div>
+                                        <div class="actions" style="text-align: right; margin-top: 20px;">
+                                            <button class="button" onclick="closeCropModal()" type="button">Cancel
+                                            </button>
+                                            <button class="button primary" onclick="cropAndUpload()" type="button">
+                                                Save
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <!-- Name & Email -->
                             <h3 th:text="${profile.fullName}">User Name</h3>
@@ -197,50 +292,163 @@
 <script th:src="@{/js/breakpoints.min.js}"></script>
 <script th:src="@{/js/util.js}"></script>
 <script th:src="@{/js/main.js}"></script>
+<!-- Cropper.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 <script th:inline="javascript">
     /*<![CDATA[*/
-    function showLoadingOverlay() {
-        document.getElementById('loading-overlay').style.display = 'flex';
+    let cropper;
+
+    function closeCropModal() {
+        document.getElementById('cropModal').style.display = 'none';
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        document.getElementById('avatarInput').value = '';
     }
 
-    window.onload = function() {
-        var profileImage = document.querySelector('.avatar-upload img');
-        var loadingOverlay = document.getElementById('loading-overlay');
-        var isUploading = sessionStorage.getItem('uploadingProfilePicture');
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
 
-        if (isUploading === 'true') {
-            sessionStorage.removeItem('uploadingProfilePicture'); // Clear the flag
+            reader.onload = function (e) {
+                const imagePreview = document.getElementById('imagePreview');
+                imagePreview.src = e.target.result;
 
-            if (profileImage) {
-                loadingOverlay.style.display = 'flex'; // Show overlay
+                // Show the modal
+                document.getElementById('cropModal').style.display = 'flex';
 
-                profileImage.onload = function() {
-                    loadingOverlay.style.display = 'none';
-                    console.log("New profile image loaded, overlay hidden.");
-                };
-                profileImage.onerror = function() {
-                    loadingOverlay.style.display = 'none';
-                    console.error("Failed to load profile image, overlay hidden.");
-                };
-
-                // Check if the image is already complete (e.g., from cache or very fast load)
-                // This check should be after attaching onload/onerror to catch immediate loads.
-                if (profileImage.complete) {
-                    loadingOverlay.style.display = 'none';
-                    console.log("Image already complete on window.onload, overlay hidden.");
+                // Initialize cropper
+                if (cropper) {
+                    cropper.destroy();
                 }
 
-            } else {
-                // If image element not found, hide overlay anyway
-                loadingOverlay.style.display = 'none';
-                console.log("Profile image element not found, overlay hidden.");
-            }
-        } else {
-            // For normal page loads (not after an upload), ensure the overlay is hidden.
-            loadingOverlay.style.display = 'none';
-            console.log("No upload in progress, overlay hidden.");
+                // Reset any previous styles
+                imagePreview.style.maxWidth = 'none';
+                imagePreview.style.maxHeight = 'none';
+                imagePreview.style.width = 'auto';
+                imagePreview.style.height = 'auto';
+
+                // Ensure the image is loaded before initializing cropper
+                imagePreview.onload = function () {
+                    // Create a new image to get natural dimensions
+                    const img = new Image();
+                    img.onload = function () {
+                        const container = document.querySelector('.modal-content');
+                        const maxWidth = container.clientWidth * 0.9;
+                        const maxHeight = window.innerHeight * 0.7;
+
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Calculate dimensions to fit container while maintaining aspect ratio
+                        if (width > maxWidth) {
+                            const ratio = maxWidth / width;
+                            width = maxWidth;
+                            height = height * ratio;
+                        }
+
+                        if (height > maxHeight) {
+                            const ratio = maxHeight / height;
+                            height = maxHeight;
+                            width = width * ratio;
+                        }
+
+                        // Set the image dimensions
+                        imagePreview.style.width = width + 'px';
+                        imagePreview.style.height = 'auto';
+
+                        // Initialize cropper after a small delay to ensure dimensions are applied
+                        setTimeout(() => {
+                            if (cropper) {
+                                cropper.destroy();
+                            }
+
+                            cropper = new Cropper(imagePreview, {
+                                aspectRatio: 1,
+                                viewMode: 0, // Changed to 0 to allow the image to be moved outside the container
+                                autoCropArea: 1,
+                                responsive: true,
+                                guides: true,
+                                highlight: false,
+                                minContainerWidth: 300,
+                                minContainerHeight: 300,
+                                background: false,
+                                cropBoxResizable: true,
+                                cropBoxMovable: true,
+                                toggleDragModeOnDblclick: false,
+                                zoomable: true,
+                                zoomOnTouch: true,
+                                zoomOnWheel: true,
+                                dragMode: 'move',
+                                ready: function () {
+                                    const containerData = this.cropper.getContainerData();
+                                    const cropBoxWidth = Math.min(containerData.width, containerData.height) * 0.8;
+
+                                    this.cropper.setCropBoxData({
+                                        left: (containerData.width - cropBoxWidth) / 2,
+                                        top: (containerData.height - cropBoxWidth) / 2,
+                                        width: cropBoxWidth,
+                                        height: cropBoxWidth
+                                    });
+
+                                    // Center the image in the container
+                                    const imageData = this.cropper.getImageData();
+                                    this.cropper.setCanvasData({
+                                        left: (containerData.width - imageData.width) / 2,
+                                        top: (containerData.height - imageData.height) / 2
+                                    });
+                                }
+                            });
+                        }, 100);
+                    };
+                    img.src = imagePreview.src;
+                };
+            };
+
+            reader.readAsDataURL(input.files[0]);
         }
-    };
+    }
+
+    function cropAndUpload() {
+        if (cropper) {
+            const canvas = cropper.getCroppedCanvas({
+                width: 400,
+                height: 400,
+                minWidth: 256,
+                minHeight: 256,
+                maxWidth: 1024,
+                maxHeight: 1024,
+                fillColor: '#fff',
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
+            });
+
+            canvas.toBlob((blob) => {
+                const formData = new FormData(document.getElementById('avatarForm'));
+                const croppedFile = new File([blob], 'avatar.png', {type: 'image/png'});
+                formData.set('imageFile', croppedFile);
+
+                fetch('/profile/upload-picture', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Upload failed');
+                        }
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error uploading image. Please try again.');
+                    });
+
+                closeCropModal();
+            }, 'image/png');
+        }
+    }
+
     /*]]>*/
 </script>
 </body>
