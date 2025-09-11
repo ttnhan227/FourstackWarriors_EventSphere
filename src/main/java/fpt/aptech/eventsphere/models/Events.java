@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 
@@ -34,11 +35,11 @@ public class Events {
     @Column(name = "category", length = 50)
     private String category;
 
-    @Column(name = "date")
-    private LocalDate date;
+    @Column(name = "startDate")
+    private LocalDateTime startDate;
 
-    @Column(name = "time")
-    private LocalTime time;
+    @Column(name = "endDate")
+    private LocalDateTime endDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venue_id", nullable = false)
@@ -58,4 +59,16 @@ public class Events {
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Feedback> feedbacks = new ArrayList<>();
+
+    //one to one
+    @OneToOne(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private EventSeating eventSeating;
+
+    //set eventseating and set event
+    public void setEventSeating(EventSeating eventSeating) {
+        this.eventSeating = eventSeating;
+        if (eventSeating != null) {
+            eventSeating.setEvent(this);
+        }
+    }
 }
