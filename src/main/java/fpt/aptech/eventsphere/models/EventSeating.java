@@ -20,8 +20,9 @@ public class EventSeating {
     @JoinColumn(name = "event_id")
     private Events event;
 
-    @Column(name = "venue_id", nullable = false)
-    private int venueId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "venue_id", nullable = false)
+    private Venues venue;
 
     @Column(name = "total_seats", nullable = false)
     private int totalSeats;

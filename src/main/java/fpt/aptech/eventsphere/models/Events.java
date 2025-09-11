@@ -40,9 +40,9 @@ public class Events {
     @Column(name = "time")
     private LocalTime time;
 
-    @Size(max = 100, message = "Venue must not exceed 100 characters")
-    @Column(name = "venue", length = 100)
-    private String venue;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "venue_id", nullable = false)
+    private Venues venue;
 
     // Many-to-one with Users (organizer)
     @ManyToOne(fetch = FetchType.LAZY)
