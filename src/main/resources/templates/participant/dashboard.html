@@ -56,18 +56,55 @@
 
             <!-- Content -->
             <section>
+                <!-- Quick Actions -->
+                <div class="box alt" style="margin-bottom: 2em;">
+                    <div class="row gtr-50 gtr-uniform">
+                        <div class="col-12">
+                            <h3>Quick Actions</h3>
+                        </div>
+                        <div class="col-4 col-12-small">
+                            <a th:href="@{/participant/events/list}" class="button primary fit">
+                                <i class="fas fa-calendar-alt"></i> Browse All Events
+                            </a>
+                        </div>
+                        <div class="col-4 col-12-small">
+                            <a th:href="@{/participant/events/list(category='Workshop')}" class="button fit">
+                                <i class="fas fa-laptop-code"></i> View Workshops
+                            </a>
+                        </div>
+                        <div class="col-4 col-12-small">
+                            <a th:href="@{/participant/events/past}" class="button fit">
+                                <i class="fas fa-history"></i> Past Events
+                            </a>
+                        </div>
+                    </div>
+                </div>
                 <!-- My Events Section -->
                 <header class="major">
                     <h2>My Events</h2>
                 </header>
                 <div class="posts">
                     <article th:each="event : ${events}">
-                        <a href="#" class="image"><img th:src="${event.imageUrl != null} ? ${event.imageUrl} : '/images/home/pic01.jpg'" alt="" /></a>
-                        <h3 th:text="${event.name}">Event Name</h3>
+                        <a th:href="@{/participant/events/view/{id}(id=${event.eventId})}" class="image">
+                            <img th:src="${event.imageUrl != null ? event.imageUrl : '/images/event-placeholder.jpg'}" 
+                                 th:attr="src=${event.imageUrl != null ? event.imageUrl : '/images/event-placeholder.jpg'}" 
+                                 alt="Event Image" 
+                                 style="width: 100%; height: 200px; object-fit: cover;"/>
+                        </a>
+                        <h3 th:text="${event.title}">Event Name</h3>
                         <p th:text="${event.description}">Event Description</p>
-                        <p><i class="far fa-calendar-alt"></i> <span th:text="${#temporals.format(event.date, 'dd MMM yyyy')}">Event Date</span></p>
+                        <p><i class="far fa-calendar-alt"></i> 
+                            <span th:text="${#temporals.format(event.startDate, 'dd MMM yyyy')} + ' at ' + 
+                                       ${#temporals.format(event.startDate, 'h:mm a')}">
+                                Event Date
+                            </span>
+                        </p>
                         <ul class="actions">
-                            <li><a href="#" class="button">View Details</a></li>
+                            <li>
+                                <a th:href="@{/participant/events/{id}(id=${event.eventId})}" class="button">
+                                    View Details
+                                </a>
+                            </li>
                         </ul>
                     </article>
                     <article th:if="${#lists.isEmpty(events)}">
@@ -81,10 +118,24 @@
                 </header>
                 <div class="posts">
                     <article th:each="event : ${availableEvents}">
-                        <a href="#" class="image"><img th:src="${event.imageUrl != null} ? ${event.imageUrl} : '/images/home/pic02.jpg'" alt="" /></a>
-                        <h3 th:text="${event.name}">Available Event</h3>
+                        <a th:href="@{/participant/events/{id}(id=${event.eventId})}" class="image">
+                            <img th:src="${event.imageUrl} ?: '/images/home/pic02.jpg'" alt="Available Event Image" />
+                        </a>
+                        <h3 th:text="${event.title}">Available Event</h3>
                         <p th:text="${event.description}">Event Description</p>
-                        <p><i class="far fa-calendar-alt"></i> <span th:text="${#temporals.format(event.date, 'dd MMM yyyy')}">Event Date</span></p>
+                        <p><i class="far fa-calendar-alt"></i> 
+                            <span th:text="${#temporals.format(event.startDate, 'dd MMM yyyy')} + ' at ' + 
+                                       ${#temporals.format(event.startDate, 'h:mm a')}">
+                                Event Date
+                            </span>
+                        </p>
+                        <ul class="actions">
+                            <li>
+                                <a th:href="@{/participant/events/{id}(id=${event.eventId})}" class="button">
+                                    View Details
+                                </a>
+                            </li>
+                        </ul>
                         <ul class="actions">
                             <li><a th:href="@{/events/register/{id}(id=${event.id})}" class="button primary">Register</a></li>
                             <li><a href="#" class="button">Details</a></li>

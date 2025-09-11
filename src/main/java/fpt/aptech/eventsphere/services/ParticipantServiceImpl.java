@@ -5,6 +5,7 @@ import fpt.aptech.eventsphere.models.Events;
 import fpt.aptech.eventsphere.models.Roles;
 import fpt.aptech.eventsphere.models.UserDetails;
 import fpt.aptech.eventsphere.models.Users;
+import fpt.aptech.eventsphere.repositories.EventRepository;
 import fpt.aptech.eventsphere.repositories.ParticipantRepository;
 import fpt.aptech.eventsphere.repositories.RoleRepository;
 import fpt.aptech.eventsphere.repositories.UserDetailsRepository;
@@ -14,25 +15,31 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 @Service
 @Transactional
 public class ParticipantServiceImpl implements ParticipantService {
+    private static final Logger logger = LoggerFactory.getLogger(ParticipantServiceImpl.class);
 
     private final ParticipantRepository participantRepository;
+    private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final UserDetailsRepository userDetailsRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
     public ParticipantServiceImpl(ParticipantRepository participantRepository,
+                            EventRepository eventRepository,
                             UserRepository userRepository,
                             UserDetailsRepository userDetailsRepository,
                             RoleRepository roleRepository,
                             PasswordEncoder passwordEncoder) {
         this.participantRepository = participantRepository;
+        this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.userDetailsRepository = userDetailsRepository;
         this.roleRepository = roleRepository;
@@ -55,6 +62,30 @@ public class ParticipantServiceImpl implements ParticipantService {
             throw new IllegalStateException("User not authenticated");
         }
         return participantRepository.findPastRegisteredEvents(currentUser.getUserId());
+    }
+    
+    @Override
+    public List<Events> getAllUpcomingEvents() {
+        logger.debug("Fetching all upcoming events");
+        List<Events> events = eventRepository.findAllUpcomingEvents();
+        logger.debug("Found {} upcoming events", events.size());
+        return events;
+    }
+    
+    @Override
+    public List<Events> getAllPastEvents() {
+        logger.debug("Fetching all past events");
+        List<Events> events = eventRepository.findAllPastEvents();
+        logger.debug("Found {} past events", events.size());
+        return events;
+    }
+    
+    @Override
+    public List<Events> getUpcomingEventsByCategory(String category) {
+        logger.debug("Fetching upcoming events for category: {}", category);
+        List<Events> events = eventRepository.findUpcomingEventsByCategory(category);
+        logger.debug("Found {} events for category: {}", events.size(), category);
+        return events;
     }
 
     @Override

@@ -46,6 +46,9 @@ public class Events {
     @Future(message = "End date must be in the future")
     private LocalDateTime endDate;
 
+    @Column(name = "image_url", length = 512)
+    private String imageUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venue_id", nullable = false)
     private Venues venue;

@@ -2,8 +2,10 @@ package fpt.aptech.eventsphere.models;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
-import lombok.*;
-import org.springframework.boot.context.properties.bind.DefaultValue;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "event_seating")
@@ -28,12 +30,11 @@ public class EventSeating {
 
     @Column(name = "seats_booked", nullable = false)
     private int seatsBooked = 0;
-
-    @Transient
-    public int getAvailableSeat(){
-        return totalSeats - seatsBooked;
-    }
-
     @Column(name = "waitlist_enabled", nullable = false)
     private boolean waitlistEnabled;
+
+    @Transient
+    public int getAvailableSeat() {
+        return totalSeats - seatsBooked;
+    }
 }
