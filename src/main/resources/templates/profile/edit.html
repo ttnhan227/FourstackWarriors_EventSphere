@@ -1,0 +1,154 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Edit Profile - EventSphere</title>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1, user-scalable=no" name="viewport"/>
+    <link rel="stylesheet" th:href="@{/css/home/main.css}"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+</head>
+
+<body class="is-preload">
+
+<!-- Wrapper -->
+<div id="wrapper">
+
+    <!-- Main -->
+    <div id="main">
+        <div class="inner">
+            <!-- Header -->
+            <header id="header">
+                <a class="logo" th:href="@{/}">
+                    <strong>EventSphere</strong> - Edit Profile
+                </a>
+            </header>
+
+            <!-- Content -->
+            <section>
+                <!-- Success/Error Messages -->
+                <div class="alert alert-success" role="alert" th:if="${success}">
+                    <span th:text="${success}"></span>
+                </div>
+                <div class="alert alert-danger" role="alert" th:if="${error}">
+                    <span th:text="${error}"></span>
+                </div>
+
+                <div class="box">
+                    <header class="major">
+                        <h2>Edit Profile</h2>
+                    </header>
+
+                    <form method="post" th:action="@{/profile/update}" th:object="${profile}">
+                        <div class="row gtr-uniform">
+                            <!-- Full Name -->
+                            <div class="col-12">
+                                <label for="fullName">Full Name</label>
+                                <input id="fullName" placeholder="Enter your full name" required
+                                       th:field="*{fullName}" type="text"/>
+                                <small class="text-danger" th:errors="*{fullName}"
+                                       th:if="${#fields.hasErrors('fullName')}"></small>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-12">
+                                <label for="email">Email Address</label>
+                                <input id="email" readonly th:field="*{email}" type="email"/>
+                            </div>
+
+                            <!-- Phone -->
+                            <div class="col-12">
+                                <label for="phone">Phone Number</label>
+                                <input id="phone" placeholder="+84xxxxxxxxx or 0xxxxxxxxx" th:field="*{phone}"
+                                       type="tel"/>
+                                <small class="text-danger" th:errors="*{phone}"
+                                       th:if="${#fields.hasErrors('phone')}"></small>
+                                <small class="form-text text-muted">Format: +84 or 0 followed by 9-10 digits</small>
+                            </div>
+
+                            <!-- Department -->
+                            <div class="col-12">
+                                <label for="department">Department</label>
+                                <input id="department" placeholder="Enter your department" th:field="*{department}"
+                                       type="text"/>
+                                <small class="text-danger" th:errors="*{department}"
+                                       th:if="${#fields.hasErrors('department')}"></small>
+                            </div>
+
+                            <!-- Enrollment Number -->
+                            <div class="col-12">
+                                <label for="enrollmentNo">Enrollment Number</label>
+                                <input id="enrollmentNo" placeholder="EN12345" th:field="*{enrollmentNo}" type="text"/>
+                                <small class="text-danger" th:errors="*{enrollmentNo}"
+                                       th:if="${#fields.hasErrors('enrollmentNo')}"></small>
+                                <small class="form-text text-muted">Uppercase letters and numbers only, 6-50
+                                    characters</small>
+                            </div>
+
+                            <!-- Address -->
+                            <div class="col-12">
+                                <label for="address">Address</label>
+                                <input id="address" placeholder="Enter your address" th:field="*{address}" type="text"/>
+                                <small class="text-danger" th:errors="*{address}"
+                                       th:if="${#fields.hasErrors('address')}"></small>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="col-12" style="margin-top:1em;">
+                                <ul class="actions">
+                                    <li>
+                                        <button class="button primary" type="submit">Save Changes</button>
+                                    </li>
+                                    <li><a class="button" th:href="@{/profile}">Cancel</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div th:replace="~{layout/sidebar-layout :: sidebar}"></div>
+
+</div>
+
+<!-- Scripts -->
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/browser.min.js}"></script>
+<script th:src="@{/js/breakpoints.min.js}"></script>
+<script th:src="@{/js/util.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Phone number formatting
+        const phoneInput = document.getElementById('phone');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function (e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.startsWith('0')) {
+                    value = value.substring(0, 10);
+                } else if (value.startsWith('84')) {
+                    value = '+' + value.substring(0, 11);
+                } else if (value.startsWith('+84')) {
+                    value = '+' + value.substring(1, 12);
+                } else {
+                    value = value.substring(0, 10);
+                }
+                e.target.value = value;
+            });
+        }
+
+        // Force uppercase for enrollment number
+        const enrollmentInput = document.getElementById('enrollmentNo');
+        if (enrollmentInput) {
+            enrollmentInput.addEventListener('input', function (e) {
+                e.target.value = e.target.value.toUpperCase();
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

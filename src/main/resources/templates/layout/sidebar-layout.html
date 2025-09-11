@@ -77,6 +77,9 @@
             </header>
             <ul>
                 <li><a th:href="@{/}">Homepage</a></li>
+                <li th:if="${#authorization.expression('isAuthenticated()')}">
+                    <a th:href="@{/profile}">My Profile</a>
+                </li>
                 <li th:if="${#authorization.expression('hasRole(''PARTICIPANT'')')}">
                     <a th:href="@{/participant/dashboard}">My Dashboard</a>
                 </li>

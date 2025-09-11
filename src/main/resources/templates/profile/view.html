@@ -1,0 +1,247 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>My Profile - EventSphere</title>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1, user-scalable=no" name="viewport"/>
+    <link rel="stylesheet" th:href="@{/css/home/main.css}"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+    <style>
+        /* Avatar Upload */
+        .avatar-upload {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .avatar-upload input[type="file"] {
+            display: none;
+        }
+
+        .avatar-upload img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #ddd;
+            transition: 0.3s;
+        }
+
+        .avatar-upload img:hover {
+            opacity: 0.8;
+        }
+
+        /* Stats */
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 1em 0;
+            text-align: center;
+        }
+
+        .stats-box {
+            flex: 1;
+            margin: 0 5px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 0.8em;
+        }
+
+        .stats-box h4 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+
+        .stats-box span {
+            color: #888;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+
+<body class="is-preload">
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(5px); z-index: 1000; display: flex; justify-content: center; align-items: center;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
+
+<div id="wrapper">
+
+    <!-- Main -->
+    <div id="main">
+        <div class="inner">
+
+            <!-- Header -->
+            <header id="header">
+                <a class="logo" th:href="@{/}">
+                    <strong>EventSphere</strong> - My Profile
+                </a>
+            </header>
+
+            <!-- Content -->
+            <section>
+                <!-- Success/Error Messages -->
+                <div class="alert alert-success" role="alert" th:if="${success}">
+                    <span th:text="${success}"></span>
+                </div>
+                <div class="alert alert-danger" role="alert" th:if="${error}">
+                    <span th:text="${error}"></span>
+                </div>
+
+                <div class="row gtr-200">
+                    <!-- Left Sidebar -->
+                    <div class="col-4 col-12-medium">
+                        <div class="box" style="text-align:center;">
+
+                            <!-- Avatar Upload -->
+                            <form enctype="multipart/form-data" method="post"
+                                  th:action="@{/profile/upload-picture}">
+                                <label class="avatar-upload">
+                                    <img alt="Profile Picture"
+                                         th:src="${profile.avatar != null} ? ${profile.avatar + '?t=' + #dates.format(#dates.createNow(), 'yyyyMMddHHmmss')} : '/images/default-avatar.png'"/>
+                                    <input accept="image/*" id="imageFile" name="imageFile"
+                                           onchange="sessionStorage.setItem('uploadingProfilePicture', 'true'); showLoadingOverlay(); this.form.submit();" type="file">
+                                </label>
+                            </form>
+
+                            <!-- Name & Email -->
+                            <h3 th:text="${profile.fullName}">User Name</h3>
+                            <p class="text-muted" th:text="${profile.email}">user@example.com</p>
+
+                            <!-- Stats -->
+                            <div class="stats-container">
+                                <div class="stats-box">
+                                    <h4 th:text="${profile.totalEventsRegistered}">0</h4>
+                                    <span>Events</span>
+                                </div>
+                                <div class="stats-box">
+                                    <h4 th:text="${profile.totalEventsAttended}">0</h4>
+                                    <span>Attended</span>
+                                </div>
+                            </div>
+
+                            <!-- Edit Profile -->
+                            <a class="button primary fit" th:href="@{/profile/edit}">
+                                <i class="fas fa-edit"></i> Edit Profile
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Right Content -->
+                    <div class="col-8 col-12-medium">
+                        <!-- Profile Info -->
+                        <div class="box">
+                            <header class="major">
+                                <h2>Profile Information</h2>
+                            </header>
+                            <p><strong>Full Name:</strong> <span th:text="${profile.fullName}">John Doe</span></p>
+                            <p><strong>Email:</strong> <span th:text="${profile.email}">user@example.com</span></p>
+                            <p><strong>Phone:</strong> <span
+                                    th:text="${profile.phone != null ? profile.phone : 'Not provided'}">+123456789</span>
+                            </p>
+                            <p><strong>Department:</strong> <span
+                                    th:text="${profile.department != null ? profile.department : 'Not provided'}">IT Department</span>
+                            </p>
+                            <p><strong>Enrollment No:</strong> <span
+                                    th:text="${profile.enrollmentNo != null ? profile.enrollmentNo : 'Not provided'}">EN12345</span>
+                            </p>
+                            <p><strong>Member Since:</strong> <span
+                                    th:text="${#temporals.format(profile.memberSince, 'MMMM dd, yyyy')}">January 1, 2023</span>
+                            </p>
+                        </div>
+
+                        <!-- Change Password -->
+                        <div class="box">
+                            <header class="major">
+                                <h2>Change Password</h2>
+                            </header>
+                            <form method="post" th:action="@{/profile/change-password}">
+                                <div class="row gtr-uniform">
+                                    <div class="col-12">
+                                        <input id="currentPassword" name="currentPassword"
+                                               placeholder="Current Password"
+                                               required type="password"/>
+                                    </div>
+                                    <div class="col-12">
+                                        <input id="newPassword" name="newPassword" placeholder="New Password"
+                                               required type="password"/>
+                                    </div>
+                                    <div class="col-12">
+                                        <ul class="actions">
+                                            <li>
+                                                <button class="button primary" type="submit">Update Password</button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div th:replace="~{layout/sidebar-layout :: sidebar}"></div>
+
+</div>
+
+<!-- Scripts -->
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/browser.min.js}"></script>
+<script th:src="@{/js/breakpoints.min.js}"></script>
+<script th:src="@{/js/util.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    function showLoadingOverlay() {
+        document.getElementById('loading-overlay').style.display = 'flex';
+    }
+
+    window.onload = function() {
+        var profileImage = document.querySelector('.avatar-upload img');
+        var loadingOverlay = document.getElementById('loading-overlay');
+        var isUploading = sessionStorage.getItem('uploadingProfilePicture');
+
+        if (isUploading === 'true') {
+            sessionStorage.removeItem('uploadingProfilePicture'); // Clear the flag
+
+            if (profileImage) {
+                loadingOverlay.style.display = 'flex'; // Show overlay
+
+                profileImage.onload = function() {
+                    loadingOverlay.style.display = 'none';
+                    console.log("New profile image loaded, overlay hidden.");
+                };
+                profileImage.onerror = function() {
+                    loadingOverlay.style.display = 'none';
+                    console.error("Failed to load profile image, overlay hidden.");
+                };
+
+                // Check if the image is already complete (e.g., from cache or very fast load)
+                // This check should be after attaching onload/onerror to catch immediate loads.
+                if (profileImage.complete) {
+                    loadingOverlay.style.display = 'none';
+                    console.log("Image already complete on window.onload, overlay hidden.");
+                }
+
+            } else {
+                // If image element not found, hide overlay anyway
+                loadingOverlay.style.display = 'none';
+                console.log("Profile image element not found, overlay hidden.");
+            }
+        } else {
+            // For normal page loads (not after an upload), ensure the overlay is hidden.
+            loadingOverlay.style.display = 'none';
+            console.log("No upload in progress, overlay hidden.");
+        }
+    };
+    /*]]>*/
+</script>
+</body>
+</html>
