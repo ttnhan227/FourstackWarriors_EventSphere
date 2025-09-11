@@ -35,26 +35,26 @@
                 <div class="box alt" style="margin-bottom: 2em;">
                     <div class="row gtr-50 gtr-uniform">
                         <div class="col-6 col-12-small">
-                            <a th:href="@{/participant/events}" 
-                               th:class="${!isPast} ? 'button primary fit' : 'button fit'">
+                            <a th:class="${!isPast} ? 'button primary fit' : 'button fit'"
+                               th:href="@{/participant/events/list}">
                                 Upcoming
                             </a>
                         </div>
                         <div class="col-6 col-12-small">
-                            <a th:href="@{/participant/events/past}" 
-                               th:class="${isPast} ? 'button primary fit' : 'button fit'">
+                            <a th:class="${isPast} ? 'button primary fit' : 'button fit'"
+                               th:href="@{/participant/events/past}">
                                 Past
                             </a>
                         </div>
                         <div class="col-12" style="margin-top: 1em;">
                             <h4>Categories</h4>
-                            <a th:href="@{/participant/events}" 
-                               th:class="'button small ' + (${category == null} ? 'primary' : '')">
+                            <a th:class="'button small ' + (${category == null} ? 'primary' : '')"
+                               th:href="@{/participant/events}">
                                 All
                             </a>
-                            <a th:each="cat : ${categories}"
+                            <a th:class="'button small ' + (${category == cat} ? 'primary' : '')"
+                               th:each="cat : ${categories}"
                                th:href="@{/participant/events(category=${cat})}"
-                               th:class="'button small ' + (${category == cat} ? 'primary' : '')"
                                th:text="${cat}">
                             </a>
                         </div>
@@ -64,10 +64,10 @@
                 <!-- Events List -->
                 <div class="posts">
                     <article th:each="event : ${events}">
-                        <a th:href="@{/participant/events/{id}(id=${event.eventId})}" class="image">
-                            <img th:src="${event.imageUrl != null ? event.imageUrl : '/images/event-placeholder.jpg'}"
-                                 alt="Event Image"
-                                 style="width: 100%; height: 200px; object-fit: cover;"/>
+                        <a class="image" th:href="@{/participant/events/view/{id}(id=${event.eventId})}">
+                            <img alt="Event Image"
+                                 style="width: 100%; height: 200px; object-fit: cover;"
+                                 th:src="${event.imageUrl != null ? event.imageUrl : '/images/event-placeholder.jpg'}"/>
                         </a>
                         <h3 th:text="${event.title}">Event Title</h3>
                         <p th:text="${event.description}">Event description</p>
@@ -78,7 +78,7 @@
                         </p>
                         <ul class="actions">
                             <li>
-                                <a th:href="@{/participant/events/{id}(id=${event.eventId})}" class="button">
+                                <a class="button" th:href="@{/participant/events/view/{id}(id=${event.eventId})}">
                                     View Details
                                 </a>
                             </li>
@@ -92,37 +92,37 @@
                 <!-- Pagination -->
                 <ul class="pagination" th:if="${events.totalPages > 1}">
                     <li>
-                        <a th:href="@{${'/' + #httpServletRequest.requestURI + '?page=0' + 
-                                      (category != null ? '&category=' + category : '')}}" class="button small">
+                        <a class="button small" th:href="@{${'/' + #httpServletRequest.requestURI + '?page=0' +
+                                      (category != null ? '&category=' + category : '')}}">
                             « First
                         </a>
                     </li>
                     <li>
-                        <a th:href="@{${'/' + #httpServletRequest.requestURI + '?page=' + (events.number - 1) + 
-                                      (category != null ? '&category=' + category : '')}}" 
-                           th:class="${events.first} ? 'button small disabled' : 'button small'">
+                        <a th:class="${events.first} ? 'button small disabled' : 'button small'"
+                           th:href="@{${'/' + #httpServletRequest.requestURI + '?page=' + (events.number - 1) +
+                                      (category != null ? '&category=' + category : '')}}">
                             ‹ Prev
                         </a>
                     </li>
 
                     <li th:each="i : ${#numbers.sequence(1, events.totalPages)}">
-                        <a th:href="@{${'/' + #httpServletRequest.requestURI + '?page=' + (i-1) + 
+                        <a th:class="${i-1 == events.number} ? 'button small primary' : 'button small'"
+                           th:href="@{${'/' + #httpServletRequest.requestURI + '?page=' + (i-1) +
                                       (category != null ? '&category=' + category : '')}}"
-                           th:class="${i-1 == events.number} ? 'button small primary' : 'button small'"
                            th:text="${i}">
                         </a>
                     </li>
 
                     <li>
-                        <a th:href="@{${'/' + #httpServletRequest.requestURI + '?page=' + (events.number + 1) + 
-                                      (category != null ? '&category=' + category : '')}}" 
-                           th:class="${events.last} ? 'button small disabled' : 'button small'">
+                        <a th:class="${events.last} ? 'button small disabled' : 'button small'"
+                           th:href="@{${'/' + #httpServletRequest.requestURI + '?page=' + (events.number + 1) +
+                                      (category != null ? '&category=' + category : '')}}">
                             Next ›
                         </a>
                     </li>
                     <li>
-                        <a th:href="@{${'/' + #httpServletRequest.requestURI + '?page=' + (events.totalPages - 1) + 
-                                      (category != null ? '&category=' + category : '')}}" class="button small">
+                        <a class="button small" th:href="@{${'/' + #httpServletRequest.requestURI + '?page=' + (events.totalPages - 1) +
+                                      (category != null ? '&category=' + category : '')}}">
                             Last »
                         </a>
                     </li>

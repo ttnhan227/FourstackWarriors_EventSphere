@@ -1,6 +1,7 @@
 package fpt.aptech.eventsphere.controllers;
 
 import fpt.aptech.eventsphere.models.Events;
+import fpt.aptech.eventsphere.repositories.EventRepository;
 import fpt.aptech.eventsphere.services.ParticipantService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
@@ -26,9 +26,11 @@ public class ParticipantEventController {
     private static final Logger logger = LoggerFactory.getLogger(ParticipantEventController.class);
     private static final int PAGE_SIZE = 10;
     private final ParticipantService participantService;
+    private final EventRepository eventRepository;
 
-    public ParticipantEventController(ParticipantService participantService) {
+    public ParticipantEventController(ParticipantService participantService, EventRepository eventRepository) {
         this.participantService = participantService;
+        this.eventRepository = eventRepository;
     }
 
     @GetMapping("/dashboard")
@@ -109,30 +111,20 @@ public class ParticipantEventController {
     }
 
     @GetMapping("/events/view/{id}")
-    public String viewEvent(@PathVariable("id") Long id, Model model) {
+    public String viewEvent(@PathVariable("id") int id, Model model) {
         try {
-            // In a real implementation, you would have a method in ParticipantService to get event by ID
-            // For now, we'll find it from the upcoming events
-            Optional<Events> event = participantService.getUpcomingEvents().stream()
-                    .filter(e -> e.getEventId() == id)
-                    .findFirst();
-
-            if (event.isPresent()) {
-                model.addAttribute("event", event.get());
+            logger.info("Attempting to find event with ID: {}", id);
+            // Use a custom query to fetch the event with its organizer
+            Events event = eventRepository.findByIdWithOrganizer(id);
+            
+            if (event != null) {
+                logger.info("Found event: {}", event.getTitle());
+                model.addAttribute("event", event);
                 return "participant/events/view";
             } else {
-                // Check past events if not found in upcoming
-                event = participantService.getPastEvents().stream()
-                        .filter(e -> e.getEventId() == id)
-                        .findFirst();
-
-                if (event.isPresent()) {
-                    model.addAttribute("event", event.get());
-                    return "participant/events/view";
-                } else {
-                    model.addAttribute("error", "Event not found");
-                    return "error/404";
-                }
+                logger.warn("Event not found with ID: {}", id);
+                model.addAttribute("error", "Event not found");
+                return "error/404";
             }
         } catch (Exception e) {
             model.addAttribute("error", "Error loading event: " + e.getMessage());

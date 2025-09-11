@@ -48,9 +48,7 @@
 
                         <!-- Description -->
                         <h3>About This Event</h3>
-                        <p th:utext="${#strings.replace(
-                            #strings.escapeXml(event.description),
-                            T(java.lang.System).getProperty('line.separator'), '&lt;br/&gt;')}">
+                        <p th:utext="${#strings.escapeXml(event.description)?.replaceAll('\n', '&lt;br/&gt;')}">
                         </p>
 
                         <!-- Event Details -->
@@ -69,7 +67,7 @@
                             </li>
                             <li>
                                 <strong><i class="fas fa-user"></i> Organizer:</strong>
-                                <span th:text="${event.organizer.username}"></span>
+                                <span th:text="${event.organizer.email}"></span>
                             </li>
                             <li th:if="${eventSeating != null}">
                                 <strong><i class="fas fa-chair"></i> Seating:</strong>
@@ -100,7 +98,7 @@
                         <h3>Organizer</h3>
                         <p>
                             <i class="fas fa-user-circle"></i>
-                            <span th:text="${event.organizer.username}"></span>
+                            <span th:text="${event.organizer.email}"></span>
                         </p>
                         <a class="button small icon solid fa-envelope" href="#">Contact Organizer</a>
 

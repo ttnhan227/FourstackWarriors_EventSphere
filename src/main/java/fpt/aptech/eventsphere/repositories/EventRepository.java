@@ -47,4 +47,7 @@ public interface EventRepository extends JpaRepository<Events, Integer> {
 
     @Query("SELECT e FROM Events e WHERE e.startDate >= CURRENT_DATE AND e.category = :category ORDER BY e.startDate")
     List<Events> findUpcomingEventsByCategory(@Param("category") String category);
+    
+    @Query("SELECT e FROM Events e LEFT JOIN FETCH e.organizer WHERE e.eventId = :id")
+    Events findByIdWithOrganizer(@Param("id") int id);
 }
