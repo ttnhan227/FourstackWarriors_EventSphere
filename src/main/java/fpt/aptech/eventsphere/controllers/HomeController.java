@@ -22,14 +22,4 @@ public class HomeController {
     public String elements() {
         return "home/elements";
     }
-
-    @GetMapping("/login")
-    public String login() {
-        return "auth/login";
-    }
-
-    @GetMapping("/admin/index")
-    public String admin() {
-        return "admin/dashboard";
-    }
 }

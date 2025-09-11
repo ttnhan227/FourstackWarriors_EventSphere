@@ -17,10 +17,14 @@ public class EventSeating {
     @Column(name = "event_id")
     private int eventId;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @MapsId
-    @JoinColumn(name = "event_id")
+    @JoinColumn(name = "event_id", nullable = false)
     private Events event;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "venue_id", nullable = false)
+    private Venues venue;
 
     @Column(name = "total_seats", nullable = false)
     @Min(value = 1, message = "Total seats must be greater than 0")

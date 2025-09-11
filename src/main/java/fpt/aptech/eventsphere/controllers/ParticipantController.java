@@ -2,6 +2,7 @@ package fpt.aptech.eventsphere.controllers;
 
 import fpt.aptech.eventsphere.models.Events;
 import fpt.aptech.eventsphere.services.ParticipantService;
+import fpt.aptech.eventsphere.services.ParticipantServiceImpl;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,7 +13,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/participant")
-@PreAuthorize("hasRole('PARTICIPANT')")
+@PreAuthorize("hasAuthority('ROLE_PARTICIPANT')")
 public class ParticipantController {
 
     private final ParticipantService participantService;
