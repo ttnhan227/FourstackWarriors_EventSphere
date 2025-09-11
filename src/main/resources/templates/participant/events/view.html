@@ -73,8 +73,15 @@
                                     
                                     <div th:if="${isRegistered}" class="mt-3">
                                         <div class="box alt">
-                                            <span class="icon solid fa-check-circle"></span>
-                                            <span>You are registered for this event</span>
+                                            <p>
+                                                <span class="icon solid fa-check-circle"></span>
+                                                <strong>Status:</strong> Confirmed
+                                            </p>
+                                            <p>
+                                                <span class="icon solid fa-calendar-check"></span>
+                                                <strong>Registered on:</strong>
+                                                <span th:text="${#temporals.format(#temporals.createNow(), 'MMMM d, yyyy')}"></span>
+                                            </p>
                                         </div>
                                         <form th:action="@{/participant/events/{eventId}/cancel(eventId=${event.eventId})}" method="post" class="mt-2">
                                             <button class="button small" type="submit" onclick="return confirm('Are you sure you want to cancel your registration?');">
@@ -122,23 +129,6 @@
                             </div>
                             
                             <!-- Quick Actions -->
-                            <div class="box" th:if="${isRegistered}">
-                                <h3>Your Registration</h3>
-                                <p>
-                                    <span class="icon solid fa-check-circle"></span>
-                                    <strong>Status:</strong> Confirmed
-                                </p>
-                                <p>
-                                    <span class="icon solid fa-calendar-check"></span>
-                                    <strong>Registered on:</strong>
-                                    <span th:text="${#temporals.format(#temporals.createNow(), 'MMMM d, yyyy')}"></span>
-                                </p>
-                                <form th:action="@{/participant/events/{eventId}/cancel(eventId=${event.eventId})}" method="post" class="mt-2">
-                                    <button class="button small" type="submit" onclick="return confirm('Are you sure you want to cancel your registration?');">
-                                        <span class="icon solid fa-user-minus"></span> Cancel Registration
-                                    </button>
-                                </form>
-                            </div>
                         </div>
                         </ul>
                     </div>
