@@ -23,26 +23,16 @@
 
             <!-- Header -->
             <header id="header">
-                <h1>List Events</h1>
+                <h1>Create Events</h1>
             </header>
 
             <!-- Section -->
             <section>
-                <div class="posts">
-                    <article th:each="event : ${list}">
-                        <a href="#" class="image"><img th:src="@{/images/home/pic01.jpg}" alt=""/></a>
-                        <h3 th:text="${event.getTitle()}"></h3>
-                        Venue: <h4 th:text="${event.getVenue().name}"></h4>
-                        Start date: <h4 th:text="${#temporals.format(event.startDate, 'yyyy/MM/dd HH:mm')}"></h4>
-                        End date: <h4 th:text="${#temporals.format(event.endDate, 'yyyy/MM/dd HH:mm')}"></h4>
-                        Total Seats: <h4 th:text="${event.eventSeating.totalSeats}"></h4>
-                        Available Seats: <h4 th:text="${event.eventSeating.getAvailableSeat()}"></h4>
-                        <p th:text="${event.getDescription()}"></p>
-                        <ul class="actions">
-                            <li><a href="#" class="button">Details</a></li>
-                        </ul>
-                    </article>
-                </div>
+                <form th:action="@{/organizer/createVenue}" th:object="${venue}" method="post">
+                    <input type="text" th:field="*{name}" placeholder="Name"/>
+                    <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                    <button type="submit">Create</button>
+                </form>
             </section>
 
         </div>
@@ -50,7 +40,6 @@
 
     <!-- Sidebar -->
     <div th:replace="~{org/orgLayout :: sidebar}"></div>
-
 
 </div>
 
