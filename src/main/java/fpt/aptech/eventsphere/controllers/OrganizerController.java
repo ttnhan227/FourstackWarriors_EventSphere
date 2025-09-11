@@ -7,15 +7,13 @@ import fpt.aptech.eventsphere.models.Venues;
 import fpt.aptech.eventsphere.services.OrganizerService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/organizer")
@@ -29,10 +27,14 @@ public class OrganizerController {
     }
 
     @GetMapping("/index")
-    public String index(Model model) {
+    public String index(@RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "4") int size,
+                        Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        model.addAttribute("list",  organizerService.findEventsByOrganizer(email));
+
+        Page<Events> events = organizerService.findEventsByOrganizer(email, page, size);
+        model.addAttribute("eventPage", events);
         return "org/index";
     }
 
