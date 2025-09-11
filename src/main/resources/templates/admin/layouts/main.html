@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="en" th:fragment="layout(content)">
 <head>
     <meta charset="UTF-8">
     <title th:text="${title}">Dashboard</title>
@@ -8,24 +8,13 @@
     <link rel="stylesheet" th:href="@{/plugins/fontawesome-free/css/all.min.css}">
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
-<!--header-->
-<nav class="main-header navbar navbar-expand navbar-white navbar-light">
-    <ul class="navbar-nav ml-auto">
-        <li class="nav-item d-none d-sm-inline-block">
-            <a href="/" class="nav-link">Home</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" th:href="@{/logout}"><i class="fas fa-sign-out-alt"></i> Logout</a>
-        </li>
-    </ul>
-</nav>
 <div class="wrapper">
 
     <!-- Navbar -->
-    <div th:replace="admin/fragments/navbar :: navbar"></div>
+    <div th:replace="admin/layouts/fragments/navbar :: navbar"></div>
 
     <!-- Sidebar -->
-    <div th:replace="admin/fragments/sidebar :: sidebar"></div>
+    <div th:replace="admin/layouts/fragments/sidebar :: sidebar"></div>
 
     <!-- Content Wrapper -->
     <div class="content-wrapper">
@@ -35,7 +24,7 @@
     </div>
 
     <!-- Footer -->
-    <div th:replace="admin/fragments/footer :: footer"></div>
+    <div th:replace="admin/layouts/fragments/footer :: footer"></div>
 
 </div>
 

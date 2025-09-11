@@ -1,4 +1,4 @@
-package fpt.aptech.eventsphere.services;
+package fpt.aptech.eventsphere.services.Admin;
 
 import fpt.aptech.eventsphere.dto.admin.*;
 import fpt.aptech.eventsphere.repositories.*;
