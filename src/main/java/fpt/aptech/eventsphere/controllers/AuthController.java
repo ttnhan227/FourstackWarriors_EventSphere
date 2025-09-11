@@ -38,15 +38,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String processLogin(Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated()) {
-            boolean isParticipant = authentication.getAuthorities().stream()
-                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_PARTICIPANT"));
-            
-            if (isParticipant) {
-                return "redirect:/participant/dashboard";
-            }
-        }
+    public String processLogin() {
+        // This method is not needed as Spring Security handles the login process
+        // The redirection is handled by CustomSuccessHandler
         return "redirect:/";
     }
 
