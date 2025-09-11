@@ -42,6 +42,9 @@ public class Events {
     @NotNull(message = "please enter end date")
     private LocalDateTime endDate;
 
+    @Column(name = "image_url", length = 512)
+    private String imageUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venue_id", nullable = false)
     private Venues venue;
