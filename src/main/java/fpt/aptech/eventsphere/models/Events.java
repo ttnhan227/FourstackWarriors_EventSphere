@@ -1,11 +1,10 @@
 package fpt.aptech.eventsphere.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 
 @Entity
@@ -36,9 +35,11 @@ public class Events {
     private String category;
 
     @Column(name = "startDate")
+    @NotNull(message = "please enter start date")
     private LocalDateTime startDate;
 
     @Column(name = "endDate")
+    @NotNull(message = "please enter end date")
     private LocalDateTime endDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -62,6 +63,7 @@ public class Events {
 
     //one to one
     @OneToOne(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Valid
     private EventSeating eventSeating;
 
     //set eventseating and set event
