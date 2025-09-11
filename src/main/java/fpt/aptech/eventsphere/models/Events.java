@@ -1,11 +1,16 @@
 package fpt.aptech.eventsphere.models;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import lombok.*;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "events")
@@ -33,11 +38,11 @@ public class Events {
     @Column(name = "category", length = 50)
     private String category;
 
-    @Column(name = "date")
-    private LocalDate date;
+    @Column(name = "startDate")
+    private LocalDateTime startDate;
 
-    @Column(name = "time")
-    private LocalTime time;
+    @Column(name = "endDate")
+    private LocalDateTime endDate;
 
     @Size(max = 100, message = "Venue must not exceed 100 characters")
     @Column(name = "venue", length = 100)
