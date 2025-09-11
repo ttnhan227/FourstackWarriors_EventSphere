@@ -11,6 +11,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
     <link rel="stylesheet" th:href="@{/css/home/main.css}"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <style>
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .pagination {
+            display: inline-block;
+        }
+
+        .pagination a {
+            color: black;
+            float: left;
+            padding: 8px 16px;
+            text-decoration: none;
+            transition: background-color .3s;
+            border: 1px solid #ddd;
+        }
+
+        .pagination a.active {
+            background-color: #4CAF50;
+            color: white;
+            border: 1px solid #4CAF50;
+        }
+        .pagination a.disabled {
+            pointer-events: none;
+            opacity: 0.5;
+            cursor: default;
+        }
+
+        .pagination a:hover:not(.active) {
+            background-color: #ddd;
+        }
+    </style>
 </head>
 <body class="is-preload">
 
@@ -29,7 +63,7 @@
             <!-- Section -->
             <section>
                 <div class="posts">
-                    <article th:each="event : ${list}">
+                    <article th:each="event : ${eventPage}">
                         <a href="#" class="image"><img th:src="@{/images/home/pic01.jpg}" alt=""/></a>
                         <h3 th:text="${event.getTitle()}"></h3>
                         Venue: <h4 th:text="${event.getVenue().name}"></h4>
@@ -44,6 +78,30 @@
                     </article>
                 </div>
             </section>
+
+            <div class="pagination-container">
+                <div class="pagination">
+                    <a th:if="${!eventPage.hasPrevious()}" class="disabled">&laquo;</a>
+                    <a th:if="${eventPage.hasPrevious()}"
+                       th:href="@{/organizer/index(page=${eventPage.number - 1}, size=${eventPage.size})}">
+                        &laquo;
+                    </a>
+                    <span th:each="i : ${#numbers.sequence(
+                          (eventPage.number - 2 > 0 ? eventPage.number - 2 : 0),
+                          (eventPage.number + 2 < eventPage.totalPages - 1 ? eventPage.number + 2 : eventPage.totalPages - 1))}">
+                            <a th:href="@{/organizer/index(page=${i}, size=${eventPage.size})}"
+                               th:text="${i + 1}"
+                               th:classappend="${i == eventPage.number} ? 'active' : ''">
+                            </a>
+                        </span>
+                    <a th:if="${!eventPage.hasNext()}" class="disabled">&raquo;</a>
+                    <a th:if="${eventPage.hasNext()}"
+                       th:href="@{/organizer/index(page=${eventPage.number + 1}, size=${eventPage.size})}">
+                        &raquo;
+                    </a>
+
+                </div>
+            </div>
 
         </div>
     </div>
