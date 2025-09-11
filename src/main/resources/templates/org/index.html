@@ -86,7 +86,8 @@
                        th:href="@{/organizer/index(page=${eventPage.number - 1}, size=${eventPage.size})}">
                         &laquo;
                     </a>
-                    <span th:each="i : ${#numbers.sequence(
+                    <th:block th:if="${eventPage.totalPages > 0}">
+                        <span th:each="i : ${#numbers.sequence(
                           (eventPage.number - 2 > 0 ? eventPage.number - 2 : 0),
                           (eventPage.number + 2 < eventPage.totalPages - 1 ? eventPage.number + 2 : eventPage.totalPages - 1))}">
                             <a th:href="@{/organizer/index(page=${i}, size=${eventPage.size})}"
@@ -94,6 +95,7 @@
                                th:classappend="${i == eventPage.number} ? 'active' : ''">
                             </a>
                         </span>
+                    </th:block>
                     <a th:if="${!eventPage.hasNext()}" class="disabled">&raquo;</a>
                     <a th:if="${eventPage.hasNext()}"
                        th:href="@{/organizer/index(page=${eventPage.number + 1}, size=${eventPage.size})}">

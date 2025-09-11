@@ -22,10 +22,6 @@ public class EventSeating {
     @JoinColumn(name = "event_id", nullable = false)
     private Events event;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "venue_id", nullable = false)
-    private Venues venue;
-
     @Column(name = "total_seats", nullable = false)
     @Min(value = 1, message = "Total seats must be greater than 0")
     private int totalSeats;

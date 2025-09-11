@@ -239,8 +239,7 @@ public class DataInitializer implements CommandLineRunner {
         seating.setTotalSeats(totalSeats);
         seating.setSeatsBooked(0);
         seating.setWaitlistEnabled(waitlistEnabled);
-        seating.setVenue(venue);  // Set the venue on the seating first
-        
+
         // Set the bidirectional relationship
         // This will automatically set the event_id in the event_seating table
         event.setEventSeating(seating);  // This also sets seating.event = event
