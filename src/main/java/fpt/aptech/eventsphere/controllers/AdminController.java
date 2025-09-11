@@ -3,6 +3,7 @@ package fpt.aptech.eventsphere.controllers;
 import fpt.aptech.eventsphere.models.Users;
 import fpt.aptech.eventsphere.repositories.*;
 import fpt.aptech.eventsphere.repositories.admin.*;
+import fpt.aptech.eventsphere.repositories.admin.AdminEventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -19,15 +20,15 @@ public class AdminController {
     private final UserRepository userRepository;
 
     @Autowired
-    private final EventRepository eventRepository;
+    private final AdminEventRepository adminEventRepository;
 
     @Autowired
-    private final FeedbackRepository feedbackRepository;
+    private final AdminFeedbackRepository adminFeedbackRepository;
 
-    public AdminController(UserRepository userRepository, EventRepository eventRepository, FeedbackRepository feedbackRepository) {
+    public AdminController(UserRepository userRepository, AdminEventRepository adminEventRepository, AdminFeedbackRepository adminFeedbackRepository) {
         this.userRepository = userRepository;
-        this.eventRepository = eventRepository;
-        this.feedbackRepository = feedbackRepository;
+        this.adminEventRepository = adminEventRepository;
+        this.adminFeedbackRepository = adminFeedbackRepository;
     }
 
     @GetMapping("/index")
@@ -35,16 +36,16 @@ public class AdminController {
         //dashboard
         model.addAttribute("title", "Admin Dashboard");
         model.addAttribute("totalUsser", userRepository.countByIsActiveTrueAndIsDeletedFalse());
-        model.addAttribute("totalEvents", eventRepository.countUpcomingEvents());
-        model.addAttribute("complateEvents",eventRepository.countCompletedEvents());
-        model.addAttribute("averageRating", feedbackRepository.getAverageRating());
+        model.addAttribute("totalEvents", adminEventRepository.countUpcomingEvents());
+        model.addAttribute("complateEvents", adminEventRepository.countCompletedEvents());
+        model.addAttribute("averageRating", adminFeedbackRepository.getAverageRating());
 
         // chart
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
         model.addAttribute("userRegistrationStats", userRepository.getUserRegistrationStats(thirtyDaysAgo));
-        model.addAttribute("eventCreationStats", eventRepository.getEventCreationStats(thirtyDaysAgo));
+        model.addAttribute("eventCreationStats", adminEventRepository.getEventCreationStats(thirtyDaysAgo));
         model.addAttribute("usersByDepartment", userRepository.countUsersByDepartment());
-        model.addAttribute("eventsByDepartment", eventRepository.countEventsByDepartment());
+        model.addAttribute("eventsByDepartment", adminEventRepository.countEventsByDepartment());
 
         return "admin/index";
     }
@@ -61,8 +62,8 @@ public class AdminController {
     @GetMapping("/events")
     public String eventManagement(Model model) {
         model.addAttribute("title", "Event Management");
-        model.addAttribute("upcomingEvents", eventRepository.findUpcomingEvents(LocalDateTime.now()));
-        model.addAttribute("pastEvents", eventRepository.findPastEvents(LocalDateTime.now()));
+        model.addAttribute("upcomingEvents", adminEventRepository.findUpcomingEvents(LocalDateTime.now()));
+        model.addAttribute("pastEvents", adminEventRepository.findPastEvents(LocalDateTime.now()));
         return "admin/events";
     }
 

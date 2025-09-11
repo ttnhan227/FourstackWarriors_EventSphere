@@ -2,13 +2,10 @@ package fpt.aptech.eventsphere.repositories.admin;
 
 import fpt.aptech.eventsphere.models.MediaGallery;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
-
 @Repository
-public interface MediaGalleryRepository extends JpaRepository<MediaGallery, Integer> {
+public interface AdminMediaGalleryRepository extends JpaRepository<MediaGallery, Integer> {
 
 //    @Query("SELECT COUNT(m) FROM MediaGallery m WHERE m.status = 'PENDING'")
 //    BigDecimal countPendingReviews();

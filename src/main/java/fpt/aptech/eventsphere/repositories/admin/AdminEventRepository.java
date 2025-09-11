@@ -6,13 +6,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.List;
 
 @Repository
-public interface EventRepository extends JpaRepository<Events, Integer> {
+public interface AdminEventRepository extends JpaRepository<Events, Integer> {
 
     @Query("SELECT COUNT(e) FROM Events e WHERE e.startDate > CURRENT_TIMESTAMP")
     long countPendingEvents();

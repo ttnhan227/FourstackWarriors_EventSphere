@@ -3,6 +3,7 @@ package fpt.aptech.eventsphere.services;
 import fpt.aptech.eventsphere.dto.admin.*;
 import fpt.aptech.eventsphere.repositories.*;
 import fpt.aptech.eventsphere.repositories.admin.*;
+import fpt.aptech.eventsphere.repositories.admin.AdminEventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +18,10 @@ import java.util.stream.Collectors;
 public class AdminDashboardService {
 
     private final UserRepository userRepository;
-    private final EventRepository eventRepository;
+    private final AdminEventRepository adminEventRepository;
     private final UserDetailsRepository userDetailsRepository;
-    private final FeedbackRepository feedbackRepository;
-    private final MediaGalleryRepository mediaGalleryRepository;
+    private final AdminFeedbackRepository adminFeedbackRepository;
+    private final AdminMediaGalleryRepository adminMediaGalleryRepository;
 
     public AdminDashboardDTO getDashboardData() {
         AdminDashboardDTO dashboard = new AdminDashboardDTO();
@@ -33,10 +34,10 @@ public class AdminDashboardService {
         dashboard.setUserGrowthRate(calculateUserGrowthRate());
 
         // Event Statistics
-        dashboard.setTotalEvents(BigDecimal.valueOf(eventRepository.count()));
-        dashboard.setPendingEvents(BigDecimal.valueOf(eventRepository.countPendingEvents()));
-        dashboard.setApprovedEvents(BigDecimal.valueOf(eventRepository.countApprovedEvents()));
-        dashboard.setRejectedEvents(BigDecimal.valueOf(eventRepository.countRejectedEvents()));
+        dashboard.setTotalEvents(BigDecimal.valueOf(adminEventRepository.count()));
+        dashboard.setPendingEvents(BigDecimal.valueOf(adminEventRepository.countPendingEvents()));
+        dashboard.setApprovedEvents(BigDecimal.valueOf(adminEventRepository.countApprovedEvents()));
+        dashboard.setRejectedEvents(BigDecimal.valueOf(adminEventRepository.countRejectedEvents()));
         dashboard.setEventsThisMonth(getEventsCountThisMonth());
         dashboard.setEventGrowthRate(calculateEventGrowthRate());
 
@@ -78,7 +79,7 @@ public class AdminDashboardService {
 
     private BigDecimal getEventsCountThisMonth() {
         LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
-        return BigDecimal.valueOf(eventRepository.countByCreatedAtAfter(startOfMonth));
+        return BigDecimal.valueOf(adminEventRepository.countByCreatedAtAfter(startOfMonth));
     }
 
     private BigDecimal calculateUserGrowthRate() {
@@ -98,8 +99,8 @@ public class AdminDashboardService {
         LocalDateTime thisMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         LocalDateTime lastMonth = thisMonth.minusMonths(1);
 
-        long thisMonthCount = eventRepository.countByCreatedAtAfter(thisMonth);
-        long lastMonthCount = eventRepository.countByCreatedAtAfter(lastMonth) - thisMonthCount;
+        long thisMonthCount = adminEventRepository.countByCreatedAtAfter(thisMonth);
+        long lastMonthCount = adminEventRepository.countByCreatedAtAfter(lastMonth) - thisMonthCount;
 
         if (lastMonthCount == 0) return BigDecimal.valueOf(100);
 
@@ -117,7 +118,7 @@ public class AdminDashboardService {
     }
 
     private Map<String, Long> getEventsByDepartment() {
-        List<Object[]> results = eventRepository.countEventsByDepartment();
+        List<Object[]> results = adminEventRepository.countEventsByDepartment();
         return results.stream()
                 .collect(Collectors.toMap(
                         result -> (String) result[0],
@@ -147,11 +148,11 @@ public class AdminDashboardService {
 
     private BigDecimal getTodayEventCreations() {
         LocalDate today = LocalDate.now();
-        return BigDecimal.valueOf(eventRepository.countCreatedToday(today));
+        return BigDecimal.valueOf(adminEventRepository.countCreatedToday(today));
     }
 
     private BigDecimal getPendingFeedbackReviews() {
-        return feedbackRepository.countPendingReviews();
+        return adminFeedbackRepository.countPendingReviews();
     }
 
 //    private BigDecimal getPendingMediaReviews() {
@@ -159,7 +160,7 @@ public class AdminDashboardService {
 //    }
 
     private BigDecimal getAverageEventRating() {
-        Double avg = eventRepository.getAverageEventRating();
+        Double avg = adminEventRepository.getAverageEventRating();
         return avg != null ? BigDecimal.valueOf(avg) : BigDecimal.ZERO;
     }
 
@@ -168,7 +169,7 @@ public class AdminDashboardService {
     }
 
     private BigDecimal getCompletedEvents() {
-        return BigDecimal.valueOf(eventRepository.countCompletedEvents());
+        return BigDecimal.valueOf(adminEventRepository.countCompletedEvents());
     }
 
     private BigDecimal getCertificatesIssued() {
@@ -194,7 +195,7 @@ public class AdminDashboardService {
             ));
         }
 
-        long pendingEvents = eventRepository.countPendingEvents();
+        long pendingEvents = adminEventRepository.countPendingEvents();
         if (pendingEvents > 5) {
             alerts.add(new SystemAlertDTO(
                     "pending_events",
@@ -234,7 +235,7 @@ public class AdminDashboardService {
 
     private List<ChartDataDTO> getEventCreationChartData() {
         LocalDateTime startDate = LocalDateTime.now().minusDays(30);
-        List<Object[]> results = eventRepository.getEventCreationStats(startDate);
+        List<Object[]> results = adminEventRepository.getEventCreationStats(startDate);
 
         return results.stream()
                 .map(result -> new ChartDataDTO(

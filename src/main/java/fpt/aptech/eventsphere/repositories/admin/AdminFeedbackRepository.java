@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 
 @Repository
-public interface FeedbackRepository extends JpaRepository<Feedback, Integer> {
+public interface AdminFeedbackRepository extends JpaRepository<Feedback, Integer> {
     
     @Query("SELECT COUNT(f) FROM Feedback f WHERE f.rating IS NULL OR f.rating = 0")
     BigDecimal countPendingReviews();
