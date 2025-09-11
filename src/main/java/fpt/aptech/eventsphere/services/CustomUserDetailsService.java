@@ -1,8 +1,8 @@
 package fpt.aptech.eventsphere.services;
 
-import fpt.aptech.eventsphere.models.Users;
+import fpt.aptech.eventsphere.models.*;
 import fpt.aptech.eventsphere.repositories.UserRepository;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;

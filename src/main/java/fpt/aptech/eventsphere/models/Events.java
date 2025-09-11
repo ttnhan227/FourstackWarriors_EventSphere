@@ -3,8 +3,7 @@ package fpt.aptech.eventsphere.models;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.*;
 
 @Entity
@@ -34,11 +33,11 @@ public class Events {
     @Column(name = "category", length = 50)
     private String category;
 
-    @Column(name = "date")
-    private LocalDate date;
+    @Column(name = "startDate")
+    private LocalDateTime startDate;
 
-    @Column(name = "time")
-    private LocalTime time;
+    @Column(name = "endDate")
+    private LocalDateTime endDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venue_id", nullable = false)

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="admin/layouts/main :: content">
+<div th:fragment="content">
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">Admin Dashboard</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="content">
+        <div class="container-fluid">
+            <!-- Info boxes -->
+            <div class="row">
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-info">
+                        <div class="inner">
+                            <h3 th:text="${totalUsers}">150</h3>
+                            <p>Total Users</p>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-person-stalker"></i>
+                        </div>
+                        <a th:href="@{/admin/users}" class="small-box-footer">
+                            More info <i class="fas fa-arrow-circle-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-success">
+                        <div class="inner">
+                            <h3 th:text="${totalEvents}">53</h3>
+                            <p>Upcoming Events</p>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-calendar"></i>
+                        </div>
+                        <a th:href="@{/admin/events}" class="small-box-footer">
+                            More info <i class="fas fa-arrow-circle-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-warning">
+                        <div class="inner">
+                            <h3 th:text="${completedEvents}">44</h3>
+                            <p>Completed Events</p>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-checkmark-circled"></i>
+                        </div>
+                        <a th:href="@{/admin/events}" class="small-box-footer">
+                            More info <i class="fas fa-arrow-circle-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-danger">
+                        <div class="inner">
+                            <h3 th:text="${averageRating != null ? #numbers.formatDecimal(averageRating, 1, 1) : '0.0'}">4.2</h3>
+                            <p>Average Rating</p>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-star"></i>
+                        </div>
+                        <a href="#" class="small-box-footer">
+                            More info <i class="fas fa-arrow-circle-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">User Registration Statistics</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="userChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Event Creation Statistics</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="eventChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Department Statistics -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Users by Department</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="userDepartmentChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Events by Department</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="eventDepartmentChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script th:inline="javascript">
+    // Chart data from server
+    const userRegistrationData = /*[[${userRegistrationStats}]]*/ [];
+    const eventCreationData = /*[[${eventCreationStats}]]*/ [];
+    const usersByDepartment = /*[[${usersByDepartment}]]*/ [];
+    const eventsByDepartment = /*[[${eventsByDepartment}]]*/ [];
+</script>
+<script th:src="@{/plugins/chart.js/Chart.min.js}"></script>
+<script th:src="@{/js/admin-charts.js}"></script>
+</html>
