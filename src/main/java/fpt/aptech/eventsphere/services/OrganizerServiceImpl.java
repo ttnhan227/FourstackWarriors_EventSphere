@@ -9,6 +9,9 @@ import fpt.aptech.eventsphere.repositories.EventSeatingRepository;
 import fpt.aptech.eventsphere.repositories.UserRepository;
 import fpt.aptech.eventsphere.repositories.VenueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,13 +37,15 @@ public class OrganizerServiceImpl implements OrganizerService {
     }
 
     @Override
-    public List<Events> findEventsByOrganizer(String email) {
-        return eventRepository.findEventsByOrganizer(email);
+    public Page<Events> findEventsByOrganizer(String email, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return eventRepository.findEventsByOrganizer(email, pageable);
     }
 
     @Override
-    public List<Events> findEventsByVenue(int id) {
-        return eventRepository.findEventsByVenueId(id);
+    public Page<Events> findEventsByVenue(int id, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return eventRepository.findEventsByVenueId(id, pageable);
     }
 
     @Override

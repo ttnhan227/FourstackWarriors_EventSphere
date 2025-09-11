@@ -4,12 +4,13 @@ import fpt.aptech.eventsphere.models.EventSeating;
 import fpt.aptech.eventsphere.models.Events;
 import fpt.aptech.eventsphere.models.Users;
 import fpt.aptech.eventsphere.models.Venues;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 public interface OrganizerService {
-    List<Events> findEventsByOrganizer(String email);
-    List<Events> findEventsByVenue(int id);
+    Page<Events> findEventsByOrganizer(String email, int page, int size);
+    Page<Events> findEventsByVenue(int id, int page, int size);
     boolean addEvent(Events event);
     Events  findEventById(Integer id);
     EventSeating findEventSeatingByEventId(Integer id);
