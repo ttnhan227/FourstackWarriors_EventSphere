@@ -1,16 +1,12 @@
 package fpt.aptech.eventsphere.models;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+import jakarta.validation.constraints.*;
+import lombok.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalTime;
+import java.util.*;
 
 @Entity
 @Table(name = "events")
@@ -30,7 +26,8 @@ public class Events {
     @Column(name = "title", length = 150, nullable = false)
     private String title;
 
-    @Lob
+    @NotBlank(message = "Description must not be empty")
+    @Size(max = 1024, message = "Description must not exceed 1024 characters")
     @Column(name = "description")
     private String description;
 
@@ -44,9 +41,9 @@ public class Events {
     @Column(name = "endDate")
     private LocalDateTime endDate;
 
-    @Size(max = 100, message = "Venue must not exceed 100 characters")
-    @Column(name = "venue", length = 100)
-    private String venue;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "venue_id", nullable = false)
+    private Venues venue;
 
     // Many-to-one with Users (organizer)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -62,4 +59,16 @@ public class Events {
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Feedback> feedbacks = new ArrayList<>();
+
+    //one to one
+    @OneToOne(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private EventSeating eventSeating;
+
+    //set eventseating and set event
+    public void setEventSeating(EventSeating eventSeating) {
+        this.eventSeating = eventSeating;
+        if (eventSeating != null) {
+            eventSeating.setEvent(this);
+        }
+    }
 }

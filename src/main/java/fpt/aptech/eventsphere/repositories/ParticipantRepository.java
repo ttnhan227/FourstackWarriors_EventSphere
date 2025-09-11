@@ -13,19 +13,19 @@ import java.util.List;
 public interface ParticipantRepository extends JpaRepository<Users, Integer> {
     
     @Query("SELECT e FROM Events e JOIN Registrations r ON e.eventId = r.event.eventId " +
-           "WHERE r.student.userId = :userId AND e.date >= CURRENT_DATE " +
-           "ORDER BY e.date, e.time")
+           "WHERE r.student.userId = :userId AND e.startDate >= CURRENT_DATE " +
+           "ORDER BY e.startDate")
     List<Events> findUpcomingRegisteredEvents(@Param("userId") Integer userId);
     
     @Query("SELECT e FROM Events e JOIN Registrations r ON e.eventId = r.event.eventId " +
-           "WHERE r.student.userId = :userId AND e.date < CURRENT_DATE " +
-           "ORDER BY e.date DESC, e.time DESC")
+           "WHERE r.student.userId = :userId AND e.endDate < CURRENT_DATE " +
+           "ORDER BY e.endDate DESC")
     List<Events> findPastRegisteredEvents(@Param("userId") Integer userId);
     
     @Query("SELECT COUNT(r) FROM Registrations r WHERE r.student.userId = :userId")
     int countRegistrationsByUserId(@Param("userId") Integer userId);
     
     @Query("SELECT COUNT(DISTINCT e.eventId) FROM Events e JOIN Registrations r ON e.eventId = r.event.eventId " +
-           "WHERE r.student.userId = :userId AND e.date < CURRENT_DATE")
+           "WHERE r.student.userId = :userId AND e.startDate < CURRENT_DATE")
     int countAttendedEvents(@Param("userId") Integer userId);
 }
