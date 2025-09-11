@@ -1,32 +1,14 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layouts/participant-layout}">
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title th:text="${event.title} + ' - Event Details'">Event Details</title>
-    <link rel="stylesheet" th:href="@{/css/event-detail.css}">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1, user-scalable=no" name="viewport"/>
+    <link rel="stylesheet" th:href="@{/css/home/main.css}"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
 </head>
-<body>
-<div layout:fragment="content">
-    <div class="container py-5">
-        <!-- Back Button -->
-        <a href="#" onclick="window.history.back()" class="text-decoration-none d-inline-flex align-items-center mb-4">
-            <i class="bi bi-arrow-left me-2"></i> Back to Events
-        </a>
+<body class="is-preload">
 
-<<<<<<< Updated upstream
-        <!-- Event Header -->
-        <div class="row mb-5">
-            <div class="col-lg-8">
-                <span class="badge bg-primary mb-2" th:text="${event.category}"></span>
-                <h1 class="mb-3" th:text="${event.title}"></h1>
-                
-                <div class="d-flex align-items-center mb-4">
-                    <div class="me-4">
-                        <div class="d-flex align-items-center text-muted mb-1">
-                            <i class="bi bi-calendar-event me-2"></i>
-                            <span th:text="${#temporals.format(event.startDate, 'EEEE, MMMM d, yyyy')}"></span>
-=======
 <!-- Wrapper -->
 <div id="wrapper">
 
@@ -109,191 +91,161 @@
                                     </div>
                                 </div>
                             </div>
->>>>>>> Stashed changes
                         </div>
-                        <div class="d-flex align-items-center text-muted">
-                            <i class="bi bi-clock me-2"></i>
-                            <span th:text="${#temporals.format(event.startDate, 'h:mm a')} + ' - ' + 
-                                         ${#temporals.format(event.endDate, 'h:mm a')}"></span>
-                        </div>
-                    </div>
-                    
-                    <div class="vr me-4"></div>
-                    
-                    <div>
-                        <div class="d-flex align-items-center text-muted mb-1">
-                            <i class="bi bi-geo-alt me-2"></i>
-                            <span th:if="${event.venue != null}" th:text="${event.venue.name}"></span>
-                            <span th:unless="${event.venue != null}">Venue not specified</span>
-                        </div>
-                        <div class="d-flex align-items-center text-muted">
-                            <i class="bi bi-person me-2"></i>
-                            <span>Organized by <span th:text="${event.organizer.username}"></span></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 text-lg-end">
-                <button class="btn btn-primary btn-lg px-4">
-                    <i class="bi bi-ticket-perforated me-2"></i>Register Now
-                </button>
-                <div class="mt-2">
-                    <button class="btn btn-outline-secondary me-2">
-                        <i class="bi bi-share"></i>
-                    </button>
-                    <button class="btn btn-outline-secondary">
-                        <i class="bi bi-bookmark"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
 
-        <!-- Event Content -->
-        <div class="row">
-            <!-- Main Content -->
-            <div class="col-lg-8">
-                <!-- Event Image -->
-                <div class="card mb-4 border-0 shadow-sm">
-                    <img th:src="${event.imageUrl} ?: 'https://via.placeholder.com/800x400'" 
-                         class="card-img-top rounded" 
-                         alt="Event image">
-                </div>
-                
-                <!-- Description -->
-                <div class="card mb-4 border-0 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">About This Event</h5>
-                        <div class="card-text" th:utext="${#strings.replace(
-                            #strings.escapeXml(event.description), 
-                            T(java.lang.System).getProperty('line.separator'), '&lt;br/&gt;')}">
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Additional Details -->
-                <div class="card mb-4 border-0 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title mb-4">Event Details</h5>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <h6 class="text-muted">Date & Time</h6>
-                                <p class="mb-0">
-                                    <span th:text="${#temporals.format(event.startDate, 'EEEE, MMMM d, yyyy')}"></span><br>
-                                    <span th:text="${#temporals.format(event.startDate, 'h:mm a')} + ' - ' + 
-                                                 ${#temporals.format(event.endDate, 'h:mm a')}"></span>
+                        <!-- Description -->
+                        <h3>About This Event</h3>
+                        <p th:utext="${#strings.escapeXml(event.description)?.replaceAll('\n', '&lt;br/&gt;')}">
+                        </p>
+
+                        <!-- Event Details -->
+                        <div class="col-4 col-12-medium">
+                            <div class="box">
+                                <h3>Event Details</h3>
+                                <p>
+                                    <span class="icon solid fa-calendar"></span>
+                                    <strong>Date & Time:</strong><br>
+                                    <span th:text="${#temporals.format(event.startDate, 'EEEE, MMMM d, yyyy hh:mm a')}"></span>
+                                    <span th:if="${event.endDate != null}">
+                                        <br>to <span th:text="${#temporals.format(event.endDate, 'EEEE, MMMM d, yyyy hh:mm a')}"></span>
+                                    </span>
+                                </p>
+                                <p>
+                                    <span class="icon solid fa-map-marker-alt"></span>
+                                    <strong>Location:</strong><br>
+                                    <span th:if="${event.venue != null}" th:text="${event.venue.name}"></span>
+                                    <span th:if="${event.venue == null}">Online</span>
+                                </p>
+                                <p th:if="${event.organizer != null}">
+                                    <span class="icon solid fa-user-tie"></span>
+                                    <strong>Organizer:</strong><br>
+                                    <span th:text="${event.organizer.email}"></span>
+                                </p>
+                                <p>
+                                    <span class="icon solid fa-calendar-check"></span>
+                                    <strong>Event Date:</strong><br>
+                                    <span th:text="${#temporals.format(event.startDate, 'EEEE, MMMM d, yyyy hh:mm a')}"></span>
                                 </p>
                             </div>
                             
-<<<<<<< Updated upstream
-                            <div class="col-md-6 mb-3">
-                                <h6 class="text-muted">Location</h6>
-                                <p class="mb-0" th:if="${event.venue != null}" th:text="${event.venue.name}"></p>
-                                <p class="mb-0" th:unless="${event.venue != null}">Venue not specified</p>
-                                <a href="#" class="small">View on map</a>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3" th:if="${eventSeating != null}">
-                                <h6 class="text-muted">Seating</h6>
-                                <p class="mb-0" th:text="${eventSeating.seatingType}"></p>
-                                <span class="badge bg-success" th:if="${eventSeating.availableSeats > 0}">
-                                    <span th:text="${eventSeating.availableSeats} + ' seats available'"></span>
-                                </span>
-                                <span class="badge bg-danger" th:unless="${eventSeating.availableSeats > 0}">
-                                    Sold Out
-                                </span>
-                            </div>
-=======
                             <!-- Quick Actions -->
->>>>>>> Stashed changes
                         </div>
+                        </ul>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="col-4 col-12-medium">
+                        <!-- Register -->
+                        <ul class="actions stacked">
+                            <li>
+                                <a class="button icon solid fa-share" href="#">Share</a>
+                            </li>
+                            <li>
+                                <a class="button icon solid fa-bookmark" href="#">Save</a>
+                            </li>
+                        </ul>
+
+                        <!-- Organizer -->
+                        <h3>Organizer</h3>
+                        <p>
+                            <i class="fas fa-user-circle"></i>
+                            <span th:text="${event.organizer.email}"></span>
+                        </p>
+                        <a class="button small icon solid fa-envelope" href="#">Contact Organizer</a>
+
+                        <!-- Share -->
+                        <h3 style="margin-top:1.5em;">Share With Friends</h3>
+                        <ul class="icons">
+                            <li><a class="icon brands fa-facebook-f" href="#"><span class="label">Facebook</span></a>
+                            </li>
+                            <li><a class="icon brands fa-twitter" href="#"><span class="label">Twitter</span></a></li>
+                            <li><a class="icon brands fa-linkedin" href="#"><span class="label">LinkedIn</span></a></li>
+                            <li><a class="icon solid fa-link" href="#"><span class="label">Copy Link</span></a></li>
+                        </ul>
+
+                        <!-- Tags -->
+                        <h3>Tags</h3>
+                        <p>
+                            <span style="display:inline-block; margin:0.25em; padding:0.4em 0.6em; background:#f2f2f2; border-radius:6px;"
+                                  th:each="tag : ${#strings.arraySplit(event.category, ',')}"
+                                  th:text="${#strings.trim(tag)}">
+                            </span>
+                        </p>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Sidebar -->
-            <div class="col-lg-4">
-                <!-- Organizer Card -->
-                <div class="card mb-4 border-0 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Organizer</h5>
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" 
-                                 style="width: 50px; height: 50px;">
-                                <i class="bi bi-person fs-4 text-muted"></i>
-                            </div>
-                            <div class="ms-3">
-                                <h6 class="mb-0" th:text="${event.organizer.username}"></h6>
-                                <small class="text-muted">Organizer</small>
-                            </div>
-                        </div>
-                        <button class="btn btn-outline-primary w-100">
-                            <i class="bi bi-envelope me-2"></i>Contact Organizer
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Share Event -->
-                <div class="card mb-4 border-0 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Share With Friends</h5>
-                        <div class="d-flex justify-content-between">
-                            <a href="#" class="btn btn-outline-primary rounded-circle">
-                                <i class="bi bi-facebook"></i>
-                            </a>
-                            <a href="#" class="btn btn-outline-primary rounded-circle">
-                                <i class="bi bi-twitter"></i>
-                            </a>
-                            <a href="#" class="btn btn-outline-primary rounded-circle">
-                                <i class="bi bi-linkedin"></i>
-                            </a>
-                            <a href="#" class="btn btn-outline-primary rounded-circle">
-                                <i class="bi bi-link-45deg"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Tags -->
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Tags</h5>
-                        <div class="d-flex flex-wrap gap-2">
-                            <a href="#" class="badge bg-light text-dark text-decoration-none" 
-                               th:each="tag : ${#strings.arraySplit(event.category, ',')}" 
-                               th:text="${#strings.trim(tag)}">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </section>
         </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div th:replace="~{layout/sidebar-layout :: sidebar}"></div>
+
+</div>
+
+<!-- Flash Messages -->
+<div th:if="${success}" class="flash-message success">
+    <div class="box">
+        <span class="icon solid fa-check-circle"></span>
+        <span th:text="${success}"></span>
+    </div>
+</div>
+<div th:if="${error}" class="flash-message error">
+    <div class="box">
+        <span class="icon solid fa-exclamation-circle"></span>
+        <span th:text="${error}"></span>
     </div>
 </div>
 
-<th:block layout:fragment="styles">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        .card {
-            border-radius: 0.75rem;
-            overflow: hidden;
-        }
-        .badge {
-            font-weight: 500;
-            padding: 0.5em 1em;
-        }
-        .btn-outline-primary {
-            --bs-btn-hover-bg: #0d6efd;
-            --bs-btn-hover-border-color: #0d6efd;
-        }
-        .btn-outline-secondary {
-            --bs-btn-hover-bg: #f8f9fa;
-        }
-        .btn-lg {
-            padding: 0.75rem 1.5rem;
-        }
-    </style>
-</th:block>
+<style>
+    .flash-message {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        z-index: 1000;
+        max-width: 400px;
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    .flash-message .box {
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .flash-message.success .box {
+        background-color: #e7f7e7;
+        border-left: 4px solid #4CAF50;
+    }
+    
+    .flash-message.error .box {
+        background-color: #ffebee;
+        border-left: 4px solid #f44336;
+    }
+    
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    .mt-2 { margin-top: 0.5rem; }
+    .mt-3 { margin-top: 1rem; }
+</style>
+
+<!-- Scripts -->
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/browser.min.js}"></script>
+<script>
+    // Auto-hide flash messages after 5 seconds
+    $(document).ready(function() {
+        setTimeout(function() {
+            $('.flash-message').fadeOut('slow');
+        }, 5000);
+    });
+</script>
+<script th:src="@{/js/breakpoints.min.js}"></script>
+<script th:src="@{/js/util.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+
 </body>
 </html>

@@ -48,7 +48,7 @@ public class Users {
     private LocalDateTime resetTokenExpiry;
 
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     // user avaliable
@@ -59,6 +59,9 @@ public class Users {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private UserDetails userDetails;
 
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Registrations> registrations = new ArrayList<>();
+
     // n-n với Roles
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -68,4 +71,3 @@ public class Users {
     )
     private List<Roles> roles = new ArrayList<>();
 }
-

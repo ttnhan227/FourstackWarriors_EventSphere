@@ -1,6 +1,7 @@
 package fpt.aptech.eventsphere.controllers;
 
 import fpt.aptech.eventsphere.models.Events;
+import fpt.aptech.eventsphere.repositories.EventRepository;
 import fpt.aptech.eventsphere.services.ParticipantService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,13 +11,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
@@ -26,9 +24,11 @@ public class ParticipantEventController {
     private static final Logger logger = LoggerFactory.getLogger(ParticipantEventController.class);
     private static final int PAGE_SIZE = 10;
     private final ParticipantService participantService;
+    private final EventRepository eventRepository;
 
-    public ParticipantEventController(ParticipantService participantService) {
+    public ParticipantEventController(ParticipantService participantService, EventRepository eventRepository) {
         this.participantService = participantService;
+        this.eventRepository = eventRepository;
     }
 
     @GetMapping("/dashboard")
@@ -108,36 +108,56 @@ public class ParticipantEventController {
         }
     }
 
-    @GetMapping("/events/view/{id}")
-    public String viewEvent(@PathVariable("id") Long id, Model model) {
+    @GetMapping("/events/{id}")
+    public String viewEvent(@PathVariable("id") int id, Model model) {
         try {
-            // In a real implementation, you would have a method in ParticipantService to get event by ID
-            // For now, we'll find it from the upcoming events
-            Optional<Events> event = participantService.getUpcomingEvents().stream()
-                    .filter(e -> e.getEventId() == id)
-                    .findFirst();
-
-            if (event.isPresent()) {
-                model.addAttribute("event", event.get());
+            logger.info("Attempting to find event with ID: {}", id);
+            // Use a custom query to fetch the event with its organizer and venue
+            Events event = eventRepository.findByIdWithOrganizerAndVenue(id);
+            
+            if (event != null) {
+                logger.info("Found event: {}", event.getTitle());
+                
+                // Check if current user is registered for this event
+                boolean isRegistered = participantService.isUserRegisteredForEvent(id);
+                int availableSeats = participantService.getAvailableSeats(id);
+                
+                model.addAttribute("event", event);
+                model.addAttribute("isRegistered", isRegistered);
+                model.addAttribute("availableSeats", availableSeats);
+                
                 return "participant/events/view";
             } else {
-                // Check past events if not found in upcoming
-                event = participantService.getPastEvents().stream()
-                        .filter(e -> e.getEventId() == id)
-                        .findFirst();
-
-                if (event.isPresent()) {
-                    model.addAttribute("event", event.get());
-                    return "participant/events/view";
-                } else {
-                    model.addAttribute("error", "Event not found");
-                    return "error/404";
-                }
+                logger.warn("Event not found with ID: {}", id);
+                model.addAttribute("error", "Event not found");
+                return "error/404";
             }
         } catch (Exception e) {
             model.addAttribute("error", "Error loading event: " + e.getMessage());
             return "error/error";
         }
+    }
+    
+    @PostMapping("/events/{eventId}/register")
+    public String registerForEvent(@PathVariable("eventId") int eventId, RedirectAttributes redirectAttributes) {
+        try {
+            participantService.registerForEvent(eventId);
+            redirectAttributes.addFlashAttribute("success", "Successfully registered for the event!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/participant/events/" + eventId;
+    }
+    
+    @PostMapping("/events/{eventId}/cancel")
+    public String cancelRegistration(@PathVariable("eventId") int eventId, RedirectAttributes redirectAttributes) {
+        try {
+            participantService.cancelRegistration(eventId);
+            redirectAttributes.addFlashAttribute("success", "Successfully cancelled your registration!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/participant/events/" + eventId;
     }
 
     @GetMapping("/events/past")
