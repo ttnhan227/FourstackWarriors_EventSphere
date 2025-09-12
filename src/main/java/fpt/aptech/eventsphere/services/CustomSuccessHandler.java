@@ -38,8 +38,7 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
                                       HttpServletResponse response,
                                       Authentication authentication)
             throws IOException, ServletException {
-        logger.info("Authentication success handler called");
-        logger.info("Authentication name: " + authentication.getName());
+        logger.debug("Authentication success");
 
         Users user = null;
 
@@ -49,7 +48,6 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
             String email = oauth2User.getAttribute("email");
             String googleId = oauth2User.getAttribute("sub");
 
-            logger.info("OAuth2 User - Email: " + email + ", Google ID: " + googleId);
 
             if (email != null && googleId != null) {
                 user = handleGoogleUser(email, googleId);
@@ -62,45 +60,32 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
 
         // Check if user exists and has completed profile
         if (user != null && user.getUserDetails() == null) {
-            logger.info("User profile incomplete, redirecting to registration");
             String email = user.getEmail();
-            logger.info("Redirecting to registration with email: " + email);
             response.sendRedirect("/auth/register?oauth2user=true&email=" + java.net.URLEncoder.encode(email, "UTF-8"));
             return;
         }
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        logger.info("User authorities: " + authorities);
 
         if (authorities.contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
-            logger.info("Redirecting to admin page");
             response.sendRedirect("/");
         } else if (authorities.contains(new SimpleGrantedAuthority("ROLE_ORGANIZER"))) {
-            logger.info("Redirecting to organizer page");
             response.sendRedirect("/organizer/index");
         } else {
-            logger.info("Redirecting to default page");
             response.sendRedirect("/");
         }
     }
 
     private Users handleGoogleUser(String email, String googleId) {
-        logger.info("Handling Google user: " + email);
 
         Optional<Users> existingUser = userRepository.findByEmailIgnoreCase(email);
         Users user;
 
         if (existingUser.isPresent()) {
             user = existingUser.get();
-            logger.info("Existing user found: " + user.getEmail() + ", current Google ID: " + user.getGoogleId());
-
             if (user.getGoogleId() == null || !user.getGoogleId().equals(googleId)) {
-                logger.info("Setting Google ID: " + googleId);
                 user.setGoogleId(googleId);
                 user = userRepository.save(user);
-                logger.info("User saved with Google ID: " + user.getGoogleId());
-            } else {
-                logger.info("User already has correct Google ID: " + user.getGoogleId());
             }
 
             // Ensure user has at least PARTICIPANT role
@@ -109,11 +94,9 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
                 if (participantRole.isPresent()) {
                     user.getRoles().add(participantRole.get());
                     user = userRepository.save(user);
-                    logger.info("Added PARTICIPANT role to existing user");
                 }
             }
         } else {
-            logger.info("Creating new user for Google login: " + email);
             user = new Users();
             user.setEmail(email);
             user.setGoogleId(googleId);
@@ -127,7 +110,6 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
             }
 
             user = userRepository.save(user);
-            logger.info("Created new user with Google ID: " + user.getGoogleId());
         }
         
         return user;
