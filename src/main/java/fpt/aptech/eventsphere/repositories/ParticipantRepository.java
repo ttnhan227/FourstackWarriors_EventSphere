@@ -4,6 +4,7 @@ import fpt.aptech.eventsphere.models.Events;
 import fpt.aptech.eventsphere.models.Registrations;
 import fpt.aptech.eventsphere.models.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -43,4 +44,8 @@ public interface ParticipantRepository extends JpaRepository<Users, Integer> {
     
     @Query("SELECT r FROM Registrations r JOIN FETCH r.event e WHERE r.student.userId = :userId AND e.endDate >= CURRENT_DATE")
     List<Registrations> findUpcomingRegistrations(@Param("userId") Integer userId);
+    
+    @Modifying
+    @Query("DELETE FROM Registrations r WHERE r.registrationId = :registrationId")
+    void deleteRegistration(@Param("registrationId") Integer registrationId);
 }

@@ -34,4 +34,6 @@ public interface ParticipantService {
     int getAvailableSeats(Integer eventId);
     
     List<Registrations> getUserRegistrations();
+    
+    Registrations getRegistrationForEvent(Integer eventId);
 }
