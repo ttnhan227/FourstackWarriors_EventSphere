@@ -83,47 +83,34 @@
 
             <!-- Header -->
             <header id="header">
-                <h1>Create Events</h1>
+                <h1>List Events</h1>
             </header>
 
             <!-- Section -->
             <section>
-                <form th:action="@{/organizer/create}" th:object="${event}" method="post">
-                    <!-- Event fields -->
+                <div th:object="${event}">
                     <label>Title</label>
-                    <input type="text" th:field="*{title}" placeholder="Title"/>
-                    <div th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+                    <input type="text" th:field="*{title}" disabled/>
                     <label>Category</label>
-                    <input type="text" th:field="*{category}" placeholder="Category"/>
-                    <div th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
+                    <input type="text" th:field="*{category}" disabled/>
                     <label>Description</label>
-                    <textarea th:field="*{description}" placeholder="Description"></textarea>
-                    <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                    <textarea th:field="*{description}" disabled></textarea>
                     <label>Start Date</label>
-                    <input type="datetime-local" th:field="*{startDate}" placeholder="Start date"/>
-                    <div th:if="${#fields.hasErrors('startDate')}" th:errors="*{startDate}"></div>
+                    <input type="text" th:field="*{startDate}" disabled/>
                     <label>End Date</label>
-                    <input type="datetime-local" th:field="*{endDate}" placeholder="End date"/>
-                    <div th:if="${#fields.hasErrors('endDate')}" th:errors="*{endDate}"></div>
+                    <input type="text" th:field="*{endDate}" disabled/>
                     <label>Venue</label>
-                    <select th:field="*{venue.venueId}" >
-                        <option th:each="v : ${venue}"
-                                th:value="${v.venueId}"
-                                th:text="${v.name}">
-                        </option>
-                    </select>
+                    <input type="text" th:field="*{venue}" th:value="${event.getVenue().name}" disabled/>
                     <!-- Seating fields -->
                     <label>Total Seats</label>
-                    <input type="number" th:field="*{eventSeating.totalSeats}" placeholder="Total seats"/><br>
-                    <div th:if="${#fields.hasErrors('eventSeating.totalSeats')}" th:errors="*{eventSeating.totalSeats}"></div>
-                    <br>
+                    <input type="number" th:field="*{eventSeating.totalSeats}" disabled/>
+                    <br><br>
                     <label class="checkbox-container">
-                        <input type="checkbox" th:field="*{eventSeating.waitlistEnabled}"/>
+                        <input type="checkbox" th:field="*{eventSeating.waitlistEnabled}" th:checked="${event.eventSeating.isWaitlistEnabled()}" disabled/>
                         <span class="checkmark"></span>
                         Waitlist
                     </label>
-                    <button type="submit">Create</button>
-                </form>
+                </div>
             </section>
 
         </div>
@@ -131,6 +118,7 @@
 
     <!-- Sidebar -->
     <div th:replace="~{org/orgLayout :: sidebar}"></div>
+
 
 </div>
 

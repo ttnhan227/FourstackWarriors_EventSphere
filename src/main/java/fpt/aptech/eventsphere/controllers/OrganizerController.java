@@ -41,7 +41,9 @@ public class OrganizerController {
     @GetMapping("/create")
     public String showCreateForm(Model model) {
         Events event = new Events();
-        event.setEventSeating(new EventSeating());
+        EventSeating seating = new EventSeating();
+        seating.setWaitlistEnabled(false);
+        event.setEventSeating(seating);
         model.addAttribute("event", event);
         model.addAttribute("venue", organizerService.findAllVenues());
         return "org/create";
@@ -82,4 +84,10 @@ public class OrganizerController {
         return "redirect:/organizer/index";
     }
 
+    @GetMapping("/detail/{id}")
+    public String showEventDetail(@PathVariable int id, Model model) {
+        Events event = organizerService.findEventById(id);
+        model.addAttribute("event", event);
+        return "org/detail";
+    }
 }
