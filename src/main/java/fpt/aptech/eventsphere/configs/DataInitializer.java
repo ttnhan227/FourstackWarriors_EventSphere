@@ -2,6 +2,7 @@ package fpt.aptech.eventsphere.configs;
 
 import fpt.aptech.eventsphere.models.*;
 import fpt.aptech.eventsphere.repositories.*;
+import fpt.aptech.eventsphere.repositories.admin.AdminUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
-    private final UserRepository userRepository;
+    private final AdminUserRepository adminUserRepository;
     private final RoleRepository roleRepository;
     private final UserDetailsRepository userDetailsRepository;
     private final EventRepository eventRepository;
@@ -27,7 +28,7 @@ public class DataInitializer implements CommandLineRunner {
             initializeRoles();
         }
 
-        if (userRepository.count() == 0) {
+        if (adminUserRepository.count() == 0) {
             initializeUsers();
         }
 
@@ -161,7 +162,7 @@ public class DataInitializer implements CommandLineRunner {
     private void initializeEvents() {
         if (eventRepository.count() == 0) {
             // Get organizer user
-            Users organizer = userRepository.findByEmail("organizer1@fpt.edu.vn")
+            Users organizer = adminUserRepository.findByEmail("organizer1@fpt.edu.vn")
                     .orElseThrow(() -> new RuntimeException("Organizer user not found"));
 
             // Create or get venue
@@ -250,7 +251,7 @@ public class DataInitializer implements CommandLineRunner {
         user.setActive(isActive);
         user.setRoles(roles);
 
-        return userRepository.save(user);
+        return adminUserRepository.save(user);
     }
 
     private UserDetails createUserDetails(Users user, String fullName, String phone,

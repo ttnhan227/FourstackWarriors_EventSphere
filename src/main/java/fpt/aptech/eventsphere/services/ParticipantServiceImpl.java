@@ -9,7 +9,7 @@ import fpt.aptech.eventsphere.repositories.EventRepository;
 import fpt.aptech.eventsphere.repositories.ParticipantRepository;
 import fpt.aptech.eventsphere.repositories.RoleRepository;
 import fpt.aptech.eventsphere.repositories.UserDetailsRepository;
-import fpt.aptech.eventsphere.repositories.UserRepository;
+import fpt.aptech.eventsphere.repositories.admin.AdminUserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,20 +27,20 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     private final ParticipantRepository participantRepository;
     private final EventRepository eventRepository;
-    private final UserRepository userRepository;
+    private final AdminUserRepository adminUserRepository;
     private final UserDetailsRepository userDetailsRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
     public ParticipantServiceImpl(ParticipantRepository participantRepository,
                             EventRepository eventRepository,
-                            UserRepository userRepository,
+                            AdminUserRepository adminUserRepository,
                             UserDetailsRepository userDetailsRepository,
                             RoleRepository roleRepository,
                             PasswordEncoder passwordEncoder) {
         this.participantRepository = participantRepository;
         this.eventRepository = eventRepository;
-        this.userRepository = userRepository;
+        this.adminUserRepository = adminUserRepository;
         this.userDetailsRepository = userDetailsRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
@@ -108,7 +108,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public Users registerParticipant(ParticipantRegistrationDto registrationDto) {
-        if (userRepository.existsByEmail(registrationDto.getEmail())) {
+        if (adminUserRepository.existsByEmail(registrationDto.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
 
@@ -123,7 +123,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .orElseThrow(() -> new IllegalStateException("PARTICIPANT role not found"));
         user.getRoles().add(participantRole);
         
-        Users savedUser = userRepository.save(user);
+        Users savedUser = adminUserRepository.save(user);
         
         // Create user details
         UserDetails userDetails = new UserDetails();
@@ -143,6 +143,6 @@ public class ParticipantServiceImpl implements ParticipantService {
             return null;
         }
         String email = authentication.getName();
-        return userRepository.findByEmail(email).orElse(null);
+        return adminUserRepository.findByEmail(email).orElse(null);
     }
 }

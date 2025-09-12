@@ -2,6 +2,7 @@ package fpt.aptech.eventsphere.services.Admin;
 
 import fpt.aptech.eventsphere.dto.admin.*;
 import fpt.aptech.eventsphere.repositories.*;
+import fpt.aptech.eventsphere.repositories.UserRepository;
 import fpt.aptech.eventsphere.repositories.admin.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminDashboardService {
 
-    private final UserRepository userRepository;
+    private final AdminUserRepository userRepository;
     private final AdminEventRepository adminEventRepository;
     private final UserDetailsRepository userDetailsRepository;
     private final AdminFeedbackRepository adminFeedbackRepository;

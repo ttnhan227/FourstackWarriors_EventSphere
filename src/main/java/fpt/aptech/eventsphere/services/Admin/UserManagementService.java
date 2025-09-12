@@ -3,7 +3,7 @@ package fpt.aptech.eventsphere.services.Admin;
 import fpt.aptech.eventsphere.dto.admin.UserManagementDTO;
 import fpt.aptech.eventsphere.dto.admin.UserSearchRequestDTO;
 import fpt.aptech.eventsphere.repositories.RoleRepository;
-import fpt.aptech.eventsphere.repositories.UserRepository;
+import fpt.aptech.eventsphere.repositories.admin.AdminUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -17,12 +17,12 @@ import java.util.stream.Collectors;
 @Service
 public class UserManagementService {
     @Autowired
-    private UserRepository userRepository;
+    private AdminUserRepository adminUserRepository;
     @Autowired
     private RoleRepository roleRepository;
 
     public Page<UserManagementDTO> searchAndSortUsers(UserSearchRequestDTO searchRequest) {
-        List<Object[]> results = userRepository.searchUsersForManagement(
+        List<Object[]> results = adminUserRepository.searchUsersForManagement(
                 searchRequest.hasKeyword() ? searchRequest.getKeyword() : null,
                 searchRequest.hasDepartment() ? searchRequest.getDepartment() : null,
                 searchRequest.hasRole() ? searchRequest.getRole() : null,
@@ -77,18 +77,18 @@ public class UserManagementService {
     private List<UserManagementDTO> enrichUsersWithRoles(List<UserManagementDTO> users) {
         for (UserManagementDTO user : users) {
             // Get roles for each user - now returns List<String> directly
-            List<String> roles = userRepository.findRolesByUserId(user.getUserId());
+            List<String> roles = adminUserRepository.findRolesByUserId(user.getUserId());
             user.setRoles(roles);
         }
         return users;
     }
 
     public List<String> getAllDepartments() {
-        return userRepository.findAllDepartments();
+        return adminUserRepository.findAllDepartments();
     }
 
     public List<String> getAllRoles() {
-        return userRepository.findAllRoles();
+        return adminUserRepository.findAllRoles();
     }
 
     private List<UserManagementDTO> applySorting(List<UserManagementDTO> users, String sortBy, String sortDirection) {
@@ -127,15 +127,15 @@ public class UserManagementService {
                 .collect(Collectors.toList());
     }
     public long getTotalUserCount() {
-        return userRepository.countByIsDeletedFalseAndNotAdmin();
+        return adminUserRepository.countByIsDeletedFalseAndNotAdmin();
     }
 
     public long getActiveUserCount() {
-        return userRepository.countByIsActiveTrueAndIsDeletedFalseAndNotAdmin();
+        return adminUserRepository.countByIsActiveTrueAndIsDeletedFalseAndNotAdmin();
     }
 
     public long getInactiveUserCount() {
-        return userRepository.countByIsActiveFalseAndIsDeletedFalseAndNotAdmin();
+        return adminUserRepository.countByIsActiveFalseAndIsDeletedFalseAndNotAdmin();
     }
 
 

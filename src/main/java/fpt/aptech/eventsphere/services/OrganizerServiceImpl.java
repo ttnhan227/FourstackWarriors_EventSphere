@@ -6,7 +6,7 @@ import fpt.aptech.eventsphere.models.Users;
 import fpt.aptech.eventsphere.models.Venues;
 import fpt.aptech.eventsphere.repositories.EventRepository;
 import fpt.aptech.eventsphere.repositories.EventSeatingRepository;
-import fpt.aptech.eventsphere.repositories.UserRepository;
+import fpt.aptech.eventsphere.repositories.admin.AdminUserRepository;
 import fpt.aptech.eventsphere.repositories.VenueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,17 +23,17 @@ public class OrganizerServiceImpl implements OrganizerService {
     EventRepository eventRepository;
     EventSeatingRepository eventSeatingRepository;
     VenueRepository  venueRepository;
-    UserRepository userRepository;
+    AdminUserRepository adminUserRepository;
     @Autowired
     public OrganizerServiceImpl(EventRepository eventRepository,
                                 EventSeatingRepository eventSeatingRepository,
                                 VenueRepository venueRepository,
-                                UserRepository userRepository) {
+                                AdminUserRepository adminUserRepository) {
 
         this.eventRepository = eventRepository;
         this.eventSeatingRepository = eventSeatingRepository;
         this.venueRepository = venueRepository;
-        this.userRepository = userRepository;
+        this.adminUserRepository = adminUserRepository;
     }
 
     @Override
@@ -91,8 +91,8 @@ public class OrganizerServiceImpl implements OrganizerService {
 
     @Override
     public Users findOrganizerByEmail(String email) {
-        if(userRepository.findByEmail(email).isPresent()){
-            return userRepository.findByEmail(email).get();
+        if(adminUserRepository.findByEmail(email).isPresent()){
+            return adminUserRepository.findByEmail(email).get();
         }
         return null;
     }

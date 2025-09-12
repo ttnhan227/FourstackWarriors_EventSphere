@@ -4,7 +4,6 @@ import fpt.aptech.eventsphere.dto.admin.AdminDashboardDTO;
 import fpt.aptech.eventsphere.dto.admin.UserManagementDTO;
 import fpt.aptech.eventsphere.dto.admin.UserSearchRequestDTO;
 import fpt.aptech.eventsphere.models.Users;
-import fpt.aptech.eventsphere.repositories.*;
 import fpt.aptech.eventsphere.repositories.admin.*;
 import fpt.aptech.eventsphere.repositories.admin.AdminEventRepository;
 import fpt.aptech.eventsphere.services.Admin.AdminDashboardService;
@@ -18,14 +17,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
     @Autowired
-    private final UserRepository userRepository;
+    private final AdminUserRepository adminUserRepository;
 
     @Autowired
     private final AdminEventRepository adminEventRepository;
@@ -41,11 +39,11 @@ public class AdminController {
 
 
     public AdminController(
-            UserRepository userRepository, 
+            AdminUserRepository adminUserRepository,
             AdminEventRepository adminEventRepository, 
             AdminFeedbackRepository adminFeedbackRepository,
             AdminDashboardService adminDashboardService) {
-        this.userRepository = userRepository;
+        this.adminUserRepository = adminUserRepository;
         this.adminEventRepository = adminEventRepository;
         this.adminFeedbackRepository = adminFeedbackRepository;
         this.adminDashboardService = adminDashboardService;
@@ -113,7 +111,7 @@ public class AdminController {
         } catch (Exception e) {
             model.addAttribute("error", "Error loading dashboard: " + e.getMessage());
             model.addAttribute("title", "Admin Dashboard");
-            model.addAttribute("totalUsers", userRepository.countByIsActiveTrueAndIsDeletedFalse());
+            model.addAttribute("totalUsers", adminUserRepository.countByIsActiveTrueAndIsDeletedFalse());
             model.addAttribute("totalEvents", adminEventRepository.countUpcomingEvents());
             model.addAttribute("completedEvents", adminEventRepository.countCompletedEvents());
             model.addAttribute("averageRating", adminFeedbackRepository.getAverageRating());
@@ -202,14 +200,14 @@ public class AdminController {
             System.out.println("=== DEBUG TOGGLE USER STATUS ===");
             System.out.println("Received userId: " + id);
 
-            Users user = userRepository.findById(id).orElse(null);
+            Users user = adminUserRepository.findById(id).orElse(null);
             if (user != null && !user.isDeleted()) {
                 System.out.println("Found user: " + user.getEmail());
                 System.out.println("Current status: " + user.isActive());
 
                 boolean oldStatus = user.isActive();
                 user.setActive(!user.isActive());
-                userRepository.save(user);
+                adminUserRepository.save(user);
 
                 System.out.println("New status: " + user.isActive());
                 System.out.println("Status changed from " + oldStatus + " to " + user.isActive());

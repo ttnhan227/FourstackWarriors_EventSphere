@@ -1,7 +1,7 @@
 package fpt.aptech.eventsphere.services;
 
 import fpt.aptech.eventsphere.models.*;
-import fpt.aptech.eventsphere.repositories.UserRepository;
+import fpt.aptech.eventsphere.repositories.admin.AdminUserRepository;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,11 +18,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final AdminUserRepository adminUserRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Users user = userRepository.findByEmail(email)
+        Users user = adminUserRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
         if (!user.isActive()) {
