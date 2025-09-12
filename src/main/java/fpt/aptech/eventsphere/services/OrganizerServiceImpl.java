@@ -1,9 +1,6 @@
 package fpt.aptech.eventsphere.services;
 
-import fpt.aptech.eventsphere.models.EventSeating;
-import fpt.aptech.eventsphere.models.Events;
-import fpt.aptech.eventsphere.models.Users;
-import fpt.aptech.eventsphere.models.Venues;
+import fpt.aptech.eventsphere.models.*;
 import fpt.aptech.eventsphere.repositories.EventRepository;
 import fpt.aptech.eventsphere.repositories.EventSeatingRepository;
 import fpt.aptech.eventsphere.repositories.UserRepository;
@@ -95,5 +92,10 @@ public class OrganizerServiceImpl implements OrganizerService {
             return userRepository.findByEmail(email).get();
         }
         return null;
+    }
+
+    @Override
+    public List<Registrations> findEventRegistration(int id) {
+        return eventRepository.findEventRegistrations(id);
     }
 }

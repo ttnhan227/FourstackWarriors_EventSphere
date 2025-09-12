@@ -1,9 +1,8 @@
 package fpt.aptech.eventsphere.controllers;
 
-import fpt.aptech.eventsphere.models.EventSeating;
-import fpt.aptech.eventsphere.models.Events;
-import fpt.aptech.eventsphere.models.Users;
-import fpt.aptech.eventsphere.models.Venues;
+import fpt.aptech.eventsphere.dto.RegistrationDTO;
+import fpt.aptech.eventsphere.mappers.RegistrationMapper;
+import fpt.aptech.eventsphere.models.*;
 import fpt.aptech.eventsphere.services.OrganizerService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +14,14 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/organizer")
 public class OrganizerController {
 
     OrganizerService organizerService;
+    RegistrationMapper registrationMapper = new RegistrationMapper();
     @Autowired
     public OrganizerController(OrganizerService organizerService) {
 
@@ -87,7 +89,10 @@ public class OrganizerController {
     @GetMapping("/detail/{id}")
     public String showEventDetail(@PathVariable int id, Model model) {
         Events event = organizerService.findEventById(id);
+        List<Registrations> registrationsList = organizerService.findEventRegistration(id);
+        List<RegistrationDTO> regDTOList = registrationMapper.toDTOList(registrationsList);
         model.addAttribute("event", event);
+        model.addAttribute("registration", regDTOList);
         return "org/detail";
     }
 }

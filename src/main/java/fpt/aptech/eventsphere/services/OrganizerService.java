@@ -1,9 +1,6 @@
 package fpt.aptech.eventsphere.services;
 
-import fpt.aptech.eventsphere.models.EventSeating;
-import fpt.aptech.eventsphere.models.Events;
-import fpt.aptech.eventsphere.models.Users;
-import fpt.aptech.eventsphere.models.Venues;
+import fpt.aptech.eventsphere.models.*;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -18,4 +15,5 @@ public interface OrganizerService {
     List<Venues> findAllVenues();
     Venues saveVenue(Venues venue);
     Users findOrganizerByEmail(String email);
+    List<Registrations> findEventRegistration(int id);
 }

@@ -1,6 +1,7 @@
 package fpt.aptech.eventsphere.repositories;
 
 import fpt.aptech.eventsphere.models.Events;
+import fpt.aptech.eventsphere.models.Registrations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -50,4 +51,7 @@ public interface EventRepository extends JpaRepository<Events, Integer> {
     
     @Query("SELECT e FROM Events e LEFT JOIN FETCH e.organizer LEFT JOIN FETCH e.venue WHERE e.eventId = :id")
     Events findByIdWithOrganizerAndVenue(@Param("id") int id);
+
+    @Query("select r from Registrations r where r.event.eventId = :id")
+    List<Registrations> findEventRegistrations(@Param("id") int id);
 }
