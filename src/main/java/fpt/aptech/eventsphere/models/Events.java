@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -38,10 +40,12 @@ public class Events {
 
     @Column(name = "startDate")
     @NotNull(message = "please enter start date")
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime startDate;
 
     @Column(name = "endDate")
     @NotNull(message = "please enter end date")
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime endDate;
 
     @Column(name = "image_url", length = 512)

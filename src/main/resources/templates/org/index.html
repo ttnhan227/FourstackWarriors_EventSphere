@@ -65,7 +65,8 @@
                 <div class="posts">
                     <article th:each="event : ${eventPage}">
                         <a th:href="@{/organizer/detail/{id}(id=${event.eventId})}" class="image">
-                            <img th:src="@{${event.imageUrl}}" th:alt="${event.title}"/>
+                            <img th:if="${event.imageUrl}" th:src="@{${event.imageUrl}}" th:alt="${event.title}" style="max-height: 200px;" />
+                            <img th:unless="${event.imageUrl}" th:src="@{/images/events/event-placeholder.jpg}" th:alt="${event.title}"  style="max-height: 200px;" />
                         </a>
                         <h3 th:text="${event.getTitle()}"></h3>
                         Venue: <h4 th:text="${event.getVenue().name}"></h4>
@@ -76,6 +77,7 @@
                         <p th:text="${event.getDescription()}"></p>
                         <ul class="actions">
                             <li><a th:href="@{/organizer/detail/{id}(id=${event.eventId})}" class="button">Details</a></li>
+                            <li><a th:href="@{/organizer/edit/{id}(id=${event.eventId})}" class="button">Edit</a></li>
                         </ul>
                     </article>
                 </div>

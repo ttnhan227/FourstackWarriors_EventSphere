@@ -19,4 +19,7 @@ public class Venues {
     @Column(name = "name", length = 100, nullable = false)
     @NotBlank(message = "name cannot be blank")
     private String name;
+
+    @Column(name="address")
+    private String address;
 }

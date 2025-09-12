@@ -6,7 +6,7 @@
 -->
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
-    <title>Editorial by HTML5 UP</title>
+    <title>Edit Event</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
     <link rel="stylesheet" th:href="@{/css/home/main.css}"/>
@@ -70,6 +70,7 @@
             border-width: 0 3px 3px 0;
             transform: rotate(45deg);
         }
+
         /* Tabs */
         .tabs {
             list-style: none;
@@ -101,8 +102,8 @@
 
         .tabs a.active {
             background: #ffffff;
-            color: #4CAF50; /* editorial green highlight */
-            border-bottom: solid 2px #ffffff; /* blend with content */
+            color: #4CAF50;
+            border-bottom: solid 2px #ffffff;
         }
 
         /* Tab content */
@@ -111,7 +112,7 @@
             padding: 2em 1.5em;
             background: #ffffff;
             border-radius: 0 0.25em 0.25em 0.25em;
-            box-shadow: 0 0 0.25em rgba(0,0,0,0.1);
+            box-shadow: 0 0 0.25em rgba(0, 0, 0, 0.1);
         }
 
         .tab-pane.active {
@@ -152,62 +153,75 @@
 
             <!-- Header -->
             <header id="header">
-                <h1>Event Details</h1>
+                <h1>Edit Event</h1>
             </header>
 
-            <!-- Tabs Navigation -->
-            <ul class="tabs">
-                <li><a href="#event-details" class="active">Event Details</a></li>
-                <li><a href="#registration">Registration</a></li>
-            </ul>
-
-            <!--Tab Content -->
+            <!-- Tab Content -->
             <div class="tab-content">
                 <!-- Section -->
-                <section id="event-details" class="tab-pane active">
-                    <div th:object="${event}">
-                        <label>Title</label>
-                        <input type="text" th:field="*{title}" disabled/>
-                        <label>Category</label>
-                        <input type="text" th:field="*{category}" disabled/>
-                        <label>Description</label>
-                        <textarea th:field="*{description}" disabled></textarea>
-                        <label>Start Date</label>
-                        <input type="text" th:field="*{startDate}" disabled/>
-                        <label>End Date</label>
-                        <input type="text" th:field="*{endDate}" disabled/>
-                        <label>Venue</label>
-                        <input type="text" th:field="*{venue.name}" th:value="${event.venue.name}" disabled/>
-                        <!-- Seating fields -->
-                        <label>Total Seats</label>
-                        <input type="number" th:field="*{eventSeating.totalSeats}" disabled/>
-                        <br><br>
-                        <label class="checkbox-container">
-                            <input type="checkbox" th:field="*{eventSeating.waitlistEnabled}" th:checked="${event.eventSeating.isWaitlistEnabled()}" disabled/>
-                            <span class="checkmark"></span>
-                            Waitlist
-                        </label>
-                    </div>
-                </section>
-                <section id="registration" class="tab-pane">
-                    <table class="">
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Registered at</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                        <tr th:each="reg: ${registration}">
-                            <td th:text="${reg.user.userDetail.fullName}"></td>
-                            <td th:text="${reg.user.email}"></td>
-                            <td th:text="${reg.user.userDetail.phone}"></td>
-                            <td th:text="${#temporals.format(reg.registeredOn, 'yyyy/MM/dd HH:mm')}"></td>
-                            <td th:text="${reg.status}"></td>
-                            <td><a th:href="@{#}">Actions</a></td>
-                        </tr>
-                    </table>
+                <section id="event-edit" class="tab-pane active">
+                    <form th:object="${event}" th:action="@{/organizer/edit}" method="post"
+                          enctype="multipart/form-data">
+                        <div class="fields">
+                            <input th:field="*{eventId}" type="hidden"/>
+                            <input th:field="*{organizer}" type="hidden"/>
+                            <input th:field="*{imageUrl}" type="hidden"/>
+
+                            <label>Title</label>
+                            <input type="text" th:field="*{title}"/>
+                            <div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="error"></div>
+
+                            <label>Category</label>
+                            <input type="text" th:field="*{category}"/>
+                            <div th:if="${#fields.hasErrors('category')}" th:errors="*{category}" class="error"></div>
+
+                            <label>Description</label>
+                            <textarea th:field="*{description}"></textarea>
+                            <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}"
+                                 class="error"></div>
+
+                            <label>Start Date</label>
+                            <input type="datetime-local" th:field="*{startDate}"/>
+                            <div th:if="${#fields.hasErrors('startDate')}" th:errors="*{startDate}" class="error"></div>
+
+                            <label>End Date</label>
+                            <input type="datetime-local" th:field="*{endDate}"/>
+                            <div th:if="${#fields.hasErrors('endDate')}" th:errors="*{endDate}" class="error"></div>
+
+                            <label>Current Image:</label>
+                            <img th:src="${event.imageUrl}" alt="Event Image" style="max-width: 200px;"
+                                 th:if="${event.imageUrl != null}"/>
+                            <label for="image">Upload New Image:</label>
+                            <input name="imageFile" id="image" type="file" accept="image/*"/>
+                            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+                            <label for="venue">Venue</label>
+                            <select th:field="*{venue.venueId}" id="venue">
+                                <option th:each="v : ${venue}"
+                                        th:value="${v.venueId}"
+                                        th:text="${v.name}"
+                                        th:selected="${v.venueId == event.venue.venueId}">
+                                </option>
+                            </select>
+                            <label>Total Seats</label>
+                            <input type="number" th:field="*{eventSeating.totalSeats}"/>
+                            <div th:if="${#fields.hasErrors('eventSeating.totalSeats')}"
+                                 th:errors="*{eventSeating.totalSeats}" class="error"></div>
+
+                            <br><br>
+                            <label class="checkbox-container">
+                                <input type="checkbox" th:field="*{eventSeating.waitlistEnabled}"
+                                       th:checked="${event.eventSeating.isWaitlistEnabled()}"/>
+                                <span class="checkmark"></span>
+                                Waitlist
+                            </label>
+                            <ul class="actions">
+                                <li>
+                                    <button type="submit" class="primary">Edit</button>
+                                </li>
+                            </ul>
+                        </div>
+                    </form>
                 </section>
             </div>
         </div>
@@ -216,15 +230,7 @@
     <!-- Sidebar -->
     <div th:replace="~{layout/sidebar-layout :: sidebar}"></div>
 
-
 </div>
-
-<!-- Scripts -->
-<script src="/js/jquery.min.js"></script>
-<script src="/js/browser.min.js"></script>
-<script src="/js/breakpoints.min.js"></script>
-<script src="/js/util.js"></script>
-<script src="/js/main.js"></script>
 
 <!-- Scripts -->
 <script th:src="@{/js/jquery.min.js}"></script>
@@ -232,24 +238,6 @@
 <script th:src="@{/js/breakpoints.min.js}"></script>
 <script th:src="@{/js/util.js}"></script>
 <script th:src="@{/js/main.js}"></script>
-
-<script>
-    document.querySelectorAll(".tabs a").forEach(tab => {
-        tab.addEventListener("click", function (e) {
-            e.preventDefault();
-
-            // Remove active from all tabs
-            document.querySelectorAll(".tabs a").forEach(t => t.classList.remove("active"));
-            document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
-
-            // Activate clicked tab and content
-            this.classList.add("active");
-            const target = document.querySelector(this.getAttribute("href"));
-            target.classList.add("active");
-        });
-    });
-</script>
-
 
 </body>
 </html>
