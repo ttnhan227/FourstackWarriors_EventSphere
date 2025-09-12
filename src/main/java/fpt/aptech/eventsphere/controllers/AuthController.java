@@ -219,22 +219,4 @@ public class AuthController {
 
         return "redirect:/auth/login?resetSuccess";
     }
-
-    @GetMapping("/test-email")
-    public String testEmail(Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            return "redirect:/auth/login";
-        }
-
-        String email = auth.getName();
-        try {
-            emailService.sendEmail(email, "Test Email from EventSphere", "This is a test email sent from your Gmail account via EventSphere.");
-            model.addAttribute("message", "Test email sent successfully to " + email);
-        } catch (Exception e) {
-            model.addAttribute("error", "Failed to send email: " + e.getMessage());
-        }
-
-        return "auth/login";
-    }
 }

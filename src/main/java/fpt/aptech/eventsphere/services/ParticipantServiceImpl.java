@@ -32,19 +32,22 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final UserDetailsRepository userDetailsRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     public ParticipantServiceImpl(ParticipantRepository participantRepository,
                             EventRepository eventRepository,
                             UserRepository userRepository,
                             UserDetailsRepository userDetailsRepository,
                             RoleRepository roleRepository,
-                            PasswordEncoder passwordEncoder) {
+                            PasswordEncoder passwordEncoder,
+                            EmailService emailService) {
         this.participantRepository = participantRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.userDetailsRepository = userDetailsRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
 
     // Removed duplicate getCurrentUser() method
@@ -63,6 +66,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                         existingRegistration.setStatus(Registrations.RegistrationStatus.CONFIRMED);
                         existingRegistration.setRegisteredOn(java.time.LocalDateTime.now());
                         userRepository.save(user);
+                        sendRegistrationEmail(user, event, "re-registration");
                         return existingRegistration;
                     }
                     // If already confirmed, throw exception
@@ -80,6 +84,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                     user.getRegistrations().add(newRegistration);
                     userRepository.save(user);
                     
+                    sendRegistrationEmail(user, event, "registration");
                     return newRegistration;
                 });
     }
@@ -117,6 +122,52 @@ public class ParticipantServiceImpl implements ParticipantService {
         // For now, assume unlimited seats since maxParticipants is not in the Events model
         // TODO: Add maxParticipants field to Events model if needed
         return Integer.MAX_VALUE;
+    }
+    
+    private void sendRegistrationEmail(Users user, Events event, String emailType) {
+        try {
+            String subject = "EventSphere: " + event.getTitle() + " - Registration " + 
+                ("registration".equals(emailType) ? "Confirmed" : "Updated");
+            
+            String body = String.format("""
+                <html>
+                <body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto;\">
+                    <div style=\"background-color: #f8f9fa; padding: 20px; border-radius: 5px;\">
+                        <h2 style=\"color: #2c3e50;\">Event Registration %s</h2>
+                        <p>Dear %s,</p>
+                        <p>This email confirms your %s for the following event:</p>
+                        
+                        <div style=\"background: white; padding: 15px; border-radius: 5px; margin: 15px 0;\">
+                            <h3 style=\"margin-top: 0; color: #2c3e50;\">%s</h3>
+                            <p><strong>Date:</strong> %s</p>
+                            <p><strong>Time:</strong> %s</p>
+                            <p><strong>Location:</strong> %s</p>
+                        </div>
+                        
+                        <p>We look forward to seeing you there!</p>
+                        
+                        <p>Best regards,<br>The EventSphere Team</p>
+                        
+                        <div style=\"margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; font-size: 12px; color: #777;\">
+                            <p>This is an automated message. Please do not reply to this email.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """,
+                "registration".equals(emailType) ? "Confirmation" : "Update",
+                user.getEmail(),
+                "registration".equals(emailType) ? "registration" : "registration update",
+                event.getTitle(),
+                event.getStartDate().toLocalDate(),
+                event.getStartDate().toLocalTime(),
+                event.getVenue() != null ? event.getVenue().getName() : "To be announced"
+            );
+
+            emailService.sendEmail(user.getEmail(), subject, body);
+        } catch (Exception e) {
+            logger.error("Failed to send registration email", e);
+        }
     }
 
     @Override

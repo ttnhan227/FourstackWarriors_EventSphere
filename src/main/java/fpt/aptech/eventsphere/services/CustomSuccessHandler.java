@@ -42,7 +42,7 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
 
         Users user = null;
 
-        // Handle Google OAuth2 user
+        // google login
         if (authentication.getPrincipal() instanceof OAuth2User) {
             OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
             String email = oauth2User.getAttribute("email");
@@ -53,12 +53,12 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
                 user = handleGoogleUser(email, googleId);
             }
         } else {
-            // For form login
+            //form login
             String username = authentication.getName();
             user = userRepository.findByEmailIgnoreCase(username).orElse(null);
         }
 
-        // Check if user exists and has completed profile
+        // kiem tra neu user ton tai va hoan thanh details
         if (user != null && user.getUserDetails() == null) {
             String email = user.getEmail();
             response.sendRedirect("/auth/register?oauth2user=true&email=" + java.net.URLEncoder.encode(email, "UTF-8"));
