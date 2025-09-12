@@ -7,78 +7,334 @@
                 <div class="col-sm-6">
                     <h1 class="m-0">User Management</h1>
                 </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="/admin/index">Home</a></li>
+                        <li class="breadcrumb-item active">Users</li>
+                    </ol>
+                </div>
             </div>
         </div>
     </div>
 
     <section class="content">
         <div class="container-fluid">
+            <!-- Error Alert -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                <h5><i class="icon fas fa-ban"></i> Error!</h5>
+                <span th:text="${error}"></span>
+            </div>
+
+            <!-- Info Alert -->
+            <div class="alert alert-info alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                <h5><i class="icon fas fa-info"></i> Note!</h5>
+                Administrator accounts are excluded from this management interface for security purposes.
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row">
+                <div class="col-lg-4 col-6">
+                    <div class="small-box bg-info">
+                        <div class="inner">
+                            <h3 th:text="${totalUsers != null ? totalUsers : 0}">0</h3>
+                            <p>Total Users (Non-Admin)</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-6">
+                    <div class="small-box bg-success">
+                        <div class="inner">
+                            <h3 th:text="${activeUsers != null ? activeUsers : 0}">0</h3>
+                            <p>Active Users</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-6">
+                    <div class="small-box bg-warning">
+                        <div class="inner">
+                            <h3 th:text="${inactiveUsers != null ? inactiveUsers : 0}">0</h3>
+                            <p>Inactive Users</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-user-times"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Card -->
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Active Users</h3>
+                    <h3 class="card-title">User Management (Organizers & Participants Only)</h3>
                 </div>
                 <div class="card-body">
-                    <table class="table table-bordered table-striped" id="usersTable">
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Email</th>
-                            <th>Full Name</th>
-                            <th>Department</th>
-                            <th>Created At</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="user : ${users}">
-                            <td th:text="${user.userId}"></td>
-                            <td th:text="${user.email}"></td>
-                            <td th:text="${user.userDetails?.fullName ?: 'N/A'}"></td>
-                            <td th:text="${user.userDetails?.department ?: 'N/A'}"></td>
-                            <td th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
-                            <td>
-                                <span th:if="${user.active}" class="badge badge-success">Active</span>
-                                <span th:unless="${user.active}" class="badge badge-danger">Inactive</span>
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-sm btn-warning"
-                                        th:onclick="'toggleUserStatus(' + ${user.userId} + ')'">
-                                    <span th:if="${user.active}">Deactivate</span>
-                                    <span th:unless="${user.active}">Activate</span>
+                    <!-- Search and Filter Form -->
+                    <form method="get" class="mb-3">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Search</label>
+                                    <input type="text" class="form-control" name="keyword"
+                                           th:value="${keyword}"
+                                           placeholder="Email, name, department...">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Department</label>
+                                    <select class="form-control" name="department">
+                                        <option value="all">All Departments</option>
+                                        <option th:each="dept : ${departments}"
+                                                th:value="${dept}"
+                                                th:text="${dept}"
+                                                th:selected="${selectedDepartment == dept}"></option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Role</label>
+                                    <select class="form-control" name="role">
+                                        <option value="all">All Roles</option>
+                                        <option th:each="r : ${roles}"
+                                                th:value="${r}"
+                                                th:text="${r}"
+                                                th:selected="${selectedRole == r}"></option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Status</label>
+                                    <select class="form-control" name="status">
+                                        <option value="all" th:selected="${selectedStatus == 'all'}">All</option>
+                                        <option value="active" th:selected="${selectedStatus == 'active'}">Active</option>
+                                        <option value="inactive" th:selected="${selectedStatus == 'inactive'}">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Sort By</label>
+                                    <select class="form-control" name="sortBy">
+                                        <option value="userId" th:selected="${sortBy == 'userId'}">ID</option>
+                                        <option value="email" th:selected="${sortBy == 'email'}">Email</option>
+                                        <option value="fullName" th:selected="${sortBy == 'fullName'}">Name</option>
+                                        <option value="department" th:selected="${sortBy == 'department'}">Department</option>
+                                        <option value="roles" th:selected="${sortBy == 'roles'}">Role</option>
+                                        <option value="createdAt" th:selected="${sortBy == 'createdAt'}">Created Date</option>
+                                        <option value="isActive" th:selected="${sortBy == 'isActive'}">Status</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-1">
+                                <div class="form-group">
+                                    <label>Order</label>
+                                    <select class="form-control" name="sortDirection">
+                                        <option value="asc" th:selected="${sortDirection == 'asc'}">A-Z</option>
+                                        <option value="desc" th:selected="${sortDirection == 'desc'}">Z-A</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Search
                                 </button>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
+                                <a href="/admin/users" class="btn btn-secondary ml-2">
+                                    <i class="fas fa-times"></i> Clear Filters
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Hidden fields -->
+                        <input type="hidden" name="page" value="0">
+                        <input type="hidden" name="size" th:value="${pageSize != null ? pageSize : 10}">
+                    </form>
+
+                    <!-- Results Info -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="text-muted">
+                                Showing <strong th:text="${users != null ? users.size() : 0}">0</strong> of
+                                <strong th:text="${totalItems != null ? totalItems : 0}">0</strong> users
+                                <small class="text-info">(Admin users excluded)</small>
+                            </p>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <div class="form-group d-inline-block">
+                                <label class="mr-2">Show:</label>
+                                <select class="form-control d-inline-block w-auto" onchange="changePageSize(this.value)">
+                                    <option value="10" th:selected="${pageSize == 10}">10</option>
+                                    <option value="25" th:selected="${pageSize == 25}">25</option>
+                                    <option value="50" th:selected="${pageSize == 50}">50</option>
+                                    <option value="100" th:selected="${pageSize == 100}">100</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Users Table -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Avatar</th>
+                                <th>Email</th>
+                                <th>Full Name</th>
+                                <th>Department</th>
+                                <th>Phone</th>
+                                <th>Role</th>
+                                <th>Created Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- Empty state -->
+                            <tr th:if="${users == null || users.isEmpty()}">
+                                <td colspan="10" class="text-center py-4">
+                                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                    <br>
+                                    <p class="text-muted">No users found</p>
+                                    <p class="text-muted"><small>Try adjusting your search criteria</small></p>
+                                </td>
+                            </tr>
+
+                            <!-- User rows -->
+                            <tr th:each="user : ${users}" th:attr="data-user-id=${user.userId}">
+                                <td th:text="${user.userId}"></td>
+                                <td class="text-center">
+                                    <img th:if="${user.avatar != null && !user.avatar.isEmpty()}"
+                                         th:src="${user.avatar}"
+                                         class="img-circle"
+                                         style="width: 40px; height: 40px;"
+                                         alt="Avatar">
+                                    <i th:unless="${user.avatar != null && !user.avatar.isEmpty()}"
+                                       class="fas fa-user-circle fa-2x text-muted"></i>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong th:text="${user.email}"></strong>
+                                        <br th:if="${user.enrollmentNo != null && !user.enrollmentNo.isEmpty()}">
+                                        <small class="text-muted" th:if="${user.enrollmentNo != null && !user.enrollmentNo.isEmpty()}">
+                                            Student ID: <span th:text="${user.enrollmentNo}"></span>
+                                        </small>
+                                    </div>
+                                </td>
+                                <td th:text="${user.fullName != null ? user.fullName : 'Not updated'}"></td>
+                                <td>
+                                    <span th:if="${user.department != null && !user.department.isEmpty()}"
+                                          class="badge badge-info"
+                                          th:text="${user.department}"></span>
+                                    <span th:unless="${user.department != null && !user.department.isEmpty()}"
+                                          class="badge badge-secondary">None</span>
+                                </td>
+                                <td th:text="${user.phone != null ? user.phone : 'None'}"></td>
+                                <td>
+                                    <div th:if="${user.roles != null && !user.roles.isEmpty()}">
+                                        <span th:each="role : ${user.roles}"
+                                              th:class="'badge mr-1 ' + (${role == 'ORGANIZER'} ? 'badge-warning' : 'badge-primary')"
+                                              th:text="${role}"></span>
+                                    </div>
+                                    <span th:unless="${user.roles != null && !user.roles.isEmpty()}"
+                                          class="badge badge-secondary">No Role</span>
+                                </td>
+                                <td th:text="${#temporals.format(user.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td class="status-cell">
+                                    <span th:if="${user.isActive}" class="badge badge-success">Active</span>
+                                    <span th:unless="${user.isActive}" class="badge badge-danger">Inactive</span>
+                                </td>
+                                <td class="action-cell">
+                                    <button type="button"
+                                            th:class="${user.isActive ? 'btn btn-sm btn-warning' : 'btn btn-sm btn-success'}"
+                                            th:onclick="'toggleUserStatus(' + ${user.userId} + ')'">
+                                        <span th:if="${user.isActive}">
+                                            <i class="fas fa-user-slash"></i>
+                                        </span>
+                                        <span th:unless="${user.isActive}">
+                                            <i class="fas fa-user-check"></i>
+                                        </span>
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div th:if="${totalPages != null && totalPages > 1}" class="row mt-3">
+                        <div class="col-md-12">
+                            <nav>
+                                <ul class="pagination justify-content-center">
+                                    <!-- Previous Page -->
+                                    <li th:class="${currentPage == 0 ? 'page-item disabled' : 'page-item'}">
+                                        <a class="page-link"
+                                           th:href="@{/admin/users(keyword=${keyword}, department=${selectedDepartment}, role=${selectedRole}, status=${selectedStatus}, sortBy=${sortBy}, sortDirection=${sortDirection}, page=${currentPage - 1}, size=${pageSize})}"
+                                           th:unless="${currentPage == 0}">Previous</a>
+                                        <span class="page-link" th:if="${currentPage == 0}">Previous</span>
+                                    </li>
+
+                                    <!-- Page Numbers -->
+                                    <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                        th:class="${i == currentPage ? 'page-item active' : 'page-item'}"
+                                        th:if="${i >= (currentPage - 2) && i <= (currentPage + 2)}">
+                                        <a class="page-link"
+                                           th:href="@{/admin/users(keyword=${keyword}, department=${selectedDepartment}, role=${selectedRole}, status=${selectedStatus}, sortBy=${sortBy}, sortDirection=${sortDirection}, page=${i}, size=${pageSize})}"
+                                           th:text="${i + 1}"></a>
+                                    </li>
+
+                                    <!-- Next Page -->
+                                    <li th:class="${(currentPage + 1) >= totalPages ? 'page-item disabled' : 'page-item'}">
+                                        <a class="page-link"
+                                           th:href="@{/admin/users(keyword=${keyword}, department=${selectedDepartment}, role=${selectedRole}, status=${selectedStatus}, sortBy=${sortBy}, sortDirection=${sortDirection}, page=${currentPage + 1}, size=${pageSize})}"
+                                           th:unless="${(currentPage + 1) >= totalPages}">Next</a>
+                                        <span class="page-link" th:if="${(currentPage + 1) >= totalPages}">Next</span>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
     </section>
-</div>
 
-<script>
-    function toggleUserStatus(userId) {
-        if (confirm('Are you sure you want to change this user\'s status?')) {
-            fetch('/admin/users/' + userId + '/toggle-status', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            })
-                .then(response => response.text())
-                .then(data => {
-                    if (data === 'success') {
-                        location.reload();
-                    } else {
-                        alert('Error updating user status');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error updating user status');
-                });
+    <script>
+        function changePageSize(newSize) {
+            const url = new URL(window.location);
+            url.searchParams.set('size', newSize);
+            url.searchParams.set('page', '0');
+            window.location.href = url.toString();
         }
-    }
-</script>
+
+        function toggleUserStatus(userId) {
+            if (confirm('Are you sure you want to change this user\'s status?')) {
+                $.post('/admin/users/' + userId + '/toggle-status')
+                    .done(function(response) {
+                        if (response.success) {
+                            alert('Status updated successfully!');
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    })
+                    .fail(function() {
+                        alert('An error occurred while updating user status');
+                    });
+            }
+        }
+    </script>
+</div>
 </html>

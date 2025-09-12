@@ -1,9 +1,6 @@
 package fpt.aptech.eventsphere.dto.admin;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -13,7 +10,11 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class ChartDataDTO {
     private String label;
-    private BigDecimal value;
+    private Number value;
     private String color;
-    private String period; // time-series
+
+    public ChartDataDTO(String label, Number value) {
+        this.label = label;
+        this.value = value;
+    }
 }

@@ -2,25 +2,60 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en" th:fragment="layout(content)">
 <head>
     <meta charset="UTF-8">
-    <title th:text="${title}">Dashboard</title>
-    <!-- CSS -->
-    <link rel="stylesheet" th:href="@{/dist/css/adminlte.min.css}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} ?: 'Admin Dashboard'">Admin Dashboard</title>
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <!-- Font Awesome -->
     <link rel="stylesheet" th:href="@{/plugins/fontawesome-free/css/all.min.css}">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" th:href="@{/dist/css/adminlte.min.css}">
+    <!-- Custom styles -->
+    <style>
+        .small-text {
+            font-size: 0.8em;
+            color: rgba(255,255,255,0.8);
+        }
+        .info-box-number {
+            font-size: 1.8rem;
+        }
+        .alert {
+            border-left: 4px solid;
+        }
+        .alert-info {
+            border-left-color: #17a2b8;
+        }
+        .alert-warning {
+            border-left-color: #ffc107;
+        }
+        .alert-danger {
+            border-left-color: #dc3545;
+        }
+        .alert-success {
+            border-left-color: #28a745;
+        }
+    </style>
 </head>
+
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
+
+    <!-- Preloader -->
+    <div class="preloader flex-column justify-content-center align-items-center">
+        <img class="animation__shake" th:src="@{/dist/img/AdminLTELogo.png}" alt="AdminLTELogo" height="60" width="60">
+    </div>
 
     <!-- Navbar -->
     <div th:replace="admin/layouts/fragments/navbar :: navbar"></div>
 
-    <!-- Sidebar -->
-    <div th:replace="admin/layouts/fragments/sidebar :: sidebar"></div>
+    <!-- Main Sidebar Container -->
+    <div th:replace="~{admin/layouts/fragments/sidebar :: sidebar}"></div>
 
-    <!-- Content Wrapper -->
+    <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
-        <section class="content">
-            <div class="container-fluid" th:insert="${content}"></div>
-        </section>
+        <div th:replace="${content}"></div>
     </div>
 
     <!-- Footer -->
@@ -28,9 +63,111 @@
 
 </div>
 
-<!-- JS -->
+<!-- jQuery -->
 <script th:src="@{/plugins/jquery/jquery.min.js}"></script>
+<!-- jQuery UI 1.11.4 -->
+<script th:src="@{/plugins/jquery-ui/jquery-ui.min.js}"></script>
+<!-- Bootstrap 4 -->
 <script th:src="@{/plugins/bootstrap/js/bootstrap.bundle.min.js}"></script>
-<script th:src="@{/dist/js/adminlte.min.js}"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- AdminLTE App -->
+<script th:src="@{/dist/js/adminlte.js}"></script>
+<!-- Admin Dashboard Charts -->
+<script th:src="@{/dist/js/admin-charts.js}"></script>
+<!--cho phep jqery trên trang content chạy-->
+<script th:inline="javascript">
+    // Lấy CSRF token
+    var token = /*[[${_csrf.token}]]*/ '';
+    var header = /*[[${_csrf.headerName}]]*/ '';
+
+    function changePageSize(newSize) {
+        const url = new URL(window.location);
+        url.searchParams.set('size', newSize);
+        url.searchParams.set('page', '0'); // Reset to first page
+        window.location.href = url.toString();
+    }
+    function toggleUserStatus(userId) {
+        if (confirm('Are you sure you want to change this user\'s status?')) {
+            // Hiển thị loading
+            const button = document.querySelector(`tr[data-user-id="${userId}"] .action-cell button`);
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            button.disabled = true;
+
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            // Thêm CSRF token nếu có
+            if (token && header) {
+                headers[header] = token;
+            }
+
+            fetch('/admin/users/' + userId + '/toggle-status', {
+                method: 'POST',
+                headers: headers
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Response:', data); // Debug log
+                    if (data.success) {
+                        // Cập nhật status badge
+                        const row = document.querySelector(`tr[data-user-id="${userId}"]`);
+                        const statusCell = row.querySelector('.status-cell');
+                        const actionCell = row.querySelector('.action-cell');
+
+                        if (data.newStatus) {
+                            statusCell.innerHTML = '<span class="badge badge-success">Active</span>';
+                            actionCell.innerHTML = '<button type="button" class="btn btn-sm btn-warning" onclick="toggleUserStatus(' + userId + ')">Deactivate</button>';
+                        } else {
+                            statusCell.innerHTML = '<span class="badge badge-danger">Inactive</span>';
+                            actionCell.innerHTML = '<button type="button" class="btn btn-sm btn-success" onclick="toggleUserStatus(' + userId + ')">Activate</button>';
+                        }
+
+                        // Hiển thị thông báo thành công
+                        showAlert('success', data.message);
+                    } else {
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                        showAlert('error', data.message || 'Error updating user status');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Khôi phục button về trạng thái ban đầu
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    showAlert('error', 'Error updating user status');
+                });
+        }
+    }
+
+    function showAlert(type, message) {
+        // Tạo alert element
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const alertHtml = `
+            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        `;
+
+        // Thêm alert vào đầu content
+        const contentHeader = document.querySelector('.content-header');
+        contentHeader.insertAdjacentHTML('afterend', alertHtml);
+
+        // Auto remove sau 5 giây
+        setTimeout(() => {
+            const alert = document.querySelector('.alert');
+            if (alert) {
+                alert.remove();
+            }
+        }, 5000);
+    }
+</script>
+
 </body>
 </html>

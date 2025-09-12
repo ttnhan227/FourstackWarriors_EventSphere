@@ -39,7 +39,7 @@ public interface AdminEventRepository extends JpaRepository<Events, Integer> {
     @Query("SELECT COUNT(e) FROM Events e WHERE DATE(e.startDate) = :today")
     long countByDate(@Param("today") LocalDate today);
 
-    @Query("SELECT COUNT(e) FROM Events e WHERE e.startDate >= :today")
+    @Query("SELECT COUNT(e) FROM Events e WHERE DATE(e.startDate) = :today")
     long countCreatedToday(@Param("today") LocalDate today);
 
     @Query("SELECT COUNT(e) FROM Events e WHERE e.startDate >= :startDate")

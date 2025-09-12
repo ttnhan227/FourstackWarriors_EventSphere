@@ -5,7 +5,13 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">Admin Dashboard</h1>
+                    <h1 class="m-0">Dashboard Admin</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    </ol>
                 </div>
             </div>
         </div>
@@ -13,19 +19,47 @@
 
     <section class="content">
         <div class="container-fluid">
-            <!-- Info boxes -->
+
+            <!-- Cảnh báo hệ thống -->
+            <div th:if="${systemAlerts != null and !#lists.isEmpty(systemAlerts)}" class="row mb-3">
+                <div class="col-12">
+                    <div th:each="alert : ${systemAlerts}"
+                         th:class="'alert alert-' + ${alert.type.toLowerCase()} + ' alert-dismissible fade show'"
+                         role="alert">
+                        <i th:class="${alert.icon}" class="mr-2"></i>
+                        <strong th:text="${alert.title}">Alert</strong>
+                        <span th:text="${alert.message}">Notification</span>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thống kê người dùng -->
             <div class="row">
                 <div class="col-lg-3 col-6">
                     <div class="small-box bg-info">
                         <div class="inner">
-                            <h3 th:text="${totalUsers}">150</h3>
+                            <h3 th:text="${totalUsers ?: 0}">0</h3>
                             <p>Total Users</p>
+                            <div class="small-text">
+                                <span class="text-success" th:if="${userGrowthRate != null and userGrowthRate > 0}">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span th:text="${#numbers.formatDecimal(userGrowthRate, 1, 1)}">0</span>%
+                                </span>
+                                <span class="text-danger" th:if="${userGrowthRate != null and userGrowthRate < 0}">
+                                    <i class="fas fa-arrow-down"></i>
+                                    <span th:text="${#numbers.formatDecimal(userGrowthRate, 1, 1)}">0</span>%
+                                </span>
+                            </div>
                         </div>
+
                         <div class="icon">
                             <i class="ion ion-person-stalker"></i>
                         </div>
                         <a th:href="@{/admin/users}" class="small-box-footer">
-                            More info <i class="fas fa-arrow-circle-right"></i>
+                            View Details <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
                 </div>
@@ -33,14 +67,17 @@
                 <div class="col-lg-3 col-6">
                     <div class="small-box bg-success">
                         <div class="inner">
-                            <h3 th:text="${totalEvents}">53</h3>
-                            <p>Upcoming Events</p>
+                            <h3 th:text="${activeUsers ?: 0}">0</h3>
+                            <p>Active Users</p>
+                            <div class="small-text">
+                                New this month: <span th:text="${newUsersThisMonth ?: 0}">0</span>
+                            </div>
                         </div>
                         <div class="icon">
-                            <i class="ion ion-calendar"></i>
+                            <i class="ion ion-person-add"></i>
                         </div>
-                        <a th:href="@{/admin/events}" class="small-box-footer">
-                            More info <i class="fas fa-arrow-circle-right"></i>
+                        <a th:href="@{/admin/users}" class="small-box-footer">
+                            View Details <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
                 </div>
@@ -48,68 +85,207 @@
                 <div class="col-lg-3 col-6">
                     <div class="small-box bg-warning">
                         <div class="inner">
-                            <h3 th:text="${completedEvents}">44</h3>
-                            <p>Completed Events</p>
+                            <h3 th:text="${suspendedUsers ?: 0}">0</h3>
+                            <p>Suspended Accounts</p>
                         </div>
                         <div class="icon">
-                            <i class="ion ion-checkmark-circled"></i>
+                            <i class="ion ion-person-stalker"></i>
                         </div>
-                        <a th:href="@{/admin/events}" class="small-box-footer">
-                            More info <i class="fas fa-arrow-circle-right"></i>
+                        <a th:href="@{/admin/users}" class="small-box-footer">
+                            View Details <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
                 </div>
 
                 <div class="col-lg-3 col-6">
                     <div class="small-box bg-danger">
-                        <div class="inner">
-                            <h3 th:text="${averageRating != null ? #numbers.formatDecimal(averageRating, 1, 1) : '0.0'}">4.2</h3>
-                            <p>Average Rating</p>
+                        <div class="inner bg-info">
+                            <h3 th:text="${criticalAlerts ?: 0}">0</h3>
+                            <p>Critical Alerts</p>
                         </div>
                         <div class="icon">
-                            <i class="ion ion-star"></i>
+                            <i class="ion ion-alert-circled"></i>
                         </div>
-                        <a href="#" class="small-box-footer">
-                            More info <i class="fas fa-arrow-circle-right"></i>
+                        <a href="#systemAlerts" class="small-box-footer">
+                            View Details <i class="fas fa-arrow-circle-right"></i>
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Charts -->
+            <!-- Thống kê sự kiện -->
             <div class="row">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">User Registration Statistics</h3>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-primary">
+                        <div class="inner">
+                            <h3 th:text="${totalEvents ?: 0}">0</h3>
+                            <p>Total Events</p>
+                            <div class="small-text">
+                                This month:
+                                <span th:text="${eventsThisMonth ?: 0}">0</span>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <canvas id="userChart" width="400" height="200"></canvas>
+                        <div class="icon">
+                            <i class="ion ion-calendar"></i>
                         </div>
+                        <a th:href="@{/admin/event}" class="small-box-footer">
+                            View Details <i class="fas fa-arrow-circle-right"></i>
+                        </a>
                     </div>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-warning text-white">
+                        <div class="inner">
+                            <h3 th:text="${pendingEvents ?: 0}">0</h3>
+                            <p>Pending Events</p>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-clock"></i>
+                        </div>
+                        <a th:href="@{/admin/event}" class="small-box-footer">
+                            View Details <i class="fas fa-arrow-circle-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-success">
+                        <div class="inner">
+                            <h3 th:text="${approvedEvents ?: 0}">0</h3>
+                            <p>Approved Events</p>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-checkmark-circled"></i>
+                        </div>
+                        <a th:href="@{/admin/event}" class="small-box-footer">
+                            View Details <i class="fas fa-arrow-circle-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-info">
+                        <div class="inner">
+                            <h3 th:text="${completedEvents ?: 0}">0</h3>
+                            <p>Completed Events</p>
+                            <div class="small-text">
+                                Avg. Rating: <span th:text="${averageEventRating != null ? #numbers.formatDecimal(averageEventRating, 1, 1) : '0.0'}">0.0</span>/5
+                            </div>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-star"></i>
+                        </div>
+                        <a th:href="@{/admin/event}" class="small-box-footer">
+                            View Details <i class="fas fa-arrow-circle-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hoạt động hôm nay -->
+            <div class="row mb-4">
+                <div class="col-md-12">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Event Creation Statistics</h3>
+                            <h3 class="card-title"><i class="fas fa-calendar-day"></i> Today's Activities</h3>
                         </div>
                         <div class="card-body">
-                            <canvas id="eventChart" width="400" height="200"></canvas>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="info-box">
+                                        <span class="info-box-icon bg-info"><i class="fas fa-user-plus"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">New Registrations</span>
+                                            <span class="info-box-number" th:text="${todayRegistrations ?: 0}">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="info-box">
+                                        <span class="info-box-icon bg-success"><i class="fas fa-calendar-plus"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">New Events Created</span>
+                                            <span class="info-box-number" th:text="${todayEventCreations ?: 0}">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="info-box">
+                                        <span class="info-box-icon bg-warning"><i class="fas fa-comment-dots"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Pending Feedback</span>
+                                            <span class="info-box-number" th:text="${pendingFeedbackReviews ?: 0}">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="info-box">
+                                        <span class="info-box-icon bg-primary"><i class="fas fa-certificate"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Certificates Issued</span>
+                                            <span class="info-box-number" th:text="${certificatesIssued ?: 0}">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Department Statistics -->
+            <!-- Phòng ban hiệu suất cao -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-trophy"></i> Top High-Performance Departments</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th>Department</th>
+                                        <th>Total Users</th>
+                                        <th>Active Users</th>
+                                        <th>Total Events</th>
+                                        <th>Completed Events</th>
+                                        <th>Average Rating</th>
+                                        <th>Total Registrations</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr th:each="dept : ${departmentDetails}" th:if="${departmentDetails != null}">
+                                        <td>
+                                            <strong th:text="${dept.departmentName}">IT Department</strong>
+                                        </td>
+                                        <td th:text="${dept.totalUsers}">0</td>
+                                        <td th:text="${dept.activeUsers}">0</td>
+                                        <td th:text="${dept.totalEvents}">0</td>
+                                        <td th:text="${dept.completedEvents}">0</td>
+                                        <td>
+                                            <span class="badge badge-warning" th:text="${dept.averageRating != null ? #numbers.formatDecimal(dept.averageRating, 1, 1) : '0.0'}">0.0</span>
+                                        </td>
+                                        <td th:text="${dept.totalRegistrations}">0</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Biểu đồ thống kê -->
             <div class="row">
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Users by Department</h3>
+                            <h3 class="card-title"><i class="fas fa-chart-line"></i> User Registration Statistics</h3>
                         </div>
                         <div class="card-body">
-                            <canvas id="userDepartmentChart" width="400" height="200"></canvas>
+                            <canvas id="userRegistrationChart" width="400" height="200"></canvas>
                         </div>
                     </div>
                 </div>
@@ -117,25 +293,66 @@
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Events by Department</h3>
+                            <h3 class="card-title"><i class="fas fa-chart-bar"></i> Event Creation Statistics</h3>
                         </div>
                         <div class="card-body">
-                            <canvas id="eventDepartmentChart" width="400" height="200"></canvas>
+                            <canvas id="eventCreationChart" width="400" height="200"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Phân bố theo phòng ban -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-chart-pie"></i> Users by Department</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="usersByDepartmentChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-chart-pie"></i> Events by Department</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="eventsByDepartmentChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cập nhật lần cuối -->
+            <div class="row mt-3">
+                <div class="col-12">
+                    <small class="text-muted float-right">
+                        <i class="fas fa-clock"></i>
+                        Last updated:
+                        <span th:text="${lastUpdated != null ? #temporals.format(lastUpdated, 'dd/MM/yyyy HH:mm:ss') : 'N/A'}">N/A</span>
+                    </small>
+                </div>
+            </div>
+
         </div>
     </section>
-</div>
 
-<script th:inline="javascript">
-    // Chart data from server
-    const userRegistrationData = /*[[${userRegistrationStats}]]*/ [];
-    const eventCreationData = /*[[${eventCreationStats}]]*/ [];
-    const usersByDepartment = /*[[${usersByDepartment}]]*/ [];
-    const eventsByDepartment = /*[[${eventsByDepartment}]]*/ [];
-</script>
-<script th:src="@{/plugins/chart.js/Chart.min.js}"></script>
-<script th:src="@{/js/admin-charts.js}"></script>
+    <!-- JavaScript để xử lý biểu đồ -->
+    <script th:inline="javascript">
+        // Truyền dữ liệu từ server xuống JavaScript
+        window.dashboardData = {
+            userRegistrationChart: /*[[${userRegistrationChart}]]*/ [],
+            eventCreationChart: /*[[${eventCreationChart}]]*/ [],
+            usersByDepartment: /*[[${usersByDepartment}]]*/ {},
+            eventsByDepartment: /*[[${eventsByDepartment}]]*/ {},
+            departmentDistributionChart: /*[[${departmentDistributionChart}]]*/ []
+        };
+
+        console.log('Dashboard data loaded:', window.dashboardData);
+    </script>
+</div>
 </html>

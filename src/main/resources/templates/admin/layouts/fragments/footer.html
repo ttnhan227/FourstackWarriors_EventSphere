@@ -1,6 +1,8 @@
 <div th:fragment="footer">
-    <footer class="main-footer">
-        <strong>Copyright &copy; 2025 EventSphere.</strong>
-        All rights reserved.
+    <footer class="main-footer text-center">
+        <strong>Copyright &copy;
+            <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}"></span>
+            EventSphere.
+        </strong> All rights reserved.
     </footer>
 </div>

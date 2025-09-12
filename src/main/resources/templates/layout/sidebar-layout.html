@@ -80,6 +80,9 @@
                 <li th:if="${#authorization.expression('hasRole(''PARTICIPANT'')')}">
                     <a th:href="@{/participant/dashboard}">My Dashboard</a>
                 </li>
+                <li th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                    <a th:href="@{/admin/index}">Admin Dashboard</a>
+                </li>
                 <li><a th:href="@{/generic}">Generic</a></li>
                 <li><a th:href="@{/elements}">Elements</a></li>
                 <li>

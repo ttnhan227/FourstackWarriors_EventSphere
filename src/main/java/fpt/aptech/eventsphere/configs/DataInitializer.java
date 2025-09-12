@@ -132,7 +132,7 @@ public class DataInitializer implements CommandLineRunner {
                     phones[i],
                     "Software Engineering",
                     enrollments[i],
-                    "/images/avatars/avatar2" + (i + 1) + ".png",
+                    "/images/avatars/avatar" + (i + 1) + ".png",
                     "Student Dormitory Block " + (i + 1) + ", FPT University"
             );
         }

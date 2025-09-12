@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 
 @Repository
 public interface AdminFeedbackRepository extends JpaRepository<Feedback, Integer> {
-    
+
     @Query("SELECT COUNT(f) FROM Feedback f WHERE f.rating IS NULL OR f.rating = 0")
     BigDecimal countPendingReviews();
     
@@ -18,4 +18,7 @@ public interface AdminFeedbackRepository extends JpaRepository<Feedback, Integer
     
     @Query("SELECT COUNT(f) FROM Feedback f WHERE f.rating < 3")
     long countLowRatingFeedback();
+
+    @Query("SELECT COUNT(f) FROM Feedback f")
+    BigDecimal countAllFeedbacks();
 }
