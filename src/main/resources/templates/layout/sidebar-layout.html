@@ -52,7 +52,7 @@
             <ul class="actions stacked" style="margin-bottom: 0;">
                 <li style="text-align: center;" th:if="${#authorization.expression('isAuthenticated()')}">
                     <span class="welcome-text">Welcome, <span
-                            th:text="${#authentication.principal.username}"></span>!</span>
+                            th:text="${#authentication.principal.name}"></span>!</span>
                 </li>
                 <li th:if="${#authorization.expression('isAuthenticated()')}">
                     <form method="post" style="margin: 0;" th:action="@{/logout}">

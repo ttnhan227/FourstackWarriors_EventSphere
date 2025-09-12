@@ -15,7 +15,13 @@ public interface UserRepository extends JpaRepository<Users, Integer> {
 
     Optional<Users> findByEmail(String email);
 
+    @Query("SELECT u FROM Users u WHERE LOWER(u.email) = LOWER(:email)")
+    Optional<Users> findByEmailIgnoreCase(@Param("email") String email);
+
     boolean existsByEmail(String email);
+
+    @Query("SELECT COUNT(u) > 0 FROM Users u WHERE LOWER(u.email) = LOWER(:email)")
+    boolean existsByEmailIgnoreCase(@Param("email") String email);
 
     Optional<Users> findByGoogleId(String googleId);
 
