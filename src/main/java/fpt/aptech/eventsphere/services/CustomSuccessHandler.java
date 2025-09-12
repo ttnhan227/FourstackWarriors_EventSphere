@@ -21,7 +21,7 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
             throws IOException, ServletException {
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         if (authorities.contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
-            response.sendRedirect("/admin/index");
+            response.sendRedirect("/");
         } else if (authorities.contains(new SimpleGrantedAuthority("ROLE_PARTICIPANT"))) {
             response.sendRedirect("/");
         } else if (authorities.contains(new SimpleGrantedAuthority("ROLE_ORGANIZER"))) {
