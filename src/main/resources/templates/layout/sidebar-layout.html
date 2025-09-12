@@ -83,7 +83,6 @@
                 <li th:if="${#authorization.expression('hasRole(''PARTICIPANT'')')}">
                     <a th:href="@{/participant/dashboard}">My Dashboard</a>
                 </li>
-<<<<<<< HEAD
                 <li th:if="${#authorization.expression('hasRole(''ORGANIZER'')')}">
                     <a th:href="@{/organizer/index}">List Events</a>
                 </li>
@@ -92,10 +91,8 @@
                 </li>
                 <li th:if="${#authorization.expression('hasRole(''ORGANIZER'')')}">
                     <a th:href="@{/organizer/createVenue}">Create new Venue</a>
-=======
                 <li th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
                     <a th:href="@{/admin/index}">Admin Dashboard</a>
->>>>>>> Tu
                 </li>
                 <li><a th:href="@{/generic}">Generic</a></li>
                 <li><a th:href="@{/elements}">Elements</a></li>
