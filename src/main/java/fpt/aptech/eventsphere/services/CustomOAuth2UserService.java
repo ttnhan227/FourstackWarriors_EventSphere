@@ -35,77 +35,77 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         logger.info("CustomOAuth2UserService.loadUser called");
         OAuth2User oauth2User = super.loadUser(userRequest);
 
-        // Debug: Print all available attributes
-        logger.info("OAuth2 User Attributes: " + oauth2User.getAttributes());
-
+        // Get email and googleId from OAuth2 user
         String email = oauth2User.getAttribute("email");
         String googleId = oauth2User.getAttribute("sub");
 
-        // Try alternative attribute names if sub is null
-        if (googleId == null) {
-            googleId = oauth2User.getAttribute("id");
-        }
-        if (googleId == null) {
-            googleId = oauth2User.getAttribute("googleId");
-        }
+        // Debug: Print all available attributes
+        logger.info("OAuth2 User Attributes: " + oauth2User.getAttributes());
+        logger.info("Email from OAuth2: " + email);
+        logger.info("Google ID (sub): " + googleId);
 
-        // Debug: Print the values
-        logger.info("Email: " + email);
-        logger.info("Google ID (sub): " + oauth2User.getAttribute("sub"));
-        logger.info("Google ID (id): " + oauth2User.getAttribute("id"));
-        logger.info("Google ID (googleId): " + oauth2User.getAttribute("googleId"));
-        logger.info("Final Google ID used: " + googleId);
-
+        // Find or create user in database
         Optional<Users> existingUser = userRepository.findByEmailIgnoreCase(email);
-        logger.info("Looking for user with email: " + email);
-        logger.info("User found: " + existingUser.isPresent());
-        if (existingUser.isPresent()) {
-            logger.info("Found user email in DB: " + existingUser.get().getEmail());
-            logger.info("Email match: " + email.equals(existingUser.get().getEmail()));
-        }
-
         Users user;
+
         if (existingUser.isPresent()) {
+            // Update existing user
             user = existingUser.get();
-            logger.info("Existing user found: " + user.getEmail() + ", current Google ID: " + user.getGoogleId());
+            logger.info("Found existing user: " + user.getEmail());
+            
+            // Update Google ID if not set
             if (user.getGoogleId() == null) {
-                logger.info("Setting Google ID: " + googleId);
                 user.setGoogleId(googleId);
-                Users savedUser = userRepository.save(user);
-                logger.info("User saved with Google ID: " + savedUser.getGoogleId());
-            } else {
-                logger.info("User already has Google ID: " + user.getGoogleId());
+                user = userRepository.save(user);
+                logger.info("Updated user with Google ID: " + user.getGoogleId());
             }
+            
             // Ensure user has at least PARTICIPANT role
             if (user.getRoles().isEmpty()) {
-                Optional<Roles> participantRole = roleRepository.findByRoleName("PARTICIPANT");
-                if (participantRole.isPresent()) {
-                    user.getRoles().add(participantRole.get());
-                    userRepository.save(user);
-                }
+                Roles participantRole = roleRepository.findByRoleName("PARTICIPANT")
+                    .orElseThrow(() -> new IllegalStateException("PARTICIPANT role not found"));
+                user.getRoles().add(participantRole);
+                user = userRepository.save(user);
+                logger.info("Added PARTICIPANT role to user: " + user.getEmail());
             }
         } else {
+            // Create new user
+            logger.info("Creating new user for email: " + email);
             user = new Users();
             user.setEmail(email);
             user.setGoogleId(googleId);
             user.setActive(true);
             user.setDeleted(false);
-            // set default role
-            Optional<Roles> participantRole = roleRepository.findByRoleName("PARTICIPANT");
-            if (participantRole.isPresent()) {
-                user.setRoles(Collections.singletonList(participantRole.get()));
-            }
-            userRepository.save(user);
+            
+            // Set default role
+            Roles participantRole = roleRepository.findByRoleName("PARTICIPANT")
+                .orElseThrow(() -> new IllegalStateException("PARTICIPANT role not found"));
+            user.setRoles(Collections.singletonList(participantRole));
+            
+            user = userRepository.save(user);
+            logger.info("Created new user with PARTICIPANT role: " + user.getEmail());
         }
 
-        Collection<? extends GrantedAuthority> authorities = mapRolesToAuthorities(user);
-
-        return new DefaultOAuth2User(authorities, oauth2User.getAttributes(), "email");
-    }
-
-    private Collection<? extends GrantedAuthority> mapRolesToAuthorities(Users user) {
-        return user.getRoles().stream()
+        // Map user roles to authorities
+        Collection<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getRoleName()))
                 .collect(Collectors.toList());
+
+        logger.info("Mapped authorities for " + user.getEmail() + ": " + authorities);
+
+        // Create a new attributes map that includes the original OAuth2 attributes
+        Map<String, Object> attributes = new HashMap<>(oauth2User.getAttributes());
+        
+        // Add roles to the attributes for Thymeleaf access
+        List<String> roleNames = user.getRoles().stream()
+                .map(role -> "ROLE_" + role.getRoleName())
+                .collect(Collectors.toList());
+        
+        attributes.put("roles", roleNames);
+        
+        // Create and return the OAuth2User with the updated authorities
+        return new DefaultOAuth2User(authorities, attributes, "email");
     }
+
+    // Role mapping is now done inline where needed
 }
