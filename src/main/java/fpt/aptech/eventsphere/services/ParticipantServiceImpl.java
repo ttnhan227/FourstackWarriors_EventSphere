@@ -55,30 +55,37 @@ public class ParticipantServiceImpl implements ParticipantService {
         Events event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        // Check if user is already registered
-        if (isUserRegisteredForEvent(eventId)) {
-            throw new IllegalStateException("You are already registered for this event");
-        }
+        // Check if user has an existing registration (including cancelled ones)
+        return participantRepository.findRegistration(eventId, user.getUserId())
+                .map(existingRegistration -> {
+                    // If registration exists but is cancelled, update it to CONFIRMED
+                    if (existingRegistration.getStatus() == Registrations.RegistrationStatus.CANCELLED) {
+                        existingRegistration.setStatus(Registrations.RegistrationStatus.CONFIRMED);
+                        existingRegistration.setRegisteredOn(java.time.LocalDateTime.now());
+                        userRepository.save(user);
+                        return existingRegistration;
+                    }
+                    // If already confirmed, throw exception
+                    throw new IllegalStateException("You are already registered for this event");
+                })
+                .orElseGet(() -> {
+                    // No existing registration, create a new one
+                    Registrations newRegistration = new Registrations();
+                    newRegistration.setEvent(event);
+                    newRegistration.setStudent(user);
+                    newRegistration.setStatus(Registrations.RegistrationStatus.CONFIRMED);
+                    newRegistration.setRegisteredOn(java.time.LocalDateTime.now());
 
-        // Create new registration
-        Registrations registration = new Registrations();
-        registration.setEvent(event);
-        registration.setStudent(user);
-        registration.setStatus(Registrations.RegistrationStatus.CONFIRMED);
-        registration.setRegisteredOn(java.time.LocalDateTime.now());
-
-        // Add registration to user's registrations and save
-        user.getRegistrations().add(registration);
-        userRepository.save(user);
-        
-        // Return the saved registration
-        return user.getRegistrations().stream()
-                .filter(r -> r.getEvent().equals(event))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Failed to save registration"));
+                    // Add registration to user's registrations and save
+                    user.getRegistrations().add(newRegistration);
+                    userRepository.save(user);
+                    
+                    return newRegistration;
+                });
     }
 
     @Override
+    @Transactional
     public void cancelRegistration(Integer eventId) {
         Users user = getCurrentUser();
         Registrations registration = participantRepository.findRegistration(eventId, user.getUserId())
@@ -89,15 +96,20 @@ public class ParticipantServiceImpl implements ParticipantService {
             throw new IllegalStateException("Cannot cancel registration after event has started");
         }
         
-        // Remove registration from user's registrations
+        // Update status to CANCELLED instead of deleting
+        registration.setStatus(Registrations.RegistrationStatus.CANCELLED);
+        // Save through the user's registration collection to maintain consistency
         user.getRegistrations().removeIf(r -> r.getRegistrationId() == registration.getRegistrationId());
+        user.getRegistrations().add(registration);
         userRepository.save(user);
     }
 
     @Override
     public boolean isUserRegisteredForEvent(Integer eventId) {
         Users user = getCurrentUser();
-        return participantRepository.findRegistration(eventId, user.getUserId()).isPresent();
+        return participantRepository.findRegistration(eventId, user.getUserId())
+                .map(registration -> registration.getStatus() == Registrations.RegistrationStatus.CONFIRMED)
+                .orElse(false);
     }
 
     @Override
@@ -111,6 +123,16 @@ public class ParticipantServiceImpl implements ParticipantService {
     public List<Registrations> getUserRegistrations() {
         Users user = getCurrentUser();
         return participantRepository.findUpcomingRegistrations(user.getUserId());
+    }
+    
+    @Override
+    public Registrations getRegistrationForEvent(Integer eventId) {
+        Users user = getCurrentUser();
+        if (user == null) {
+            throw new IllegalStateException("User not authenticated");
+        }
+        return participantRepository.findRegistration(eventId, user.getUserId())
+                .orElseThrow(() -> new RuntimeException("Registration not found for this event"));
     }
 
     @Override
