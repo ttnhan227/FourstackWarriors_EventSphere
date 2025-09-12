@@ -1,0 +1,455 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>My Profile - EventSphere</title>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1, user-scalable=no" name="viewport"/>
+    <link rel="stylesheet" th:href="@{/css/home/main.css}"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+    <!-- Cropper.js CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+    <style>
+        /* Avatar Upload */
+        .avatar-upload {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            margin: 0 auto 20px;
+        }
+
+        .avatar-upload input[type="file"] {
+            display: none;
+        }
+
+        .avatar-upload img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #ddd;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .avatar-upload img:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+            border-color: #4CAF50;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .cropper-container {
+            margin: 15px auto;
+            max-width: 100%;
+            background: transparent !important;
+            overflow: visible !important;
+        }
+
+        .cropper-view-box {
+            outline: none;
+            border-radius: 50%;
+            box-shadow: 0 0 0 1px #fff;
+        }
+
+        .cropper-face {
+            background-color: transparent !important;
+        }
+
+        .cropper-modal {
+            background: rgba(0, 0, 0, 0.5) !important;
+        }
+
+        .cropper-line,
+        .cropper-point {
+            background-color: #fff;
+        }
+
+        #imagePreview {
+            max-width: 100%;
+            max-height: 70vh;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .cropper-wrap-box,
+        .cropper-canvas,
+        .cropper-crop-box {
+            border-radius: 0;
+        }
+
+        /* Stats */
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 1em 0;
+            text-align: center;
+        }
+
+        .stats-box {
+            flex: 1;
+            margin: 0 5px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 0.8em;
+        }
+
+        .stats-box h4 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+
+        .stats-box span {
+            color: #888;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+
+<body class="is-preload">
+
+<div id="wrapper">
+
+    <!-- Main -->
+    <div id="main">
+        <div class="inner">
+
+            <!-- Header -->
+            <header id="header">
+                <a class="logo" th:href="@{/}">
+                    <strong>EventSphere</strong> - My Profile
+                </a>
+            </header>
+
+            <!-- Content -->
+            <section>
+                <!-- Success/Error Messages -->
+                <div class="alert alert-success" role="alert" th:if="${success}">
+                    <span th:text="${success}"></span>
+                </div>
+                <div class="alert alert-danger" role="alert" th:if="${error}">
+                    <span th:text="${error}"></span>
+                </div>
+
+                <div class="row gtr-200">
+                    <!-- Left Sidebar -->
+                    <div class="col-4 col-12-medium">
+                        <div class="box" style="text-align:center;">
+
+                            <!-- Avatar Upload -->
+                            <div class="avatar-upload">
+                                <img alt="Profile Picture" class="cursor-pointer" id="avatarPreview"
+                                     onclick="document.getElementById('avatarInput').click()"
+                                     th:src="${profile.avatar != null} ? ${profile.avatar + '?t=' + #dates.format(#dates.createNow(), 'yyyyMMddHHmmss')} : '/images/default-avatar.png'"/>
+
+                                <!-- Hidden file input -->
+                                <form enctype="multipart/form-data" id="avatarForm" method="post"
+                                      th:action="@{/profile/upload-picture}">
+                                    <input accept="image/*" id="avatarInput" name="imageFile"
+                                           onchange="previewImage(this)"
+                                           style="display: none;" type="file">
+                                    <input id="croppedImage" name="croppedImage" type="hidden">
+                                </form>
+
+                                <!-- Image Crop Modal -->
+                                <div class="modal" id="cropModal">
+                                    <div class="modal-content"
+                                         style="background: white; padding: 20px; border-radius: 8px; width: 500px; max-width: 90%; max-height: 90vh; display: flex; flex-direction: column;">
+                                        <h3>Edit Profile Picture</h3>
+                                        <div style="flex: 1; overflow: auto; margin: 10px 0; text-align: center; min-height: 300px; display: flex; align-items: center; justify-content: center;">
+                                            <img id="imagePreview"
+                                                 style="max-width: 100%; max-height: 60vh; display: block;"/>
+                                        </div>
+                                        <div class="actions" style="text-align: right; margin-top: 20px;">
+                                            <button class="button" onclick="closeCropModal()" type="button">Cancel
+                                            </button>
+                                            <button class="button primary" onclick="cropAndUpload()" type="button">
+                                                Save
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Name & Email -->
+                            <h3 th:text="${profile.fullName}">User Name</h3>
+                            <p class="text-muted" th:text="${profile.email}">user@example.com</p>
+
+                            <!-- Stats -->
+                            <div class="stats-container">
+                                <div class="stats-box">
+                                    <h4 th:text="${profile.totalEventsRegistered}">0</h4>
+                                    <span>Events</span>
+                                </div>
+                                <div class="stats-box">
+                                    <h4 th:text="${profile.totalEventsAttended}">0</h4>
+                                    <span>Attended</span>
+                                </div>
+                            </div>
+
+                            <!-- Edit Profile -->
+                            <a class="button primary fit" th:href="@{/profile/edit}">
+                                <i class="fas fa-edit"></i> Edit Profile
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Right Content -->
+                    <div class="col-8 col-12-medium">
+                        <!-- Profile Info -->
+                        <div class="box">
+                            <header class="major">
+                                <h2>Profile Information</h2>
+                            </header>
+                            <p><strong>Full Name:</strong> <span th:text="${profile.fullName}">John Doe</span></p>
+                            <p><strong>Email:</strong> <span th:text="${profile.email}">user@example.com</span></p>
+                            <p><strong>Phone:</strong> <span
+                                    th:text="${profile.phone != null ? profile.phone : 'Not provided'}">+123456789</span>
+                            </p>
+                            <p><strong>Department:</strong> <span
+                                    th:text="${profile.department != null ? profile.department : 'Not provided'}">IT Department</span>
+                            </p>
+                            <p><strong>Enrollment No:</strong> <span
+                                    th:text="${profile.enrollmentNo != null ? profile.enrollmentNo : 'Not provided'}">EN12345</span>
+                            </p>
+                            <p><strong>Member Since:</strong> <span
+                                    th:text="${#temporals.format(profile.memberSince, 'MMMM dd, yyyy')}">January 1, 2023</span>
+                            </p>
+                        </div>
+
+                        <!-- Change Password -->
+                        <div class="box">
+                            <header class="major">
+                                <h2>Change Password</h2>
+                            </header>
+                            <form method="post" th:action="@{/profile/change-password}">
+                                <div class="row gtr-uniform">
+                                    <div class="col-12">
+                                        <input id="currentPassword" name="currentPassword"
+                                               placeholder="Current Password"
+                                               required type="password"/>
+                                    </div>
+                                    <div class="col-12">
+                                        <input id="newPassword" name="newPassword" placeholder="New Password"
+                                               required type="password"/>
+                                    </div>
+                                    <div class="col-12">
+                                        <ul class="actions">
+                                            <li>
+                                                <button class="button primary" type="submit">Update Password</button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div th:replace="~{layout/sidebar-layout :: sidebar}"></div>
+
+</div>
+
+<!-- Scripts -->
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/browser.min.js}"></script>
+<script th:src="@{/js/breakpoints.min.js}"></script>
+<script th:src="@{/js/util.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+<!-- Cropper.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    let cropper;
+
+    function closeCropModal() {
+        document.getElementById('cropModal').style.display = 'none';
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        document.getElementById('avatarInput').value = '';
+    }
+
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const imagePreview = document.getElementById('imagePreview');
+                imagePreview.src = e.target.result;
+
+                // Show the modal
+                document.getElementById('cropModal').style.display = 'flex';
+
+                // Initialize cropper
+                if (cropper) {
+                    cropper.destroy();
+                }
+
+                // Reset any previous styles
+                imagePreview.style.maxWidth = 'none';
+                imagePreview.style.maxHeight = 'none';
+                imagePreview.style.width = 'auto';
+                imagePreview.style.height = 'auto';
+
+                // Ensure the image is loaded before initializing cropper
+                imagePreview.onload = function () {
+                    // Create a new image to get natural dimensions
+                    const img = new Image();
+                    img.onload = function () {
+                        const container = document.querySelector('.modal-content');
+                        const maxWidth = container.clientWidth * 0.9;
+                        const maxHeight = window.innerHeight * 0.7;
+
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Calculate dimensions to fit container while maintaining aspect ratio
+                        if (width > maxWidth) {
+                            const ratio = maxWidth / width;
+                            width = maxWidth;
+                            height = height * ratio;
+                        }
+
+                        if (height > maxHeight) {
+                            const ratio = maxHeight / height;
+                            height = maxHeight;
+                            width = width * ratio;
+                        }
+
+                        // Set the image dimensions
+                        imagePreview.style.width = width + 'px';
+                        imagePreview.style.height = 'auto';
+
+                        // Initialize cropper after a small delay to ensure dimensions are applied
+                        setTimeout(() => {
+                            if (cropper) {
+                                cropper.destroy();
+                            }
+
+                            cropper = new Cropper(imagePreview, {
+                                aspectRatio: 1,
+                                viewMode: 0, // Changed to 0 to allow the image to be moved outside the container
+                                autoCropArea: 1,
+                                responsive: true,
+                                guides: true,
+                                highlight: false,
+                                minContainerWidth: 300,
+                                minContainerHeight: 300,
+                                background: false,
+                                cropBoxResizable: true,
+                                cropBoxMovable: true,
+                                toggleDragModeOnDblclick: false,
+                                zoomable: true,
+                                zoomOnTouch: true,
+                                zoomOnWheel: true,
+                                dragMode: 'move',
+                                ready: function () {
+                                    const containerData = this.cropper.getContainerData();
+                                    const cropBoxWidth = Math.min(containerData.width, containerData.height) * 0.8;
+
+                                    this.cropper.setCropBoxData({
+                                        left: (containerData.width - cropBoxWidth) / 2,
+                                        top: (containerData.height - cropBoxWidth) / 2,
+                                        width: cropBoxWidth,
+                                        height: cropBoxWidth
+                                    });
+
+                                    // Center the image in the container
+                                    const imageData = this.cropper.getImageData();
+                                    this.cropper.setCanvasData({
+                                        left: (containerData.width - imageData.width) / 2,
+                                        top: (containerData.height - imageData.height) / 2
+                                    });
+                                }
+                            });
+                        }, 100);
+                    };
+                    img.src = imagePreview.src;
+                };
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function cropAndUpload() {
+        if (cropper) {
+            const canvas = cropper.getCroppedCanvas({
+                width: 400,
+                height: 400,
+                minWidth: 256,
+                minHeight: 256,
+                maxWidth: 1024,
+                maxHeight: 1024,
+                fillColor: '#fff',
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
+            });
+
+            canvas.toBlob((blob) => {
+                const formData = new FormData(document.getElementById('avatarForm'));
+                const croppedFile = new File([blob], 'avatar.png', {type: 'image/png'});
+                formData.set('imageFile', croppedFile);
+
+                fetch('/profile/upload-picture', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Upload failed');
+                        }
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error uploading image. Please try again.');
+                    });
+
+                closeCropModal();
+            }, 'image/png');
+        }
+    }
+
+    /*]]>*/
+</script>
+</body>
+</html>

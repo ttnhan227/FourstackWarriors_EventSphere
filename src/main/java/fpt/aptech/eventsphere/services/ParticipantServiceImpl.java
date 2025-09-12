@@ -2,6 +2,7 @@ package fpt.aptech.eventsphere.services;
 
 import fpt.aptech.eventsphere.dto.ParticipantRegistrationDto;
 import fpt.aptech.eventsphere.models.Events;
+import fpt.aptech.eventsphere.models.Registrations;
 import fpt.aptech.eventsphere.models.Roles;
 import fpt.aptech.eventsphere.models.UserDetails;
 import fpt.aptech.eventsphere.models.Users;
@@ -44,6 +45,72 @@ public class ParticipantServiceImpl implements ParticipantService {
         this.userDetailsRepository = userDetailsRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+    }
+
+    // Removed duplicate getCurrentUser() method
+
+    @Override
+    public Registrations registerForEvent(Integer eventId) {
+        Users user = getCurrentUser();
+        Events event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        // Check if user is already registered
+        if (isUserRegisteredForEvent(eventId)) {
+            throw new IllegalStateException("You are already registered for this event");
+        }
+
+        // Create new registration
+        Registrations registration = new Registrations();
+        registration.setEvent(event);
+        registration.setStudent(user);
+        registration.setStatus(Registrations.RegistrationStatus.CONFIRMED);
+        registration.setRegisteredOn(java.time.LocalDateTime.now());
+
+        // Add registration to user's registrations and save
+        user.getRegistrations().add(registration);
+        userRepository.save(user);
+        
+        // Return the saved registration
+        return user.getRegistrations().stream()
+                .filter(r -> r.getEvent().equals(event))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Failed to save registration"));
+    }
+
+    @Override
+    public void cancelRegistration(Integer eventId) {
+        Users user = getCurrentUser();
+        Registrations registration = participantRepository.findRegistration(eventId, user.getUserId())
+                .orElseThrow(() -> new RuntimeException("Registration not found"));
+        
+        // Only allow cancellation if event hasn't started yet
+        if (registration.getEvent().getStartDate().isBefore(java.time.LocalDateTime.now())) {
+            throw new IllegalStateException("Cannot cancel registration after event has started");
+        }
+        
+        // Remove registration from user's registrations
+        user.getRegistrations().removeIf(r -> r.getRegistrationId() == registration.getRegistrationId());
+        userRepository.save(user);
+    }
+
+    @Override
+    public boolean isUserRegisteredForEvent(Integer eventId) {
+        Users user = getCurrentUser();
+        return participantRepository.findRegistration(eventId, user.getUserId()).isPresent();
+    }
+
+    @Override
+    public int getAvailableSeats(Integer eventId) {
+        // For now, assume unlimited seats since maxParticipants is not in the Events model
+        // TODO: Add maxParticipants field to Events model if needed
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
+    public List<Registrations> getUserRegistrations() {
+        Users user = getCurrentUser();
+        return participantRepository.findUpcomingRegistrations(user.getUserId());
     }
 
     @Override
