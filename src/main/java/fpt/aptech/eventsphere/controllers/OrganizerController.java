@@ -276,30 +276,38 @@ public class OrganizerController {
     }
 
     private String handleImageUpload(MultipartFile imageFile) throws Exception {
+        // Validate file is not null or empty
         if (imageFile == null || imageFile.isEmpty()) {
             throw new Exception("No file selected for upload.");
         }
 
+        // Validate file name
         String originalFileName = imageFile.getOriginalFilename();
         if (originalFileName == null || originalFileName.isEmpty()) {
             throw new Exception("Invalid file name.");
         }
 
+        // Validate MIME type
         String contentType = imageFile.getContentType();
         List<String> allowedTypes = Arrays.asList("image/jpeg", "image/png", "image/gif");
         if (contentType == null || !allowedTypes.contains(contentType)) {
             throw new Exception("Only JPEG, PNG, and GIF images are allowed.");
         }
 
+        // Validate file size (e.g., max 50MB)
         long maxFileSize = 50 * 1024 * 1024; // 50MB in bytes
         if (imageFile.getSize() > maxFileSize) {
             throw new Exception("Image file size exceeds 50MB limit.");
         }
 
+        // Generate unique file name
         String fileName = UUID.randomUUID() + "_" + originalFileName;
         Path filePath = Paths.get(UPLOAD_DIR, fileName);
 
+        // Ensure directory exists
         Files.createDirectories(filePath.getParent());
+
+        // Save file
         Files.write(filePath, imageFile.getBytes());
 
         return "/images/events/" + fileName;
