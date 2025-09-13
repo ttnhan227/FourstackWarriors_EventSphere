@@ -106,8 +106,8 @@
                     </li>
 
                     <li th:each="i : ${#numbers.sequence(1, events.totalPages)}">
-                        <a th:class="${i-1 == events.number} ? 'button small primary' : 'button small'"
-                           th:href="@{${'/' + #httpServletRequest.requestURI + '?page=' + (i-1) +
+                        <a th:class="${i - 1 == events.number} ? 'button small primary' : 'button small'"
+                           th:href="@{${'/' + #httpServletRequest.requestURI + '?page=' + (i - 1) +
                                       (category != null ? '&category=' + category : '')}}"
                            th:text="${i}">
                         </a>
