@@ -25,7 +25,20 @@ public interface ParticipantService {
     Users registerParticipant(ParticipantRegistrationDto registrationDto);
     
     // Event registration
+    /**
+     * Registers a user for an event with PENDING status
+     * @param eventId The ID of the event to register for
+     * @return The registration record with PENDING status
+     */
     Registrations registerForEvent(Integer eventId);
+    
+    /**
+     * Confirms a PENDING registration if seats are available
+     * @param eventId The ID of the event to confirm registration for
+     * @return The updated registration with CONFIRMED status if successful
+     * @throws IllegalStateException if no seats are available or registration cannot be confirmed
+     */
+    Registrations confirmRegistration(Integer eventId);
     
     void cancelRegistration(Integer eventId);
     
@@ -36,4 +49,6 @@ public interface ParticipantService {
     List<Registrations> getUserRegistrations();
     
     Registrations getRegistrationForEvent(Integer eventId);
+    
+    Registrations updateRegistrationStatus(Registrations registration, Registrations.RegistrationStatus newStatus, String emailType);
 }

@@ -36,6 +36,7 @@ public class Registrations {
     private RegistrationStatus status;
 
     public enum RegistrationStatus {
+        PENDING,
         CONFIRMED,
         CANCELLED,
         WAITLIST

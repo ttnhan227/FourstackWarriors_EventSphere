@@ -71,10 +71,51 @@
                                         </button>
                                     </div>
                                     
+                                    <div th:if="${isRegistered && registrationStatus == 'PENDING'}" class="mt-3">
+                                        <div class="box alt">
+                                            <p>
+                                                <span class="icon solid fa-clock" style="color: #ffc107;"></span>
+                                                <strong>Status:</strong> Pending Confirmation
+                                            </p>
+                                            <p>
+                                                <span class="icon solid fa-calendar-check"></span>
+                                                <strong>Registered on:</strong>
+                                                <span th:text="${#temporals.format(registrationDate, 'MMMM d, yyyy')}"></span>
+                                            </p>
+                                            <p class="small">
+                                                <i class="fas fa-info-circle"></i> 
+                                                <span th:if="${availableSeats > 0}">
+                                                    Seats are available! Please confirm your registration to secure your spot.
+                                                </span>
+                                                <span th:if="${availableSeats <= 0}">
+                                                    Currently no seats available. Your registration is in the waiting list.
+                                                </span>
+                                            </p>
+                                            <div class="row gtr-50 gtr-uniform">
+                                                <div class="col-6">
+                                                    <form th:action="@{/participant/events/{eventId}/confirm(eventId=${event.eventId})}" method="post" th:if="${availableSeats > 0}">
+                                                        <button class="button primary small fit" type="submit">
+                                                            <span class="icon solid fa-check"></span> Confirm Registration
+                                                        </button>
+                                                    </form>
+                                                    <button class="button small fit disabled" th:if="${availableSeats <= 0}" disabled>
+                                                        <span class="icon solid fa-hourglass-half"></span> Waiting for Availability
+                                                    </button>
+                                                </div>
+                                                <div class="col-6">
+                                                    <form th:action="@{/participant/events/{eventId}/cancel(eventId=${event.eventId})}" method="post">
+                                                        <button class="button small fit" type="submit" onclick="return confirm('Are you sure you want to cancel your registration?');">
+                                                            <span class="icon solid fa-user-minus"></span> Cancel
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div th:if="${isRegistered && registrationStatus == 'CONFIRMED'}" class="mt-3">
                                         <div class="box alt">
                                             <p>
-                                                <span class="icon solid fa-check-circle"></span>
+                                                <span class="icon solid fa-check-circle" style="color: #28a745;"></span>
                                                 <strong>Status:</strong> Confirmed
                                             </p>
                                             <p>
@@ -90,14 +131,20 @@
                                         </div>
                                     </div>
                                     <div th:if="${isRegistered && registrationStatus == 'CANCELLED'}" class="mt-3">
-                                        <form th:action="@{/participant/events/{eventId}/register(eventId=${event.eventId})}" method="post" th:if="${availableSeats > 0}">
-                                            <button class="button primary fit" type="submit">
-                                                <span class="icon solid fa-user-plus"></span> Register Now
+                                        <div class="box alt">
+                                            <p>
+                                                <span class="icon solid fa-times-circle" style="color: #dc3545;"></span>
+                                                <strong>Status:</strong> Cancelled
+                                            </p>
+                                            <form th:action="@{/participant/events/{eventId}/register(eventId=${event.eventId})}" method="post" th:if="${availableSeats > 0}" class="mt-2">
+                                                <button class="button primary fit" type="submit">
+                                                    <span class="icon solid fa-user-plus"></span> Register Again
+                                                </button>
+                                            </form>
+                                            <button class="button disabled fit" th:if="${availableSeats <= 0}" disabled>
+                                                <span class="icon solid fa-ban"></span> Registration Full
                                             </button>
-                                        </form>
-                                        <button class="button disabled fit" th:if="${availableSeats <= 0}" disabled>
-                                            <span class="icon solid fa-ban"></span> Registration Full
-                                        </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

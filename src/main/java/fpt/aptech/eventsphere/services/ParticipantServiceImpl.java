@@ -1,11 +1,6 @@
 package fpt.aptech.eventsphere.services;
 
 import fpt.aptech.eventsphere.dto.ParticipantRegistrationDto;
-import fpt.aptech.eventsphere.models.Events;
-import fpt.aptech.eventsphere.models.Registrations;
-import fpt.aptech.eventsphere.models.Roles;
-import fpt.aptech.eventsphere.models.UserDetails;
-import fpt.aptech.eventsphere.models.Users;
 import fpt.aptech.eventsphere.repositories.*;
 import fpt.aptech.eventsphere.models.*;
 import org.springframework.security.core.Authentication;
@@ -53,6 +48,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     // Removed duplicate getCurrentUser() method
 
     @Override
+    @Transactional
     public Registrations registerForEvent(Integer eventId) {
         Users user = getCurrentUser();
         Events event = eventRepository.findById(eventId)
@@ -61,34 +57,177 @@ public class ParticipantServiceImpl implements ParticipantService {
         // Check if user has an existing registration (including cancelled ones)
         return participantRepository.findRegistration(eventId, user.getUserId())
                 .map(existingRegistration -> {
-                    // If registration exists but is cancelled, update it to CONFIRMED
+                    // If registration exists but is cancelled, update it to PENDING
                     if (existingRegistration.getStatus() == Registrations.RegistrationStatus.CANCELLED) {
-                        existingRegistration.setStatus(Registrations.RegistrationStatus.CONFIRMED);
+                        logger.info("Reactivating cancelled registration for user {} to event {}", 
+                            user.getUserId(), eventId);
+                        // Just update to PENDING, don't try to confirm yet
+                        existingRegistration.setStatus(Registrations.RegistrationStatus.PENDING);
                         existingRegistration.setRegisteredOn(java.time.LocalDateTime.now());
                         userRepository.save(user);
-                        sendRegistrationEmail(user, event, "re-registration");
+                        
+                        // Return as PENDING - confirmation will happen in a separate step
                         return existingRegistration;
                     }
-                    // If already confirmed, throw exception
+                    // If already registered, throw exception
                     throw new IllegalStateException("You are already registered for this event");
                 })
                 .orElseGet(() -> {
-                    // No existing registration, create a new one
+                    logger.info("Creating new registration for user {} to event {}", user.getUserId(), eventId);
+                    
+                    // Ensure EventSeating exists for this event first
+                    ensureEventSeatingExists(event);
+                    
+                    // Create new registration with PENDING status first
                     Registrations newRegistration = new Registrations();
                     newRegistration.setEvent(event);
                     newRegistration.setStudent(user);
-                    newRegistration.setStatus(Registrations.RegistrationStatus.CONFIRMED);
+                    newRegistration.setStatus(Registrations.RegistrationStatus.PENDING);
                     newRegistration.setRegisteredOn(java.time.LocalDateTime.now());
 
-                    // Add registration to user's registrations and save
+                    // Add registration to user's registrations
                     user.getRegistrations().add(newRegistration);
-                    userRepository.save(user);
                     
-                    sendRegistrationEmail(user, event, "registration");
+                    // Save the user (which will cascade save the registration)
+                    userRepository.save(user);
+                    logger.info("Created PENDING registration for user {} to event {}", 
+                        user.getUserId(), eventId);
+                    
+                    // Send registration email with PENDING status
+                    sendRegistrationEmail(user, event, "registration-pending");
+                        
                     return newRegistration;
                 });
     }
+    
+    private void ensureEventSeatingExists(Events event) {
+        EventSeating seating = eventSeatingRepository.findByEventId(event.getEventId());
+        if (seating == null) {
+            logger.info("Creating new EventSeating for event {}", event.getEventId());
+            seating = new EventSeating();
+            seating.setEvent(event);
+            seating.setTotalSeats(200); // Default value, adjust as needed
+            seating.setSeatsBooked(0);
+            seating.setWaitlistEnabled(false);
+            eventSeatingRepository.save(seating);
+        }
+    }
+    
+    @Transactional
+    public Registrations updateRegistrationStatus(Registrations registration, Registrations.RegistrationStatus newStatus, String emailType) {
+        Integer eventId = registration.getEvent().getEventId();
+        logger.info("Updating registration status for event {} from {} to {}", 
+            eventId, registration.getStatus(), newStatus);
+            
+        Registrations.RegistrationStatus oldStatus = registration.getStatus();
+        
+        // If status is not changing, just return
+        if (oldStatus == newStatus) {
+            logger.info("Status not changed, returning existing registration");
+            return registration;
+        }
 
+        // Handle seat count changes based on status transitions
+        if (newStatus == Registrations.RegistrationStatus.CONFIRMED) {
+            // Only increment if not already counted (coming from PENDING or CANCELLED)
+            if (oldStatus != Registrations.RegistrationStatus.CONFIRMED) {
+                logger.info("Changing to CONFIRMED from {} - increasing seat count", oldStatus);
+                updateSeatCount(eventId, 1);
+            }
+        } else if (oldStatus == Registrations.RegistrationStatus.CONFIRMED) {
+            // Only decrement if was previously CONFIRMED
+            logger.info("Changing from CONFIRMED to {} - decreasing seat count", newStatus);
+            updateSeatCount(eventId, -1);
+        } else if (oldStatus == Registrations.RegistrationStatus.CANCELLED && 
+                  newStatus == Registrations.RegistrationStatus.PENDING) {
+            // When re-activating a CANCELLED registration to PENDING, no seat count change
+            logger.info("Reactivating CANCELLED to PENDING - no seat count change");
+        } else {
+            logger.info("Status change from {} to {} - no seat count change needed", oldStatus, newStatus);
+        }
+        
+        // Update the status
+        registration.setStatus(newStatus);
+        registration.setRegisteredOn(java.time.LocalDateTime.now());
+        
+        // Save the updated registration through the repository
+        logger.info("Saving updated registration with status: {}", newStatus);
+        userRepository.saveAndFlush(registration.getStudent());
+        
+        // Send email notification if needed
+        if (emailType != null) {
+            logger.info("Sending {} email for event {}", emailType, eventId);
+            sendRegistrationEmail(registration.getStudent(), registration.getEvent(), emailType);
+        }
+        
+        return registration;
+    }
+    
+    private void updateSeatCount(Integer eventId, int change) {
+        logger.info("Updating seat count for event {} with change: {}", eventId, change);
+        
+        // Get or create EventSeating
+        EventSeating seating = eventSeatingRepository.findByEventId(eventId);
+        if (seating == null) {
+            logger.info("No EventSeating found for event {}, creating a new one", eventId);
+            Events event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+                
+            seating = new EventSeating();
+            seating.setEvent(event);
+            seating.setTotalSeats(200); // Default value, adjust as needed
+            seating.setSeatsBooked(0);
+            seating.setWaitlistEnabled(false);
+            seating = eventSeatingRepository.save(seating);
+            logger.info("Created new EventSeating for event {}", eventId);
+        }
+        
+        // Calculate new seats booked
+        int currentBooked = seating.getSeatsBooked();
+        int newSeatsBooked = currentBooked + change;
+        
+        logger.info("Current state - Total: {}, Booked: {}, Available: {}", 
+            seating.getTotalSeats(), currentBooked, seating.getAvailableSeat());
+        logger.info("Requested change: {}, New booked seats will be: {}", change, newSeatsBooked);
+        
+        // Validate seat availability
+        if (newSeatsBooked > seating.getTotalSeats()) {
+            logger.warn("Cannot book more seats than available. Requested: {}, Available: {}", 
+                newSeatsBooked, seating.getTotalSeats());
+            throw new IllegalStateException("No seats available");
+        }
+        
+        if (newSeatsBooked < 0) {
+            logger.warn("Cannot have negative booked seats. Requested: {}", newSeatsBooked);
+            throw new IllegalStateException("Invalid seat count");
+        }
+        
+        // Update the seat count
+        seating.setSeatsBooked(newSeatsBooked);
+        eventSeatingRepository.save(seating);
+        logger.info("Seat count updated - Total: {}, Booked: {}, Available: {}", 
+            seating.getTotalSeats(), newSeatsBooked, (seating.getTotalSeats() - newSeatsBooked));
+    }
+
+    @Override
+    @Transactional
+    public Registrations confirmRegistration(Integer eventId) {
+        Users user = getCurrentUser();
+        Registrations registration = participantRepository.findRegistration(eventId, user.getUserId())
+                .orElseThrow(() -> new RuntimeException("Registration not found"));
+                
+        // Only allow confirming PENDING registrations
+        if (registration.getStatus() != Registrations.RegistrationStatus.PENDING) {
+            throw new IllegalStateException("Only PENDING registrations can be confirmed");
+        }
+        
+        // This will handle seat availability check and update
+        return updateRegistrationStatus(registration, 
+            Registrations.RegistrationStatus.CONFIRMED, 
+            "confirmation"
+        );
+    }
+    
     @Override
     @Transactional
     public void cancelRegistration(Integer eventId) {
@@ -96,31 +235,56 @@ public class ParticipantServiceImpl implements ParticipantService {
         Registrations registration = participantRepository.findRegistration(eventId, user.getUserId())
                 .orElseThrow(() -> new RuntimeException("Registration not found"));
         
+        logger.info("Canceling registration for user {} to event {}", user.getUserId(), eventId);
+        
         // Only allow cancellation if event hasn't started yet
         if (registration.getEvent().getStartDate().isBefore(java.time.LocalDateTime.now())) {
             throw new IllegalStateException("Cannot cancel registration after event has started");
         }
         
-        // Update status to CANCELLED instead of deleting
-        registration.setStatus(Registrations.RegistrationStatus.CANCELLED);
-        // Save through the user's registration collection to maintain consistency
-        user.getRegistrations().removeIf(r -> r.getRegistrationId() == registration.getRegistrationId());
-        user.getRegistrations().add(registration);
-        userRepository.save(user);
+        // This will handle seat count updates if needed
+        updateRegistrationStatus(registration, Registrations.RegistrationStatus.CANCELLED, "cancellation");
+        
+        logger.info("Successfully cancelled registration for user {} to event {}", user.getUserId(), eventId);
     }
 
     @Override
     public boolean isUserRegisteredForEvent(Integer eventId) {
         Users user = getCurrentUser();
         return participantRepository.findRegistration(eventId, user.getUserId())
-                .map(registration -> registration.getStatus() == Registrations.RegistrationStatus.CONFIRMED)
+                .map(registration -> registration.getStatus() == Registrations.RegistrationStatus.CONFIRMED || 
+                                    registration.getStatus() == Registrations.RegistrationStatus.PENDING)
                 .orElse(false);
     }
 
     @Override
     public int getAvailableSeats(Integer eventId) {
+        logger.info("Getting available seats for event {}", eventId);
+        
+        // First try to get existing seating
         EventSeating seating = eventSeatingRepository.findByEventId(eventId);
-        return seating != null ? seating.getAvailableSeat() : 0;
+        
+        // If no seating exists, create one
+        if (seating == null) {
+            logger.info("No EventSeating found for event {}, creating a default one", eventId);
+            Events event = eventRepository.findById(eventId).orElse(null);
+            if (event == null) {
+                logger.warn("Event {} not found, returning 0 available seats", eventId);
+                return 0;
+            }
+            
+            seating = new EventSeating();
+            seating.setEvent(event);
+            seating.setTotalSeats(200); // Default value
+            seating.setSeatsBooked(0);
+            seating.setWaitlistEnabled(false);
+            seating = eventSeatingRepository.save(seating);
+            logger.info("Created default EventSeating for event {}", eventId);
+        }
+        
+        int available = seating.getAvailableSeat();
+        logger.info("Available seats for event {}: {}", eventId, available);
+        return available;
     }
     
     private void sendRegistrationEmail(Users user, Events event, String emailType) {

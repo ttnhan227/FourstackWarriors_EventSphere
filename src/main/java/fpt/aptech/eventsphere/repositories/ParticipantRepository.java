@@ -17,6 +17,7 @@ public interface ParticipantRepository extends JpaRepository<Users, Integer> {
     
     @Query("SELECT e FROM Events e JOIN Registrations r ON e.eventId = r.event.eventId " +
            "WHERE r.student.userId = :userId AND e.startDate >= CURRENT_DATE " +
+           "AND (r.status = 'CONFIRMED' OR r.status = 'PENDING') " +
            "ORDER BY e.startDate")
     List<Events> findUpcomingRegisteredEvents(@Param("userId") Integer userId);
     

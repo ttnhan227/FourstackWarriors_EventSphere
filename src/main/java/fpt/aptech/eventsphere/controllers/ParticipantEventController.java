@@ -15,6 +15,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -123,16 +124,26 @@ public class ParticipantEventController {
                 boolean isRegistered = participantService.isUserRegisteredForEvent(id);
                 int availableSeats = participantService.getAvailableSeats(id);
                 
+                // Initialize default values
+                String registrationStatus = "";
+                LocalDateTime registrationDate = null;
+                Registrations registration = null;
+                
                 // Get registration status and date if user is registered
                 if (isRegistered) {
-                    Registrations registration = participantService.getRegistrationForEvent(id);
-                    model.addAttribute("registrationStatus", registration.getStatus().name());
-                    model.addAttribute("registrationDate", registration.getRegisteredOn());
+                    registration = participantService.getRegistrationForEvent(id);
+                    if (registration != null) {
+                        registrationStatus = registration.getStatus().name();
+                        registrationDate = registration.getRegisteredOn();
+                    }
                 }
                 
                 model.addAttribute("event", event);
                 model.addAttribute("isRegistered", isRegistered);
                 model.addAttribute("availableSeats", availableSeats);
+                model.addAttribute("registrationStatus", registrationStatus);
+                model.addAttribute("registrationDate", registrationDate);
+                model.addAttribute("registration", registration);
                 
                 return "participant/events/view";
             } else {
@@ -149,8 +160,20 @@ public class ParticipantEventController {
     @PostMapping("/events/{eventId}/register")
     public String registerForEvent(@PathVariable("eventId") int eventId, RedirectAttributes redirectAttributes) {
         try {
+            // Register with PENDING status
             participantService.registerForEvent(eventId);
-            redirectAttributes.addFlashAttribute("success", "Successfully registered for the event!");
+            redirectAttributes.addFlashAttribute("success", "Successfully registered for the event! Your registration is pending confirmation.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/participant/events/" + eventId;
+    }
+    
+    @PostMapping("/events/{eventId}/confirm")
+    public String confirmRegistration(@PathVariable("eventId") int eventId, RedirectAttributes redirectAttributes) {
+        try {
+            participantService.confirmRegistration(eventId);
+            redirectAttributes.addFlashAttribute("success", "Your registration has been confirmed!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
