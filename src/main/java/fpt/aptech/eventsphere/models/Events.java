@@ -45,12 +45,10 @@ public class Events {
     @Column(name = "startDate")
     @NotNull(message = "please enter start date")
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
-    @Future(message = "start date must be in the future")
     private LocalDateTime startDate;
     @Column(name = "endDate")
     @NotNull(message = "please enter end date")
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
-    @Future(message = "end date must be in the future")
     private LocalDateTime endDate;
     @Column(name = "image_url", length = 512)
     private String imageUrl;
