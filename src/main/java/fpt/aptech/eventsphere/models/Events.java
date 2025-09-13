@@ -3,9 +3,7 @@ package fpt.aptech.eventsphere.models;
 import fpt.aptech.eventsphere.validations.ValidDateRange;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -43,10 +41,12 @@ public class Events {
     @Column(name = "startDate")
     @NotNull(message = "please enter start date")
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    @Future(message = "start date must be in the future")
     private LocalDateTime startDate;
     @Column(name = "endDate")
     @NotNull(message = "please enter end date")
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    @Future(message = "end date must be in the future")
     private LocalDateTime endDate;
     @Column(name = "image_url", length = 512)
     private String imageUrl;
@@ -81,6 +81,22 @@ public class Events {
         if (eventSeating != null) {
             eventSeating.setEvent(this);
         }
+    }
+
+    //Many-to-one with Host
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "host_id")
+    private Host host;
+
+    //One-to-many with Activity
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Valid
+    private List<Activity> activities = new ArrayList<>();
+
+    // Utility method to add activity
+    public void addActivity(Activity activity) {
+        activities.add(activity);
+        activity.setEvent(this);
     }
 
     // Utility methods for status checking

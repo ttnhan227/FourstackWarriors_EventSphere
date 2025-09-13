@@ -6,10 +6,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import fpt.aptech.eventsphere.models.*;
-import fpt.aptech.eventsphere.repositories.EventRepository;
-import fpt.aptech.eventsphere.repositories.EventSeatingRepository;
-import fpt.aptech.eventsphere.repositories.UserRepository;
-import fpt.aptech.eventsphere.repositories.VenueRepository;
+import fpt.aptech.eventsphere.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,18 +25,23 @@ public class OrganizerServiceImpl implements OrganizerService {
     EventSeatingRepository eventSeatingRepository;
     VenueRepository  venueRepository;
     UserRepository userRepository;
+    RegistrationRepository registrationRepository;
     @Autowired
     EmailServiceImpl emailServiceImpl;
+    @Autowired
+    private HostRepository hostRepository;
     @Autowired
     public OrganizerServiceImpl(EventRepository eventRepository,
                                 EventSeatingRepository eventSeatingRepository,
                                 VenueRepository venueRepository,
-                                UserRepository userRepository) {
+                                UserRepository userRepository,
+                                RegistrationRepository registrationRepository) {
 
         this.eventRepository = eventRepository;
         this.eventSeatingRepository = eventSeatingRepository;
         this.venueRepository = venueRepository;
         this.userRepository = userRepository;
+        this.registrationRepository = registrationRepository;
     }
 
     @Override
@@ -205,6 +207,117 @@ public class OrganizerServiceImpl implements OrganizerService {
     @Override
     public List<Events> findCurrentEvents(String email) {
         return eventRepository.findCurrentEventsByOrganizer(email);
+    }
+
+    @Override
+    public Registrations findRegistrationById(int id) {
+        return registrationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid registration ID: " + id));
+    }
+
+    @Override
+    @Transactional
+    public void confirmRegistration(int registrationId) {
+        Registrations reg = findRegistrationById(registrationId);
+        Events event = reg.getEvent();
+        EventSeating seating = eventSeatingRepository.findByEventId(event.getEventId());
+        Users student = reg.getStudent();
+
+        // Check if registration is already CONFIRMED
+        if (reg.getStatus() == Registrations.RegistrationStatus.CONFIRMED) {
+            throw new IllegalStateException("Registration is already confirmed.");
+        }
+
+        // Check seat availability for non-waitlist registrations
+        if (reg.getStatus() != Registrations.RegistrationStatus.WAITLIST) {
+            if (seating.getAvailableSeat() <= 0 && !seating.isWaitlistEnabled()) {
+                throw new IllegalStateException("No seats available and waitlist is disabled.");
+            }
+        }
+
+        // If seats are available, confirm and increment seatsBooked
+        if (seating.getAvailableSeat() > 0) {
+            reg.setStatus(Registrations.RegistrationStatus.CONFIRMED);
+            seating.setSeatsBooked(seating.getSeatsBooked() + 1);
+            eventSeatingRepository.save(seating);
+        } else if (seating.isWaitlistEnabled()) {
+            // If on waitlist and waitlist is enabled, confirm without taking a seat
+            reg.setStatus(Registrations.RegistrationStatus.CONFIRMED);
+        } else {
+            throw new IllegalStateException("Cannot confirm registration: no seats available.");
+        }
+
+        registrationRepository.save(reg);
+
+        try {
+            String regUrl = "http://localhost:9999/registration/detail/" + registrationId;
+            byte[] qrCode = generateQRCode(regUrl, 250, 250);
+            String subject = "Registration Confirmed for " + event.getTitle();
+            String body = "Your registration for the event '" + event.getTitle() + "' has been confirmed.\n\n" +
+                    "Event Details:\n" +
+                    "Start: " + event.getStartDate() + "\n" +
+                    "End: " + event.getEndDate() + "\n" +
+                    "Venue: " + event.getVenue().getName() + "\n" +
+                    "\n\n" +
+                    "Scan the attached QR code to view your registration details and current status.";
+
+            emailServiceImpl.sendEmailWithAttachment(List.of(student.getEmail()), subject, body, qrCode, "registration_qr.png");
+        } catch (IOException | WriterException e) {
+            throw new RuntimeException("Failed to generate QR code or send confirmation email", e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void cancelRegistration(int registrationId) {
+        Registrations reg = findRegistrationById(registrationId);
+        Events event = reg.getEvent();
+        EventSeating seating = eventSeatingRepository.findByEventId(event.getEventId());
+        Users student = reg.getStudent();
+
+        // Check if registration is already WAITLIST or CANCELLED
+        if (reg.getStatus() == Registrations.RegistrationStatus.WAITLIST ||
+                reg.getStatus() == Registrations.RegistrationStatus.CANCELLED) {
+            throw new IllegalStateException("Registration is already on waitlist or cancelled.");
+        }
+
+        // If CONFIRMED, free up a seat
+        if (reg.getStatus() == Registrations.RegistrationStatus.CONFIRMED && seating.getSeatsBooked() >= 0) {
+            if(seating.isWaitlistEnabled()){
+                seating.setSeatsBooked(seating.getSeatsBooked() - 1);
+                eventSeatingRepository.save(seating);
+                reg.setStatus(Registrations.RegistrationStatus.WAITLIST);
+                registrationRepository.save(reg);
+            }
+            else{
+                seating.setSeatsBooked(seating.getSeatsBooked() - 1);
+                eventSeatingRepository.save(seating);
+                reg.setStatus(Registrations.RegistrationStatus.CANCELLED);
+                registrationRepository.save(reg);
+            }
+        }
+
+
+        String subject = "Registration Update for " + event.getTitle();
+        String body = "Your registration for the event '" + event.getTitle() + "' has been unapproved, please go check.\n\n" +
+                "Event Details:\n" +
+                "Start: " + event.getStartDate() + "\n" +
+                "End: " + event.getEndDate() + "\n" +
+                "Venue: " + event.getVenue().getName() + "\n" +
+                "\n\n" +
+                "If this was an error, please contact the event organizer.";
+
+        emailServiceImpl.sendEmailToUsers(List.of(student.getEmail()), subject, body);
+    }
+
+    @Override
+    public List<Host> findAllHosts() {
+        return hostRepository.findAll();
+    }
+
+    @Override
+    public Host saveHost(Host host) {
+        return hostRepository.save(host);
     }
 
     public byte[] generateQRCode(String text, int width, int height) throws WriterException, IOException {

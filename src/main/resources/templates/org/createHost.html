@@ -1,0 +1,47 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>Create Host</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" th:href="@{/css/home/main.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+</head>
+<body class="is-preload">
+<div id="wrapper">
+    <div id="main">
+        <div class="inner">
+            <header id="header">
+                <h1>Create Host</h1>
+            </header>
+            <section>
+                <form method="post" th:action="@{/organizer/createHost}" enctype="multipart/form-data" th:object="${host}">
+                    <div class="row gtr-uniform">
+                        <div class="col-12">
+                            <input type="text" name="name" id="name" th:field="*{name}" placeholder="Name" required />
+                            <span th:errors="*{name}" class="error"></span>
+                        </div>
+                        <div class="col-12">
+                            <input type="file" name="imageFile" id="imageFile" accept="image/jpeg,image/png,image/gif" />
+                            <span th:errors="*{imageUrl}" class="error"></span>
+                        </div>
+                        <div class="col-12">
+                            <ul class="actions">
+                                <li><input type="submit" value="Create" class="primary" /></li>
+                            </ul>
+                        </div>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+    <!-- Sidebar -->
+    <div th:replace="~{layout/sidebar-layout :: sidebar}"></div>
+</div>
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/browser.min.js}"></script>
+<script th:src="@{/js/breakpoints.min.js}"></script>
+<script th:src="@{/js/util.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -21,4 +21,9 @@ public interface OrganizerService {
     List<Events> findUpcomingEvents(String email);
     List<Events> findPastEvents(String email);
     List<Events> findCurrentEvents(String email);
+    Registrations findRegistrationById(int id);
+    void confirmRegistration(int registrationId);
+    void cancelRegistration(int registrationId);
+    List<Host> findAllHosts();
+    Host saveHost(Host host);
 }

@@ -140,6 +140,41 @@
             background: rgba(230, 235, 237, 0.3);
         }
     </style>
+    <style>
+        .flash-message {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .flash-message .box {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .flash-message.success .box {
+            background-color: #e7f7e7;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .flash-message.error .box {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-3 { margin-top: 1rem; }
+    </style>
 </head>
 <body class="is-preload">
 
@@ -157,14 +192,14 @@
 
             <!-- Tabs Navigation -->
             <ul class="tabs">
-                <li><a href="#event-details" class="active">Event Details</a></li>
-                <li><a href="#registration">Registration</a></li>
+                <li><a href="#event-details" th:classappend="${activeTab == 'details'} ? 'active'">Details</a></li>
+                <li><a href="#registration" th:classappend="${activeTab == 'registration'} ? 'active'">Registration</a></li>
             </ul>
 
             <!--Tab Content -->
             <div class="tab-content">
                 <!-- Section -->
-                <section id="event-details" class="tab-pane active">
+                <section id="event-details" class="tab-pane" th:classappend="${activeTab == 'details'} ? 'active'">
                     <div th:object="${event}">
                         <label>Title</label>
                         <input type="text" th:field="*{title}" disabled/>
@@ -181,6 +216,10 @@
                         <!-- Seating fields -->
                         <label>Total Seats</label>
                         <input type="number" th:field="*{eventSeating.totalSeats}" disabled/>
+                        <label>Seats booked</label>
+                        <input type="number" th:field="*{eventSeating.seatsBooked}" disabled/>
+                        <label>Available Seats</label>
+                        <input type="number" th:value="${availableSeat}" disabled/>
                         <br><br>
                         <label class="checkbox-container">
                             <input type="checkbox" th:field="*{eventSeating.waitlistEnabled}" th:checked="${event.eventSeating.isWaitlistEnabled()}" disabled/>
@@ -189,7 +228,8 @@
                         </label>
                     </div>
                 </section>
-                <section id="registration" class="tab-pane">
+                <section id="registration" class="tab-pane" th:classappend="${activeTab == 'registration'} ? 'active'">
+                    <p>Available Seats: <span th:text="${availableSeat}"></span></p>
                     <table class="">
                         <tr>
                             <th>Name</th>
@@ -205,7 +245,21 @@
                             <td th:text="${reg.user.userDetail.phone}"></td>
                             <td th:text="${#temporals.format(reg.registeredOn, 'yyyy/MM/dd HH:mm')}"></td>
                             <td th:text="${reg.status}"></td>
-                            <td><a th:href="@{#}">Actions</a></td>
+                            <td>
+                                <div th:if="${reg.status == 'WAITLIST'}">
+                                    <form th:action="@{/organizer/confirmRegistration/{id}(id=${reg.registrationId})}" method="post">
+                                        <button type="submit">Confirm</button>
+                                    </form>
+                                </div>
+                                <div th:if="${reg.status == 'CONFIRMED'}">
+                                    <form th:action="@{/organizer/cancelRegistration/{id}(id=${reg.registrationId})}" method="post">
+                                        <button type="submit">Cancel</button>
+                                    </form>
+                                </div>
+                                <div th:if="${reg.status == 'CANCELLED'}">
+                                    No Action
+                                </div>
+                            </td>
                         </tr>
                     </table>
                 </section>
@@ -250,6 +304,29 @@
     });
 </script>
 
+<!-- Flash Messages -->
+<div th:if="${successMessage != null and successMessage != ''}" class="flash-message success">
+    <div class="box">
+        <span class="icon solid fa-check-circle"></span>
+        <span th:text="${successMessage}"></span>
+    </div>
+</div>
+<div th:if="${errorMessage != null and errorMessage != ''}" class="flash-message error">
+    <div class="box">
+        <span class="icon solid fa-exclamation-circle"></span>
+        <span th:text="${errorMessage}"></span>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+    // Auto-hide flash messages after 5 seconds
+    $(document).ready(function() {
+        setTimeout(function() {
+            $('.flash-message').fadeOut('slow');
+        }, 5000);
+    });
+</script>
 
 </body>
 </html>

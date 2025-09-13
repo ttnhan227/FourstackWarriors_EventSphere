@@ -7,6 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -54,6 +55,8 @@ public class DataInitializer implements CommandLineRunner {
         jdbcTemplate.execute("UPDATE events SET reminder_sent = FALSE WHERE reminder_sent IS NULL");
         jdbcTemplate.execute("ALTER TABLE events ALTER COLUMN reminder_sent SET NOT NULL");
         jdbcTemplate.execute("ALTER TABLE events ALTER COLUMN reminder_sent SET DEFAULT FALSE");
+
+        fixSeatsBooked();
 
         System.out.println("===== Data Initialization Complete =====\n");
     }
@@ -385,5 +388,23 @@ public class DataInitializer implements CommandLineRunner {
         details.setAddress(address);
 
         return userDetailsRepository.save(details);
+    }
+
+    @Transactional
+    public void fixSeatsBooked() {
+        // Query to get event IDs with seats_booked = 0
+        String selectEventsSql = "SELECT event_id FROM event_seating WHERE seats_booked = 0";
+        List<Integer> eventIds = jdbcTemplate.queryForList(selectEventsSql, Integer.class);
+
+        // For each event, count CONFIRMED registrations and update seats_booked
+        String countConfirmedSql = "SELECT COUNT(*) FROM registrations WHERE event_id = ? AND status = 'CONFIRMED'";
+        String updateSeatsSql = "UPDATE event_seating SET seats_booked = ? WHERE event_id = ?";
+
+        for (Integer eventId : eventIds) {
+            // Get count of CONFIRMED registrations
+            Integer confirmedCount = jdbcTemplate.queryForObject(countConfirmedSql, Integer.class, eventId);
+            // Update seats_booked
+            jdbcTemplate.update(updateSeatsSql, confirmedCount, eventId);
+        }
     }
 }

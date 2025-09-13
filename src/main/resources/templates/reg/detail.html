@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Registration Details</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+    <link rel="stylesheet" th:href="@{/css/home/main.css}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+</head>
+<body class="is-preload">
+
+<!-- Wrapper -->
+<div id="wrapper">
+
+    <!-- Main -->
+    <div id="main">
+        <div class="inner">
+            <!-- Header -->
+            <header id="header">
+                <h1>Registration Details</h1>
+            </header>
+            <section id="content" class="wizard" th:object="registration">
+                <h1>Registration Details</h1>
+                <p>Event: <span th:text="${event.title}"></span></p>
+                <p>Status: <span th:text="${registration.status}"></span></p>
+                <p>Registered On: <span th:text="${registration.registeredOn}"></span></p>
+                <p>Name: <span th:text="${student.userDetails.fullName}"></span></p>
+                <p>Email: <span th:text="${student.email}"></span></p>
+                <p>Phone: <span th:text="${student.userDetails.phone}"></span></p>
+            </section>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

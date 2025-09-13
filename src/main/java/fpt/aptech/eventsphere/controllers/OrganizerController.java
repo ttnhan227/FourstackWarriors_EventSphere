@@ -14,10 +14,12 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -59,10 +61,12 @@ public class OrganizerController {
     public String showCreateForm(Model model) {
         Events event = new Events();
         EventSeating seating = new EventSeating();
-        seating.setWaitlistEnabled(false);
+        event.setActivities(new ArrayList<>());
+        seating.setWaitlistEnabled(true);
         event.setEventSeating(seating);
         model.addAttribute("event", event);
         model.addAttribute("venue", organizerService.findAllVenues());
+        model.addAttribute("hosts", organizerService.findAllHosts());
         return "org/create";
     }
 
@@ -73,10 +77,10 @@ public class OrganizerController {
                          Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("venue", organizerService.findAllVenues());
+            model.addAttribute("hosts", organizerService.findAllHosts());
             return "org/create";
         }
 
-        // Handle image upload
         try {
             if (!imageFile.isEmpty()) {
                 String imageUrl = handleImageUpload(imageFile);
@@ -116,12 +120,25 @@ public class OrganizerController {
     }
 
     @GetMapping("/detail/{id}")
-    public String showEventDetail(@PathVariable int id, Model model) {
+    public String showEventDetail(@PathVariable int id,
+                                  @RequestParam(defaultValue = "details") String tab,
+                                  Model model,
+                                  @ModelAttribute("errorMessage") String errorMessage,
+                                  @ModelAttribute("successMessage") String successMessage) {
         Events event = organizerService.findEventById(id);
+        EventSeating seating = organizerService.findEventSeatingByEventId(id);
         List<Registrations> registrationsList = organizerService.findEventRegistration(id);
         List<RegistrationDTO> regDTOList = registrationMapper.toDTOList(registrationsList);
         model.addAttribute("event", event);
         model.addAttribute("registration", regDTOList);
+        model.addAttribute("availableSeat", seating.getAvailableSeat());
+        model.addAttribute("activeTab", tab);
+        if (errorMessage != null && !errorMessage.isEmpty()) {
+            model.addAttribute("errorMessage", errorMessage);
+        }
+        if (successMessage != null && !successMessage.isEmpty()) {
+            model.addAttribute("successMessage", successMessage);
+        }
         return "org/detail";
     }
 
@@ -146,7 +163,6 @@ public class OrganizerController {
             return "org/edit";
         }
 
-        // Handle image upload
         try {
             if (!imageFile.isEmpty()) {
                 String imageUrl = handleImageUpload(imageFile);
@@ -162,42 +178,105 @@ public class OrganizerController {
         return "redirect:/organizer/index";
     }
 
+    @PostMapping("/confirmRegistration/{registrationId}")
+    public String confirmRegistration(@PathVariable int registrationId, RedirectAttributes redirectAttributes) {
+        try {
+            Registrations reg = organizerService.findRegistrationById(registrationId);
+            organizerService.confirmRegistration(registrationId);
+            redirectAttributes.addFlashAttribute("successMessage", "Registration confirmed successfully.");
+            redirectAttributes.addFlashAttribute("errorMessage", "");
+            return "redirect:/organizer/detail/" + reg.getEvent().getEventId() + "?tab=registration";
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            redirectAttributes.addFlashAttribute("successMessage", "");
+
+            Registrations reg = organizerService.findRegistrationById(registrationId);
+            return "redirect:/organizer/detail/" + reg.getEvent().getEventId() + "?tab=registration";
+        }
+    }
+
+    @PostMapping("/cancelRegistration/{registrationId}")
+    public String cancelRegistration(@PathVariable int registrationId, RedirectAttributes redirectAttributes) {
+        try {
+            Registrations reg = organizerService.findRegistrationById(registrationId);
+            organizerService.cancelRegistration(registrationId);
+            redirectAttributes.addFlashAttribute("successMessage", "Registration cancelled successfully.");
+            redirectAttributes.addFlashAttribute("errorMessage", "");
+            return "redirect:/organizer/detail/" + reg.getEvent().getEventId() + "?tab=registration";
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            redirectAttributes.addFlashAttribute("successMessage", "");
+            Registrations reg = organizerService.findRegistrationById(registrationId);
+            return "redirect:/organizer/detail/" + reg.getEvent().getEventId() + "?tab=registration";
+        }
+    }
+
+    @GetMapping("/registration/detail/{registrationId}")
+    public String registrationDetail(@PathVariable int registrationId, Model model) {
+        Registrations reg = organizerService.findRegistrationById(registrationId);
+        model.addAttribute("registration", reg);
+        model.addAttribute("event", reg.getEvent());
+        model.addAttribute("student", reg.getStudent());
+        return "reg/detail";
+    }
+
+    @GetMapping("/createHost")
+    public String showHostCreateForm(Model model) {
+        Host host = new Host();
+        model.addAttribute("host", host);
+        return "org/createHost";
+    }
+
+    @PostMapping("/createHost")
+    public String createHost(@Valid @ModelAttribute("host") Host host,
+                             BindingResult bindingResult,
+                             @RequestParam("imageFile") MultipartFile imageFile,
+                             Model model) {
+        if (bindingResult.hasErrors()) {
+            return "org/createHost";
+        }
+
+        try {
+            if (!imageFile.isEmpty()) {
+                String imageUrl = handleImageUpload(imageFile);
+                host.setImageUrl(imageUrl);
+            }
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            return "org/createHost";
+        }
+
+        organizerService.saveHost(host);
+        return "redirect:/organizer/index";
+    }
+
     private String handleImageUpload(MultipartFile imageFile) throws Exception {
-        // Validate file is not null or empty
         if (imageFile == null || imageFile.isEmpty()) {
             throw new Exception("No file selected for upload.");
         }
 
-        // Validate file name
         String originalFileName = imageFile.getOriginalFilename();
         if (originalFileName == null || originalFileName.isEmpty()) {
             throw new Exception("Invalid file name.");
         }
 
-        // Validate MIME type
         String contentType = imageFile.getContentType();
         List<String> allowedTypes = Arrays.asList("image/jpeg", "image/png", "image/gif");
         if (contentType == null || !allowedTypes.contains(contentType)) {
             throw new Exception("Only JPEG, PNG, and GIF images are allowed.");
         }
 
-        // Validate file size (e.g., max 50MB)
         long maxFileSize = 50 * 1024 * 1024; // 50MB in bytes
         if (imageFile.getSize() > maxFileSize) {
-            throw new Exception("Image file size exceeds 100MB limit.");
+            throw new Exception("Image file size exceeds 50MB limit.");
         }
 
-        // Generate unique file name
         String fileName = UUID.randomUUID() + "_" + originalFileName;
         Path filePath = Paths.get(UPLOAD_DIR, fileName);
 
-        // Ensure directory exists
         Files.createDirectories(filePath.getParent());
-
-        // Save file
         Files.write(filePath, imageFile.getBytes());
 
-        // Return the relative URL
         return "/images/events/" + fileName;
     }
 }
