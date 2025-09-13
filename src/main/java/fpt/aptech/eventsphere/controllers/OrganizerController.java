@@ -221,6 +221,6 @@ public class OrganizerController {
         Files.write(filePath, imageFile.getBytes());
 
         // Return the relative URL
-        return "/images/events" + fileName;
+        return "/images/events/" + fileName;
     }
 }
