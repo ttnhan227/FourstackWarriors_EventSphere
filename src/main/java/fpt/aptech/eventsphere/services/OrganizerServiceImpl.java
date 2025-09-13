@@ -250,6 +250,27 @@ public class OrganizerServiceImpl implements OrganizerService {
         registration.getStudent().getRegistrations().add(registration);
         userRepository.save(registration.getStudent());
 
+        //send mail after confirm
+        Events event = registration.getEvent();
+        Users student = registration.getStudent();
+
+        try {
+            String regUrl = "http://localhost:9999/registration/detail/" + registrationId;
+            byte[] qrCode = generateQRCode(regUrl, 250, 250);
+            String subject = "Registration Confirmed for " + event.getTitle();
+            String body = "Your registration for the event '" + event.getTitle() + "' has been confirmed.\n\n" +
+                    "Event Details:\n" +
+                    "Start: " + event.getStartDate() + "\n" +
+                    "End: " + event.getEndDate() + "\n" +
+                    "Venue: " + event.getVenue().getName() + "\n" +
+                    "\n\n" +
+                    "Scan the attached QR code to view your registration details and current status.";
+
+            emailServiceImpl.sendEmailWithAttachment(List.of(student.getEmail()), subject, body, qrCode, "registration_qr.png");
+        } catch (IOException | WriterException e) {
+            throw new RuntimeException("Failed to generate QR code or send confirmation email", e);
+        }
+
         return registration;
     }
 
@@ -281,6 +302,22 @@ public class OrganizerServiceImpl implements OrganizerService {
         // Save the user to cascade the registration update
         registration.getStudent().getRegistrations().add(registration);
         userRepository.save(registration.getStudent());
+
+        //send mail after cancel
+        Events event = registration.getEvent();
+        Users student = registration.getStudent();
+
+
+        String subject = "Registration Update for " + event.getTitle();
+        String body = "Your registration for the event '" + event.getTitle() + "' has been unapproved, please go check.\n\n" +
+                "Event Details:\n" +
+                "Start: " + event.getStartDate() + "\n" +
+                "End: " + event.getEndDate() + "\n" +
+                "Venue: " + event.getVenue().getName() + "\n" +
+                "\n\n" +
+                "If this was an error, please contact the event organizer.";
+
+        emailServiceImpl.sendEmailToUsers(List.of(student.getEmail()), subject, body);
 
         return registration;
     }
@@ -327,6 +364,22 @@ public class OrganizerServiceImpl implements OrganizerService {
         // Save the user to cascade the registration update
         registration.getStudent().getRegistrations().add(registration);
         userRepository.save(registration.getStudent());
+
+        //send mail after update
+        Events event = registration.getEvent();
+        Users student = registration.getStudent();
+
+
+        String subject = "Registration Update for " + event.getTitle();
+        String body = "Your registration for the event '" + event.getTitle() + "' has been updated, please go check.\n\n" +
+                "Event Details:\n" +
+                "Start: " + event.getStartDate() + "\n" +
+                "End: " + event.getEndDate() + "\n" +
+                "Venue: " + event.getVenue().getName() + "\n" +
+                "\n\n" +
+                "If this was an error, please contact the event organizer.";
+
+        emailServiceImpl.sendEmailToUsers(List.of(student.getEmail()), subject, body);
 
         return registration;
     }
