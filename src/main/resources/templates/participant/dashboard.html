@@ -79,38 +79,77 @@
                         </div>
                     </div>
                 </div>
-                <!-- My Events Section -->
-                <header class="major">
-                    <h2>My Events</h2>
-                </header>
-                <div class="posts">
-                    <article th:each="event : ${events}">
-                        <a class="image" th:href="@{/participant/events/{id}(id=${event.eventId})}">
-                            <img alt="Event Image"
-                                 style="width: 100%; height: 200px; object-fit: cover;"
-                                 th:attr="src=${event.imageUrl != null ? event.imageUrl : '/images/event-placeholder.jpg'}"
-                                 th:src="${event.imageUrl != null ? event.imageUrl : '/images/event-placeholder.jpg'}"/>
-                        </a>
-                        <h3 th:text="${event.title}">Event Name</h3>
-                        <p th:text="${event.description}">Event Description</p>
-                        <p><i class="far fa-calendar-alt"></i>
-                            <span th:text="${#temporals.format(event.startDate, 'dd MMM yyyy')} + ' at ' + 
-                                       ${#temporals.format(event.startDate, 'h:mm a')}">
-                                Event Date
-                            </span>
-                        </p>
-                        <ul class="actions">
-                            <li>
-                                <a class="button" th:href="@{/participant/events/{id}(id=${event.eventId})}">
-                                    View Details
-                                </a>
-                            </li>
-                        </ul>
-                    </article>
-                    <article th:if="${#lists.isEmpty(events)}">
-                        <p>You are not registered for any events yet.</p>
-                    </article>
-                </div>
+                <!-- Upcoming Events Section -->
+<header class="major">
+    <h2>My Upcoming Events</h2>
+</header>
+<div class="posts">
+    <article th:each="event : ${upcomingEvents}" th:with="eventId=${event?.eventId}">
+        <span class="image fit">
+            <a th:href="@{/participant/events/{id}(id=${eventId})}">
+                <img alt="Event image" th:src="${event?.imageUrl ?: '/images/events/event-placeholder.jpg'}"/>
+            </a>
+        </span>
+        <h3 th:text="${event?.title}">Event Name</h3>
+        <p th:if="${event?.category}">
+            <span class="icon solid fa-tag"></span>
+            <span th:text="${event.category}"></span>
+        </p>
+        <p th:if="${event?.description}" th:text="${#strings.abbreviate(event.description, 200)}"></p>
+        <p th:if="${event?.startDate}"><i class="far fa-calendar-alt"></i>
+            <span th:text="${#temporals.format(event.startDate, 'dd MMM yyyy')} + ' at ' + 
+                       ${#temporals.format(event.startDate, 'h:mm a')}">
+                Event Date
+            </span>
+        </p>
+        <ul class="actions">
+            <li>
+                <a class="button" th:href="@{/participant/events/{id}(id=${eventId})}">
+                    View Details
+                </a>
+            </li>
+        </ul>
+    </article>
+    <article th:if="${#lists.isEmpty(upcomingEvents)}">
+        <p>You don't have any upcoming events.</p>
+    </article>
+</div>
+
+<!-- Past Events Section -->
+<header class="major" style="margin-top: 2em;">
+    <h2>My Past Events</h2>
+</header>
+<div class="posts">
+    <article th:each="event : ${pastEvents}" th:with="eventId=${event?.eventId}">
+        <span class="image fit">
+            <a th:href="@{/participant/events/{id}(id=${eventId})}">
+                <img alt="Event image" th:src="${event?.imageUrl ?: '/images/events/event-placeholder.jpg'}"/>
+            </a>
+        </span>
+        <h3 th:text="${event?.title}">Event Name</h3>
+        <p th:if="${event?.category}">
+            <span class="icon solid fa-tag"></span>
+            <span th:text="${event.category}"></span>
+        </p>
+        <p th:if="${event?.description}" th:text="${#strings.abbreviate(event.description, 200)}"></p>
+        <p th:if="${event?.startDate}"><i class="far fa-calendar-alt"></i>
+            <span th:text="${#temporals.format(event.startDate, 'dd MMM yyyy')} + ' at ' + 
+                       ${#temporals.format(event.startDate, 'h:mm a')}">
+                Event Date
+            </span>
+        </p>
+        <ul class="actions">
+            <li>
+                <a class="button" th:href="@{/participant/events/{id}(id=${eventId})}">
+                    View Details
+                </a>
+            </li>
+        </ul>
+    </article>
+    <article th:if="${#lists.isEmpty(pastEvents)}">
+        <p>You haven't attended any events yet.</p>
+    </article>
+</div>
 
             </section>
         </div>

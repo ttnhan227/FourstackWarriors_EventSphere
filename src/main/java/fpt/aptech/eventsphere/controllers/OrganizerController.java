@@ -14,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,7 +28,7 @@ public class OrganizerController {
 
     private final OrganizerService organizerService;
     private final RegistrationMapper registrationMapper = new RegistrationMapper();
-    private final String UPLOAD_DIR = "src/main/resources/static/images/";
+    private final String UPLOAD_DIR = "src/main/resources/static/images/events";
 
     @Autowired
     public OrganizerController(OrganizerService organizerService) {
@@ -187,7 +188,7 @@ public class OrganizerController {
         }
 
         // Generate unique file name
-        String fileName = UUID.randomUUID().toString() + "_" + originalFileName;
+        String fileName = UUID.randomUUID() + "_" + originalFileName;
         Path filePath = Paths.get(UPLOAD_DIR, fileName);
 
         // Ensure directory exists
