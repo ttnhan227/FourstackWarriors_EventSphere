@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="admin/layouts/main :: layout(~{::content})">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/admin-style.css">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+</head>
+<div th:fragment="content">
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">Event Management</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="/admin/index">Home</a></li>
+                        <li class="breadcrumb-item active">Events</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="content">
+        <div class="container-fluid">
+            <!-- Error Alert -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                <h5><i class="icon fas fa-ban"></i> Error!</h5>
+                <span th:text="${error}"></span>
+            </div>
+
+            <!-- Event Statistics Cards -->
+            <div class="row">
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-warning">
+                        <div class="inner">
+                            <h3 th:text="${pendingEvents != null ? pendingEvents : 0}">0</h3>
+                            <p>Pending Review</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <a href="/admin/events/pending" class="small-box-footer">
+                            More info <i class="fas fa-arrow-circle-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-success">
+                        <div class="inner">
+                            <h3 th:text="${approveEvents != null ? approveEvents : 0}">0</h3>
+                            <p>Approved Events</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <a href="/admin/events/approved" class="small-box-footer">
+                            More info <i class="fas fa-arrow-circle-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-danger">
+                        <div class="inner">
+                            <h3 th:text="${rejectEvents != null ? rejectEvents : 0}">0</h3>
+                            <p>Rejected Events</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <a href="/admin/events/rejected" class="small-box-footer">
+                            More info <i class="fas fa-arrow-circle-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-primary">
+                        <div class="inner">
+                            <h3 th:text="${totalEvents != null ? totalEvents : 0}">0</h3>
+                            <p>Total Events</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                        <div class="small-box-footer">
+                            <span>All events in system</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <a href="/admin/events/pending" class="btn btn-warning btn-block">
+                                        <i class="fas fa-clock"></i> Review Pending Events
+                                        <span class="badge badge-light ml-1" th:text="${pendingEvents}">0</span>
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="/admin/events/approved" class="btn btn-success btn-block">
+                                        <i class="fas fa-check-circle"></i> View Approved Events
+                                        <span class="badge badge-light ml-1" th:text="${approveEvents}">0</span>
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="/admin/events/rejected" class="btn btn-danger btn-block">
+                                        <i class="fas fa-times-circle"></i> View Rejected Events
+                                        <span class="badge badge-light ml-1" th:text="${rejectEvents}">0</span>
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="/admin/reports" class="btn btn-info btn-block">
+                                        <i class="fas fa-chart-bar"></i> Event Reports
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filter Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Search and Filter Events</h3>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="mb-3">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Search</label>
+                                    <input type="text" class="form-control" name="keyword" th:value="${keyword}" 
+                                           placeholder="Search by name or description...">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Category</label>
+                                    <select class="form-control" name="category">
+                                        <option value="all">All Categories</option>
+                                        <option th:each="category : ${categories}" 
+                                                th:value="${category}" 
+                                                th:text="${category}"
+                                                th:selected="${selectedCategory == category}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Organizer Name</label>
+                                    <input type="text" class="form-control" name="organizerName" 
+                                           th:value="${organizerName}" placeholder="Filter by organizer...">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Status</label>
+                                    <select class="form-control" name="status">
+                                        <option value="">All Statuses</option>
+                                        <option th:each="status : ${statusOptions}" 
+                                                th:value="${status}" 
+                                                th:text="${status}"
+                                                th:selected="${status == selectedStatus}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Sort By</label>
+                                    <select class="form-control" name="sortBy">
+                                        <option value="startDate" th:selected="${(sortBy ?: 'startDate') == 'startDate'}">Start Date</option>
+                                        <option value="title" th:selected="${(sortBy ?: '') == 'title'}">Title</option>
+                                        <option value="status" th:selected="${(sortBy ?: '') == 'status'}">Status</option>
+                                        <option value="category" th:selected="${(sortBy ?: '') == 'category'}">Category</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Sort Direction</label>
+                                    <select class="form-control" name="sortDirection">
+                                        <option value="asc" th:selected="${sortDirection == 'asc'}">Ascending</option>
+                                        <option value="desc" th:selected="${sortDirection == 'desc'}">Descending</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Items per page</label>
+                                    <select class="form-control" onchange="changePageSize(this.value)">
+                                        <option value="5" th:selected="${pageSize == 5}">5 per page</option>
+                                        <option value="10" th:selected="${pageSize == 10}">10 per page</option>
+                                        <option value="25" th:selected="${pageSize == 25}">25 per page</option>
+                                        <option value="50" th:selected="${pageSize == 50}">50 per page</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                                <a th:href="@{/admin/events}" class="btn btn-secondary">
+                                    <i class="fas fa-undo"></i> Reset
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Results Info -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="dataTables_info" role="status" aria-live="polite">
+                                <span th:if="${totalItems > 0}" 
+                                      th:with="currentPage=${currentPage != null ? currentPage : 0}, 
+                                              pageSize=${pageSize != null ? pageSize : 10},
+                                              start=${(currentPage != null ? currentPage : 0) * (pageSize != null ? pageSize : 10) + 1}, 
+                                              end=${(currentPage != null ? currentPage + 1 : 1) * (pageSize != null ? pageSize : 10) > (totalItems != null ? totalItems : 0) ? (totalItems != null ? totalItems : 0) : (currentPage != null ? currentPage + 1 : 1) * (pageSize != null ? pageSize : 10)}"
+                                      th:text="${start} + ' to ' + ${end} + ' of ' + ${totalItems} + ' entries'">
+                                </span>
+                                <span th:if="${totalItems == null || totalItems == 0}">
+                                    No entries found
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Events Table -->
+                    <!-- Debug Info (only shown in development) -->
+                    <div th:if="${#lists.isEmpty(events) && !#strings.isEmpty(keyword)}" class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No events found matching your search criteria.
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                            <tr>
+                                <th>
+                                    <a th:with="newSortDirection=${sortBy == 'title' ? (sortDirection == 'asc' ? 'desc' : 'asc') : 'asc'}"
+                                       th:href="@{/admin/events(page=${page}, size=${pageSize}, sortBy='title', sortDirection=${newSortDirection}, keyword=${keyword}, category=${category}, organizerName=${organizerName}, status=${status})}">
+                                        Title
+                                        <span th:if="${sortBy == 'title'}">
+                                            <i th:class="${sortDirection == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                                        </span>
+                                        <span th:unless="${sortBy == 'title'}">
+                                            <i class="fas fa-sort"></i>
+                                        </span>
+                                    </a>
+                                </th>
+                                <th>Event</th>
+                                <th>
+                                    <a th:with="newSortDirection=${sortBy == 'startDate' ? (sortDirection == 'asc' ? 'desc' : 'asc') : 'asc'}"
+                                       th:href="@{/admin/events(page=${page}, size=${pageSize}, sortBy='startDate', sortDirection=${newSortDirection}, keyword=${keyword}, category=${category}, organizerName=${organizerName}, status=${status})}">
+                                        Start Date
+                                        <span th:if="${sortBy == 'startDate'}">
+                                            <i th:class="${sortDirection == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                                        </span>
+                                        <span th:if="${sortBy != 'startDate'}">
+                                            <i class="fas fa-sort"></i>
+                                        </span>
+                                    </a>
+                                </th>
+                                <th>Location</th>
+                                <th>
+                                    <a th:with="newSortDirection=${sortBy == 'category' ? (sortDirection == 'asc' ? 'desc' : 'asc') : 'asc'}"
+                                       th:href="@{/admin/events(page=${page}, size=${pageSize}, sortBy='category', sortDirection=${newSortDirection}, keyword=${keyword}, category=${category}, organizerName=${organizerName}, status=${status})}">
+                                        Category
+                                        <span th:if="${sortBy == 'category'}">
+                                            <i th:class="${sortDirection == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                                        </span>
+                                        <span th:if="${sortBy != 'category'}">
+                                            <i class="fas fa-sort"></i>
+                                        </span>
+                                    </a>
+                                </th>
+                                <th>Organizer</th>
+                                <th>Participants</th>
+                                <th>
+                                    <a th:with="newSortDirection=${sortBy == 'status' ? (sortDirection == 'asc' ? 'desc' : 'asc') : 'asc'}"
+                                       th:href="@{/admin/events(page=${page}, size=${pageSize}, sortBy='status', sortDirection=${newSortDirection}, keyword=${keyword}, category=${category}, organizerName=${organizerName}, status=${status})}">
+                                        Status
+                                        <span th:if="${sortBy == 'status'}">
+                                            <i th:class="${sortDirection == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                                        </span>
+                                        <span th:if="${sortBy != 'status'}">
+                                            <i class="fas fa-sort"></i>
+                                        </span>
+                                    </a>
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="event : ${events}" th:attr="data-event-id=${event.id}">
+                                <td th:text="${event.id}"></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img th:if="${event.imageUrl != null}" 
+                                             th:src="${event.imageUrl}" 
+                                             class="img-circle mr-2" 
+                                             style="width: 40px; height: 40px; object-fit: cover;" 
+                                             alt="Event Image">
+                                        <div>
+                                            <strong th:text="${event.name}"></strong>
+                                            <div class="text-muted text-sm" th:text="${#strings.abbreviate(event.description, 50)}"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td th:text="${#temporals.format(event.startDate, 'MMM dd, yyyy HH:mm')}"></td>
+                                <td th:text="${event.location}"></td>
+                                <td>
+                                    <span class="badge badge-info" th:text="${event.category}"></span>
+                                </td>
+                                <td>
+                                    <div th:if="${event.organizerName != null}" class="text-nowrap">
+                                        <div th:text="${event.organizerName}"></div>
+                                        <small class="text-muted" th:text="${event.organizerEmail}"></small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants != null ? event.maxParticipants : '∞'}"></span>
+                                </td>
+                                <td th:text="${event.status}"></td>
+                                <td class="text-nowrap">
+                                    <div class="btn-group">
+                                        <a th:href="@{'/admin/events/' + ${event.id}}" 
+                                           class="btn btn-info btn-sm" 
+                                           title="View Details"
+                                           target="_blank">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a th:href="@{'/admin/events/' + ${event.id} + '/edit'}" 
+                                           class="btn btn-warning btn-sm" 
+                                           title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(events)}">
+                                <td colspan="9" class="text-center">
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle"></i> No events found in the system.
+                                        <div th:if="${#lists.isEmpty(categories)}" class="mt-2">
+                                            <i class="fas fa-database"></i> The events table appears to be empty.
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div th:if="${totalPages != null && totalPages > 1}" class="row mt-3">
+                        <div class="col-md-12">
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item" th:classappend="${(currentPage ?: 0) == 0} ? 'disabled' : ''">
+                                        <a class="page-link" 
+                                           th:href="@{${'?'} + ${#httpServletRequest.queryString != null ? #strings.replace(#httpServletRequest.queryString, 'page=' + (currentPage ?: 0), 'page=0') : 'page=0'}}" 
+                                           aria-label="First"
+                                           th:if="${(currentPage ?: 0) > 0}">
+                                            <span aria-hidden="true">&laquo;&laquo;</span>
+                                        </a>
+                                        <span class="page-link" th:unless="${(currentPage ?: 0) > 0}" aria-hidden="true">&laquo;&laquo;</span>
+                                    </li>
+                                    <li class="page-item" th:classappend="${(currentPage ?: 0) == 0} ? 'disabled' : ''">
+                                        <a class="page-link" 
+                                           th:href="@{${'?'} + ${#httpServletRequest.queryString != null ? #strings.replace(#httpServletRequest.queryString, 'page=' + (currentPage ?: 0), 'page=' + ((currentPage ?: 1) - 1)) : 'page=0'}}" 
+                                           aria-label="Previous"
+                                           th:if="${(currentPage ?: 0) > 0}">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                        <span class="page-link" th:unless="${(currentPage ?: 0) > 0}" aria-hidden="true">&laquo;</span>
+                                    </li>
+                                    <li th:each="i : ${#numbers.sequence(0, (totalPages ?: 1) - 1)}"
+                                        th:classappend="${i == (currentPage ?: 0)} ? 'active' : ''"
+                                        class="page-item">
+                                        <a class="page-link" 
+                                           th:href="@{${'?'} + ${#httpServletRequest.queryString != null ? #strings.replace(#strings.replace(#httpServletRequest.queryString, 'page=' + (currentPage ?: 0), 'page=' + i), '&page=' + (currentPage ?: 0), '&page=' + i) : 'page=' + i}}"
+                                           th:text="${i + 1}">1</a>
+                                    </li>
+                                    <li class="page-item" th:classappend="${(currentPage ?: 0) >= (totalPages ?: 1) - 1} ? 'disabled' : ''">
+                                        <a class="page-link" 
+                                           th:href="@{${'?'} + ${#httpServletRequest.queryString != null ? #strings.replace(#httpServletRequest.queryString, 'page=' + (currentPage ?: 0), 'page=' + ((currentPage ?: 0) + 1)) : 'page=1'}}" 
+                                           aria-label="Next"
+                                           th:if="${(currentPage ?: 0) < (totalPages ?: 1) - 1}">
+                                               keyword=${keyword != null ? keyword : ''},
+                                               category=${selectedCategory != null ? selectedCategory : ''},
+                                               organizerName=${organizerName != null ? organizerName : ''},
+                                               sortBy=${sortBy},
+                                               sortDirection=${sortDirection}
+                                           )}" 
+                                           aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                        <span class="page-link" th:unless="${currentPage < totalPages - 1}" aria-hidden="true">&raquo;</span>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script th:inline="javascript">
+        // Function to update URL parameters while keeping existing ones
+        function updateUrlParameter(param, value) {
+            const searchParams = new URLSearchParams(window.location.search);
+            if (value) {
+                searchParams.set(param, value);
+            } else {
+                searchParams.delete(param);
+            }
+            searchParams.set('page', '0'); // Reset to first page when changing filters
+            return window.location.pathname + '?' + searchParams.toString();
+        }
+        
+        // Handle page size change
+        function changePageSize(newSize) {
+            window.location.href = updateUrlParameter('size', newSize);
+        }
+        
+        // Handle form submission with all parameters
+        function handleSearchFormSubmit(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            
+            // Add all form data to params
+            for (const [key, value] of formData.entries()) {
+                if (value) {
+                    params.set(key, value);
+                }
+            }
+            
+            // Reset to first page on new search
+            params.set('page', '0');
+            
+            // Update URL and submit
+            window.location.href = window.location.pathname + '?' + params.toString();
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle form submission
+            const searchForm = document.querySelector('form[method="get"]');
+            if (searchForm) {
+                searchForm.addEventListener('submit', handleSearchFormSubmit);
+                
+                // Add event listeners to form elements to submit on change
+                const formElements = searchForm.querySelectorAll('select, input[type="text"]');
+                formElements.forEach(element => {
+                    if (element.type !== 'submit') {
+                        element.addEventListener('change', () => searchForm.dispatchEvent(new Event('submit')));
+                    }
+                });
+            }
+            
+            // Handle status filter change
+            const statusSelect = document.querySelector('select[name="status"]');
+            if (statusSelect) {
+                statusSelect.addEventListener('change', function() {
+                    searchForm.dispatchEvent(new Event('submit'));
+                });
+            }
+            
+            // Handle sort links
+            document.querySelectorAll('th a[href*="sortBy="]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const url = new URL(this.href);
+                    window.location.href = url.toString();
+                });
+            });
+        });
+        
+        function confirmDelete(eventId) {
+            if (confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/admin/events/' + eventId + '/delete';
+                
+                const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+                
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = '_csrf';
+                csrfInput.value = csrfToken;
+                
+                form.appendChild(csrfInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+            return false;
+        }
+    </script>
+</div>
+</html>

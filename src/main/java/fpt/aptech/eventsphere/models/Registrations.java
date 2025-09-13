@@ -1,8 +1,11 @@
 package fpt.aptech.eventsphere.models;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -38,6 +41,7 @@ public class Registrations {
     public enum RegistrationStatus {
         CONFIRMED,
         CANCELLED,
-        WAITLIST
+        WAITLIST,
+        PENDING
     }
 }

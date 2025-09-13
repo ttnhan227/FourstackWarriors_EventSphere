@@ -1,7 +1,10 @@
 package fpt.aptech.eventsphere.configs;
 
 import fpt.aptech.eventsphere.models.*;
-import fpt.aptech.eventsphere.repositories.*;
+import fpt.aptech.eventsphere.repositories.EventRepository;
+import fpt.aptech.eventsphere.repositories.RoleRepository;
+import fpt.aptech.eventsphere.repositories.UserDetailsRepository;
+import fpt.aptech.eventsphere.repositories.VenueRepository;
 import fpt.aptech.eventsphere.repositories.admin.AdminUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -79,7 +82,7 @@ public class DataInitializer implements CommandLineRunner {
 
         UserDetails organizer1Details = createUserDetails(
                 organizer1,
-                "Administrator Event",
+                "Bùi Công Tú",
                 "+84912345678",
                 "Student Affairs",
                 "ORG001",

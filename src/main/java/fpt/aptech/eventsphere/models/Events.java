@@ -4,6 +4,7 @@ import fpt.aptech.eventsphere.validations.ValidDateRange;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import org.hibernate.annotations.BatchSize;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -59,7 +60,8 @@ public class Events {
     private Users organizer;
 
     // One-to-many relationships
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @BatchSize(size = 50) // Load registrations in batches of 50
     private List<Registrations> registrations = new ArrayList<>();
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -67,6 +69,16 @@ public class Events {
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Feedback> feedbacks = new ArrayList<>();
+
+    public enum EventStatus {
+        PENDING,
+        APPROVED,
+        REJECTED
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private EventStatus status = EventStatus.PENDING;
 
     //one to one
     @OneToOne(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)

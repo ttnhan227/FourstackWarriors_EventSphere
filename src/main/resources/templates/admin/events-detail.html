@@ -1,41 +1,29 @@
 <!DOCTYPE html>
-<html lang="en"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${title}">Event Details</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/admin-style.css">
-</head>
-
-<body>
-<div class="container-fluid">
-    <div class="row">
-        <div th:replace="~{admin/layouts/sidebar :: sidebar}"></div>
-
-        <div class="col-md-9 col-lg-10 main-content">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item">
-                                <a href="/admin/event-management">Event Management</a>
-                            </li>
-                            <li class="breadcrumb-item active">Event Details</li>
-                        </ol>
-                    </nav>
-                    <h1 class="h3 mb-0 text-gray-800" th:text="${event.title}">Event Name</h1>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="admin/layouts/main :: layout(~{::content})">
+<div th:fragment="content">
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0" th:text="${title}">Event Details</h1>
                 </div>
-                <div>
-                    <a href="/admin/event-management" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Back
-                    </a>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="/admin/events">Event Management</a></li>
+                        <li class="breadcrumb-item active" th:text="${event.name}">Event Details</li>
+                    </ol>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="content">
+        <div class="container-fluid">
+            <!-- Error Alert -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                <h5><i class="icon fas fa-ban"></i> Error!</h5>
+                <span th:text="${error}"></span>
             </div>
 
             <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
@@ -44,132 +32,64 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
 
-            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                <span th:text="${error}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-
-            <div class="row mb-4">
-                <div class="col-md-8">
-                    <div class="card shadow">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">
-                                <i class="fas fa-info-circle me-2"></i>
-                                Basic Information
-                            </h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <strong>Event Name:</strong>
-                                    <div th:text="${event.title}"></div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong>Category:</strong>
-                                    <span class="badge bg-info" th:text="${event.category ?: 'Uncategorized'}"></span>
-                                </div>
-                                <div class="col-12 mb-3">
-                                    <strong>Description:</strong>
-                                    <div th:text="${event.description}"></div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong>Start Time:</strong>
-                                    <div>
-                                        <i class="fas fa-calendar-alt text-success me-1"></i>
-                                        <span th:text="${#temporals.format(event.startDate, 'dd/MM/yyyy HH:mm')}"></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong>End Time:</strong>
-                                    <div>
-                                        <i class="fas fa-calendar-alt text-danger me-1"></i>
-                                        <span th:text="${#temporals.format(event.endDate, 'dd/MM/yyyy HH:mm')}"></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong>Status:</strong>
-                                    <span class="badge"
-                                          th:classappend="'bg-' + ${event.eventStatusColor}"
-                                          th:text="${event.eventStatusDisplay}"></span>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong>Venue:</strong>
-                                    <div>
-                                        <i class="fas fa-map-marker-alt text-primary me-1"></i>
-                                        <span th:text="${event.venueName}"></span>
-                                    </div>
-                                    <small class="text-muted" th:text="${event.venueAddress}"></small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i>Event Details
+                    </h6>
+                    <a th:href="@{/admin/events/{id}/edit(id=${event.id})}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-edit"></i> Edit Event
+                    </a>
                 </div>
-
-                <div class="col-md-4">
-                    <div class="card shadow mb-3">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">
-                                <i class="fas fa-image me-2"></i>
-                                Event Image
-                            </h6>
-                        </div>
-                        <div class="card-body text-center">
-                            <img th:if="${event.imageUrl}"
-                                 th:src="${event.imageUrl}"
-                                 class="img-fluid rounded"
-                                 alt="Event Image">
-                            <div th:unless="${event.imageUrl}" class="text-muted">
-                                <i class="fas fa-image fa-3x mb-2"></i>
-                                <div>No image available</div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <!-- Event Image -->
+                        <div class="col-md-12 mb-4">
+                            <div class="text-center">
+                                <img th:if="${event.imageUrl}" 
+                                     th:src="'/' + ${event.imageUrl}" 
+                                     alt="Event Image" 
+                                     class="img-fluid rounded"
+                                     style="max-height: 400px; width: auto; max-width: 100%;">
+                                <div th:unless="${event.imageUrl}" class="text-muted p-4 border rounded bg-light">
+                                    <i class="fas fa-image fa-3x mb-2"></i>
+                                    <p>No image available for this event</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <div class="card shadow">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">
-                                <i class="fas fa-cogs me-2"></i>
-                                Actions
-                            </h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Description:</strong></p>
+                            <p th:text="${event.description}" class="mb-4"></p>
+                            
+                            <p><strong>Start Date:</strong> 
+                                <span th:text="${#temporals.format(event.startDate, 'MMM dd, yyyy HH:mm')}"></span>
+                            </p>
+                            
+                            <p><strong>End Date:</strong> 
+                                <span th:text="${#temporals.format(event.endDate, 'MMM dd, yyyy HH:mm')}"></span>
+                            </p>
+                            
+                            <p><strong>Location:</strong> 
+                                <span th:text="${event.location}"></span>
+                            </p>
                         </div>
-                        <div class="card-body">
-                            <div class="d-grid gap-2">
-                                <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-outline-primary dropdown-toggle"
-                                            data-bs-toggle="dropdown">
-                                        <i class="fas fa-edit"></i> Change Status
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#"
-                                               onclick="updateStatus('PUBLISHED')">
-                                            <i class="fas fa-play text-success"></i> Publish
-                                        </a></li>
-                                        <li><a class="dropdown-item" href="#"
-                                               onclick="updateStatus('PENDING')">
-                                            <i class="fas fa-clock text-warning"></i> Pending
-                                        </a></li>
-                                        <li><a class="dropdown-item" href="#"
-                                               onclick="updateStatus('COMPLETED')">
-                                            <i class="fas fa-check text-success"></i> Completed
-                                        </a></li>
-                                    </ul>
-                                </div>
-
-                                <button th:unless="${event.cancelled}"
-                                        type="button"
-                                        class="btn btn-warning"
-                                        onclick="cancelEvent()">
-                                    <i class="fas fa-ban"></i> Cancel Event
-                                </button>
-
-                                <button th:if="${event.cancelled}"
-                                        type="button"
-                                        class="btn btn-success"
-                                        onclick="restoreEvent()">
-                                    <i class="fas fa-undo"></i> Restore Event
-                                </button>
-                            </div>
+                        <div class="col-md-6">
+                            <p><strong>Category:</strong> 
+                                <span class="badge bg-info" th:text="${event.category}"></span>
+                            </p>
+                            
+                            <p><strong>Organizer:</strong> 
+                                <span th:text="${event.organizerName}"></span>
+                                <small class="d-block text-muted" th:text="${event.organizerEmail}"></small>
+                            </p>
+                            
+                            <p><strong>Participants:</strong> 
+                                <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants != null ? event.maxParticipants : '∞'}"></span>
+                            </p>
+                            
                         </div>
                     </div>
                 </div>
@@ -209,51 +129,15 @@
 
             <!-- (phần dưới: seating info, registration stats, feedback, media, certificates, history...) đã dịch tương tự -->
         </div>
-    </div>
+    </section>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script th:inline="javascript">
-    const eventId = /*[[${event.eventId}]]*/ 0;
-    const eventTitle = /*[[${event.title}]]*/ '';
+    const eventId = /*[[${event.id}]]*/ 0;
+    const eventName = /*[[${event.name}]]*/ '';
 
-    function updateStatus(status) {
-        if (confirm(`Are you sure you want to change the status of event "${eventTitle}" to "${status}"?`)) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/admin/event-management/update-status/${eventId}`;
-
-            const statusInput = document.createElement('input');
-            statusInput.type = 'hidden';
-            statusInput.name = 'status';
-            statusInput.value = status;
-            form.appendChild(statusInput);
-
-            document.body.appendChild(form);
-            form.submit();
-        }
-    }
-
-    function cancelEvent() {
-        if (confirm(`Are you sure you want to cancel the event "${eventTitle}"?`)) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/admin/event-management/cancel/${eventId}`;
-            document.body.appendChild(form);
-            form.submit();
-        }
-    }
-
-    function restoreEvent() {
-        if (confirm(`Are you sure you want to restore the event "${eventTitle}"?`)) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/admin/event-management/restore/${eventId}`;
-            document.body.appendChild(form);
-            form.submit();
-        }
+    function editEvent() {
+        window.location.href = `/admin/events/${eventId}/edit`;
     }
 </script>
-</body>
 </html>
