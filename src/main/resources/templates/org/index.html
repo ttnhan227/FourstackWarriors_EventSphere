@@ -132,15 +132,15 @@
 
             <!-- Tabs Navigation -->
             <ul class="tabs">
-                <li><a href="#current" class="active">Current</a></li>
-                <li><a href="#upcoming">Upcoming</a></li>
-                <li><a href="#past">Past</a></li>
-                <li><a href="#all">All</a></li>
+                <li><a href="#current" th:classappend="${activeTab == 'current'} ? 'active'">Current</a></li>
+                <li><a href="#upcoming" th:classappend="${activeTab == 'upcoming'} ? 'active'">Upcoming</a></li>
+                <li><a href="#past" th:classappend="${activeTab == 'past'} ? 'active'">Past</a></li>
+                <li><a href="#all" th:classappend="${activeTab == 'all'} ? 'active'">All</a></li>
             </ul>
 
             <div class="tab-content">
                 <!-- Section -->
-                <section id="all" class="tab-pane">
+                <section id="all" class="tab-pane" th:classappend="${activeTab == 'all'} ? 'active'">
                     <div class="posts">
                         <article th:each="event : ${eventPage}">
                             <a th:href="@{/organizer/detail/{id}(id=${event.eventId})}" class="image">
@@ -171,7 +171,7 @@
                         <span th:each="i : ${#numbers.sequence(
                           (eventPage.number - 2 > 0 ? eventPage.number - 2 : 0),
                           (eventPage.number + 2 < eventPage.totalPages - 1 ? eventPage.number + 2 : eventPage.totalPages - 1))}">
-                            <a th:href="@{/organizer/index(page=${i}, size=${eventPage.size})}"
+                            <a th:href="@{/organizer/index(page=${i}, size=${eventPage.size}, tab='all')}"
                                th:text="${i + 1}"
                                th:classappend="${i == eventPage.number} ? 'active' : ''">
                             </a>
@@ -186,7 +186,7 @@
                         </div>
                     </div>
                 </section>
-                <section id="current" class="tab-pane active">
+                <section id="current" class="tab-pane" th:classappend="${activeTab == 'current'} ? 'active'">
                     <div class="posts">
                         <article th:each="event : ${currentEvents}">
                             <a th:href="@{/organizer/detail/{id}(id=${event.eventId})}" class="image">
@@ -207,7 +207,7 @@
                         </article>
                     </div>
                 </section>
-                <section id="upcoming" class="tab-pane">
+                <section id="upcoming" class="tab-pane" th:classappend="${activeTab == 'upcoming'} ? 'active'">
                     <div class="posts">
                         <article th:each="event : ${upcomingEvents}">
                             <a th:href="@{/organizer/detail/{id}(id=${event.eventId})}" class="image">
@@ -228,7 +228,7 @@
                         </article>
                     </div>
                 </section>
-                <section id="past" class="tab-pane">
+                <section id="past" class="tab-pane" th:classappend="${activeTab == 'past'} ? 'active'">
                     <div class="posts">
                         <article th:each="event : ${pastEvents}">
                             <a th:href="@{/organizer/detail/{id}(id=${event.eventId})}" class="image">

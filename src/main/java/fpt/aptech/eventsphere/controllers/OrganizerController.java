@@ -37,6 +37,7 @@ public class OrganizerController {
     @GetMapping("/index")
     public String index(@RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "4") int size,
+                        @RequestParam(defaultValue = "current") String tab,
                         Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
@@ -49,6 +50,7 @@ public class OrganizerController {
         model.addAttribute("upcomingEvents", upcomingEvents);
         model.addAttribute("pastEvents", pastEvents);
         model.addAttribute("currentEvents", currentEvents);
+        model.addAttribute("activeTab", tab);
         return "org/index";
     }
 
