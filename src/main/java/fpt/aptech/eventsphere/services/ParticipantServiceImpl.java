@@ -6,11 +6,8 @@ import fpt.aptech.eventsphere.models.Registrations;
 import fpt.aptech.eventsphere.models.Roles;
 import fpt.aptech.eventsphere.models.UserDetails;
 import fpt.aptech.eventsphere.models.Users;
-import fpt.aptech.eventsphere.repositories.EventRepository;
-import fpt.aptech.eventsphere.repositories.ParticipantRepository;
-import fpt.aptech.eventsphere.repositories.RoleRepository;
-import fpt.aptech.eventsphere.repositories.UserDetailsRepository;
-import fpt.aptech.eventsphere.repositories.UserRepository;
+import fpt.aptech.eventsphere.repositories.*;
+import fpt.aptech.eventsphere.models.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +30,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final EventSeatingRepository eventSeatingRepository;
 
     public ParticipantServiceImpl(ParticipantRepository participantRepository,
                             EventRepository eventRepository,
@@ -40,7 +38,8 @@ public class ParticipantServiceImpl implements ParticipantService {
                             UserDetailsRepository userDetailsRepository,
                             RoleRepository roleRepository,
                             PasswordEncoder passwordEncoder,
-                            EmailService emailService) {
+                            EmailService emailService,
+                            EventSeatingRepository eventSeatingRepository) {
         this.participantRepository = participantRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
@@ -48,6 +47,7 @@ public class ParticipantServiceImpl implements ParticipantService {
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.eventSeatingRepository = eventSeatingRepository;
     }
 
     // Removed duplicate getCurrentUser() method
@@ -119,9 +119,8 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public int getAvailableSeats(Integer eventId) {
-        // For now, assume unlimited seats since maxParticipants is not in the Events model
-        // TODO: Add maxParticipants field to Events model if needed
-        return Integer.MAX_VALUE;
+        EventSeating seating = eventSeatingRepository.findByEventId(eventId);
+        return seating != null ? seating.getAvailableSeat() : 0;
     }
     
     private void sendRegistrationEmail(Users user, Events event, String emailType) {
