@@ -92,6 +92,8 @@
                 </li>
                 <li th:if="${#authorization.expression('hasRole(''ORGANIZER'')')}">
                     <a th:href="@{/organizer/createVenue}">Create new Venue</a>
+                <li th:if="${#authorization.expression('hasRole(''ORGANIZER'')')}">
+                    <a th:href="@{/organizer/createHost}">Create new Host</a>
                 <li th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
                     <a th:href="@{/admin/index}">Admin Dashboard</a>
                 </li>

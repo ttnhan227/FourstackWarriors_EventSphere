@@ -1,12 +1,7 @@
 <!DOCTYPE HTML>
-<!--
-	Editorial by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Editorial by HTML5 UP</title>
+    <title>Create Events</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
     <link rel="stylesheet" th:href="@{/css/home/main.css}"/>
@@ -70,121 +65,157 @@
             border-width: 0 3px 3px 0;
             transform: rotate(45deg);
         }
+        .error {
+            color: #ff0000;
+            font-size: 12px;
+            display: block;
+        }
     </style>
 </head>
 <body class="is-preload">
-
-<!-- Wrapper -->
 <div id="wrapper">
-
-    <!-- Main -->
     <div id="main">
         <div class="inner">
-            <!-- Header -->
             <header id="header">
                 <h1>Create Events</h1>
             </header>
             <section>
-                <form th:action="@{/organizer/create}" th:object="${event}" method="post" enctype="multipart/form-data">
-                    <div class="fields">
-
-                        <!-- Full width -->
-                        <div class="field">
-                            <label for="title">Title</label>
-                            <input type="text" th:field="*{title}" id="title" placeholder="Title"/>
-                            <div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="error"></div>
+                <form method="post" th:action="@{/organizer/create}" enctype="multipart/form-data" th:object="${event}">
+                    <div class="row gtr-uniform">
+                        <div class="col-12">
+                            <input type="text" name="title" id="title" th:field="*{title}" placeholder="Title"/>
+                            <div th:errors="*{title}" class="error"></div>
                         </div>
-
-                        <div class="field">
-                            <label for="category">Category</label>
-                            <input type="text" th:field="*{category}" id="category" placeholder="Category"/>
-                            <div th:if="${#fields.hasErrors('category')}" th:errors="*{category}" class="error"></div>
+                        <div class="col-12">
+                            <input type="text" name="category" id="category" th:field="*{category}"
+                                   placeholder="Category"/>
+                            <div th:errors="*{category}" class="error"></div>
                         </div>
-
-                        <div class="field">
-                            <label for="des">Description</label>
-                            <textarea th:field="*{description}" id="des" placeholder="Description"></textarea>
-                            <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}" class="error"></div>
+                        <div class="col-12">
+                            <textarea name="description" id="description" th:field="*{description}"
+                                      placeholder="Description" rows="6"></textarea>
+                            <div th:errors="*{description}" class="error"></div>
                         </div>
-
-                        <!-- Dates side by side -->
-                        <div class="row gtr-50">
-                            <div class="col-6 col-12-medium">
-                                <div class="field">
-                                    <label for="sdate">Start Date</label>
-                                    <input type="datetime-local" th:field="*{startDate}" id="sdate"/>
-                                    <div th:if="${#fields.hasErrors('startDate')}" th:errors="*{startDate}" class="error"></div>
-                                </div>
-                            </div>
-                            <div class="col-6 col-12-medium">
-                                <div class="field">
-                                    <label for="edate">End Date</label>
-                                    <input type="datetime-local" th:field="*{endDate}" id="edate"/>
-                                    <div th:if="${#fields.hasErrors('endDate')}" th:errors="*{endDate}" class="error"></div>
-                                </div>
-                            </div>
+                        <div class="col-6 col-12-xsmall">
+                            <input type="datetime-local" name="startDate" id="startDate" th:field="*{startDate}"
+                                   required/>
+                            <div th:errors="*{startDate}" class="error"></div>
                         </div>
-
-                        <div class="field">
-                            <label for="image">Image</label>
-                            <input name="imageFile" id="image" type="file" accept="image/*"/>
-                            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+                        <div class="col-6 col-12-xsmall">
+                            <input type="datetime-local" name="endDate" id="endDate" th:field="*{endDate}" required/>
+                            <div th:errors="*{endDate}" class="error"></div>
                         </div>
-
-                        <div class="field">
+                        <div class="col-12">
+                            <input type="file" name="imageFile" id="imageFile" accept="image/jpeg,image/png,image/gif"/>
+                            <div th:errors="*{imageUrl}" class="error"></div>
+                        </div>
+                        <div class="col-12">
                             <label for="venue">Venue</label>
-                            <select th:field="*{venue.venueId}" id="venue">
-                                <option th:each="v : ${venue}"
-                                        th:value="${v.venueId}"
-                                        th:text="${v.name}">
-                                </option>
+                            <select name="venue.venueId" id="venue" th:field="*{venue.venueId}" required>
+                                <option th:each="v : ${venue}" th:value="${v.venueId}" th:text="${v.name}"></option>
                             </select>
+                            <div th:errors="*{venue}" class="error"></div>
                         </div>
-
-                        <div class="field">
-                            <label for="totalSeats">Total Seats</label>
-                            <input type="number" th:field="*{eventSeating.totalSeats}" id="totalSeats" placeholder="Total seats"/>
-                            <div th:if="${#fields.hasErrors('eventSeating.totalSeats')}" th:errors="*{eventSeating.totalSeats}" class="error"></div>
+                        <div class="col-12">
+                            <label for="host">Host</label>
+                            <select name="host.hostId" id="host" th:field="*{host.hostId}" required>
+                                <option th:each="h : ${hosts}" th:value="${h.hostId}" th:text="${h.name}"></option>
+                            </select>
+                            <div th:errors="*{host}" class="error"></div>
                         </div>
-                        <br>
-                        <!-- Custom checkbox -->
-                        <div class="field">
+                        <div class="col-12">
+                            <input type="number" name="eventSeating.totalSeats" id="totalSeats"
+                                   th:field="*{eventSeating.totalSeats}" placeholder="Total Seats" required/>
+                            <div th:errors="*{eventSeating.totalSeats}" class="error"></div>
+                        </div>
+                        <div class="col-12">
                             <label class="checkbox-container">
                                 <input type="checkbox" th:field="*{eventSeating.waitlistEnabled}"/>
                                 <span class="checkmark"></span>
                                 Waitlist
                             </label>
+                            <div th:errors="*{eventSeating.waitlistEnabled}" class="error"></div>
                         </div>
-
+                        <div class="col-12">
+                            <h3>Activities</h3>
+                            <div id="activities-container">
+                                <div th:each="activity, stat : ${event.activities}" class="row activity-section">
+                                    <section>
+                                        <div class="col-12">
+                                            <input type="text" th:field="*{activities[__${stat.index}__].description}" id="activity-desc-__${stat.index}__" placeholder="Activity Description" required />
+                                            <span th:errors="*{activities[__${stat.index}__].description}" class="error"></span>
+                                        </div>
+                                    </section>
+                                    <section class="row">
+                                        <div class="col-6">
+                                            <input type="datetime-local" th:field="*{activities[__${stat.index}__].startTime}" id="activity-start-__${stat.index}__" required />
+                                            <span th:errors="*{activities[__${stat.index}__].startTime}" class="error"></span>
+                                        </div>
+                                        <div class="col-6">
+                                            <input type="datetime-local" th:field="*{activities[__${stat.index}__].endTime}" id="activity-end-__${stat.index}__" required />
+                                            <span th:errors="*{activities[__${stat.index}__].endTime}" class="error"></span>
+                                        </div>
+                                    </section>
+                                    <button type="button" onclick="this.parentElement.remove()" style="min-width: 100px;
+                                    margin-left: 10px;
+                                    text-align: center;
+                                    padding: 0 0 0 0">Remove</button>
+                                </div>
+                            </div>
+                            <button type="button" onclick="addActivity()">Add Activity</button>
+                        </div>
+                        <div class="col-12">
+                            <ul class="actions">
+                                <li><input type="submit" value="Create" class="primary"/></li>
+                            </ul>
+                        </div>
                     </div>
-
-                    <ul class="actions">
-                        <li><button type="submit" class="primary">Create</button></li>
-                    </ul>
                 </form>
             </section>
-
         </div>
     </div>
-
     <!-- Sidebar -->
     <div th:replace="~{layout/sidebar-layout :: sidebar}"></div>
-
 </div>
-
-<!-- Scripts -->
-<script src="/js/jquery.min.js"></script>
-<script src="/js/browser.min.js"></script>
-<script src="/js/breakpoints.min.js"></script>
-<script src="/js/util.js"></script>
-<script src="/js/main.js"></script>
-
-<!-- Scripts -->
 <script th:src="@{/js/jquery.min.js}"></script>
 <script th:src="@{/js/browser.min.js}"></script>
 <script th:src="@{/js/breakpoints.min.js}"></script>
 <script th:src="@{/js/util.js}"></script>
 <script th:src="@{/js/main.js}"></script>
+<script>
+    var activityIndex = [[${#lists.size(event.activities)}]] || 0;
 
+    function addActivity() {
+        var container = document.getElementById('activities-container');
+        var activityDiv = document.createElement('div');
+        activityDiv.className = 'row activity-section';
+        activityDiv.innerHTML = `
+            <section>
+                <div class="col-12">
+                    <input type="text" name="activities[${activityIndex}].description" id="activity-desc-${activityIndex}" placeholder="Activity Description" required />
+                    <span class="error"></span>
+                </div>
+            </section>
+            <section class="row">
+                <div class="col-6">
+                    <input type="datetime-local" name="activities[${activityIndex}].startTime" id="activity-start-${activityIndex}" required />
+                    <span class="error"></span>
+                </div>
+                <div class="col-6">
+                    <input type="datetime-local" name="activities[${activityIndex}].endTime" id="activity-end-${activityIndex}" required />
+                    <span class="error"></span>
+                </div>
+            </section>
+            <button type="button" onclick="this.parentElement.remove()" style="min-width: 100px;
+                                    margin-left: 10px;
+                                    text-align: center;
+                                    padding: 0 0 0 0">
+                                    Remove
+            </button>
+            `;
+        container.appendChild(activityDiv);
+        activityIndex++;
+    }
+</script>
 </body>
 </html>
