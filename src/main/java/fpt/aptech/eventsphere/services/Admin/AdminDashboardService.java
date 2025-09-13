@@ -5,10 +5,10 @@ import fpt.aptech.eventsphere.dto.admin.ChartDataDTO;
 import fpt.aptech.eventsphere.dto.admin.DepartmentStatsDTO;
 import fpt.aptech.eventsphere.dto.admin.SystemAlertDTO;
 import fpt.aptech.eventsphere.repositories.UserDetailsRepository;
+import fpt.aptech.eventsphere.repositories.admin.AdminCertificateRepository;
 import fpt.aptech.eventsphere.repositories.admin.AdminFeedbackRepository;
 import fpt.aptech.eventsphere.repositories.admin.AdminMediaGalleryRepository;
 import fpt.aptech.eventsphere.repositories.admin.AdminUserRepository;
-import fpt.aptech.eventsphere.repositories.admin.CertificateRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +26,7 @@ public class AdminDashboardService {
     private final UserDetailsRepository userDetailsRepository;
     private final AdminFeedbackRepository adminFeedbackRepository;
     private final AdminMediaGalleryRepository adminMediaGalleryRepository;
-    private final CertificateRepository certificateRepository;
+    private final AdminCertificateRepository adminCertificateRepository;
 
     public AdminDashboardDTO getDashboardData() {
         AdminDashboardDTO dashboard = new AdminDashboardDTO();
@@ -225,7 +225,7 @@ public class AdminDashboardService {
 
     private BigDecimal getCertificatesIssued() {
         try {
-            long count = certificateRepository.count();
+            long count = adminCertificateRepository.count();
             System.out.println("Total certificates issued from DB: " + count);
             return BigDecimal.valueOf(count);
         } catch (Exception e) {

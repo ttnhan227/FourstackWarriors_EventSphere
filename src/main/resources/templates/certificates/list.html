@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>My Certificates</title>
+</head>
+<body>
+    <h1>My Certificates</h1>
+    
+    <!-- Success/Error Messages -->
+    <div th:if="${param.success}" class="alert alert-success">
+        Certificate generated successfully!
+    </div>
+    <div th:if="${param.error}" class="alert alert-danger">
+        Error: <span th:text="${param.error}"></span>
+    </div>
+
+    <!-- Certificates List -->
+    <div th:if="${not #lists.isEmpty(certificates)}">
+        <h2>Your Certificates</h2>
+        <table class="table">
+            <tr th:each="cert : ${certificates}">
+                <td th:text="${cert.eventName}"></td>
+                <td th:text="${#temporals.format(cert.issuedOn, 'dd/MM/yyyy')}"></td>
+                <td>
+                    <a th:href="@{/certificates/download/} + ${cert.certificateId}" 
+                       class="btn btn-primary">Download</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div th:unless="${not #lists.isEmpty(certificates)}">
+        <p>You don't have any certificates yet.</p>
+    </div>
+
+    <!-- Available Certificates -->
+    <div th:if="${not #lists.isEmpty(availableCertificates)}">
+        <h2>Available Certificates</h2>
+        <table class="table">
+            <tr th:each="cert : ${availableCertificates}">
+                <td th:text="${cert.eventName}"></td>
+                <td>
+                    <a th:href="@{/certificates/generate/} + ${cert.eventId}" 
+                       class="btn btn-success">Generate Certificate</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
