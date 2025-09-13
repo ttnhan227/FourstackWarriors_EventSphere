@@ -55,8 +55,8 @@ public class Events {
     @Column(name = "image_url", length = 512)
     private String imageUrl;
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private EventStatus status = EventStatus.DRAFT;
+    @Column(name = "status", nullable = false, length = 20)
+    private EventStatus status = EventStatus.PENDING;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venue_id", nullable = false)
     private Venues venue;
@@ -75,9 +75,6 @@ public class Events {
     private List<Attendance> attendances = new ArrayList<>();
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Feedback> feedbacks = new ArrayList<>();
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    private EventStatus status = EventStatus.PENDING;
     //one to one
     @OneToOne(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     @Valid
@@ -235,12 +232,6 @@ public class Events {
                 (status == EventStatus.PUBLISHED || status == EventStatus.ONGOING)) {
             this.status = calculatedStatus;
         }
-    }
-
-    public enum EventStatus {
-        PENDING,
-        APPROVED,
-        REJECTED
     }
 
     public enum EventStatus {
