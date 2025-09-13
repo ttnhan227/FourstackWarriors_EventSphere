@@ -7,10 +7,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -54,7 +56,51 @@ public interface EventRepository extends JpaRepository<Events, Integer> {
 
     @Query("select r from Registrations r where r.event.eventId = :id")
     List<Registrations> findEventRegistrations(@Param("id") int id);
-    
+
     @Query("SELECT e FROM Events e WHERE e.title = :title")
     Events findByTitle(@Param("title") String title);
+
+    @Query("SELECT e FROM Events e WHERE e.startDate <= CURRENT_DATE and e.endDate > CURRENT_DATE ORDER BY e.startDate")
+    List<Events> findCurrentEvents();
+
+    @Query("""
+                SELECT e 
+                FROM Events e 
+                JOIN e.organizer o 
+                JOIN o.roles r 
+                WHERE o.email = :email 
+                  AND r.roleId = 2 
+                  AND e.startDate >= CURRENT_DATE 
+                ORDER BY e.startDate
+            """)
+    List<Events> findUpcomingEventsByOrganizer(@Param("email") String email);
+
+    @Query("""
+                SELECT e 
+                FROM Events e 
+                JOIN e.organizer o 
+                JOIN o.roles r 
+                WHERE o.email = :email 
+                  AND r.roleId = 2 
+                  AND e.endDate < CURRENT_DATE 
+                ORDER BY e.endDate DESC
+            """)
+    List<Events> findPastEventsByOrganizer(@Param("email") String email);
+
+    @Query("""
+                SELECT e 
+                FROM Events e 
+                JOIN e.organizer o 
+                JOIN o.roles r 
+                WHERE o.email = :email 
+                  AND r.roleId = 2 
+                  AND e.startDate <= CURRENT_DATE 
+                  AND e.endDate > CURRENT_DATE 
+                ORDER BY e.startDate
+            """)
+    List<Events> findCurrentEventsByOrganizer(@Param("email") String email);
+
+    @Query("SELECT e FROM Events e WHERE e.startDate BETWEEN :now AND :limit AND e.reminderSent = false")
+    List<Events> findEventsStartingSoon(@Param("now") LocalDateTime now,
+                                        @Param("limit") LocalDateTime limit);
 }

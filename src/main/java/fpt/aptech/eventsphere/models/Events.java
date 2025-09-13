@@ -55,6 +55,10 @@ public class Events {
     @JoinColumn(name = "venue_id", nullable = false)
     private Venues venue;
 
+    //to send email before event happen
+    @Column(name = "reminder_sent")
+    private Boolean reminderSent = false;
+
     // Many-to-one with Users (organizer)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organizer_id", nullable = false)

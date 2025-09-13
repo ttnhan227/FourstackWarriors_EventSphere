@@ -42,7 +42,13 @@ public class OrganizerController {
         String email = authentication.getName();
 
         Page<Events> events = organizerService.findEventsByOrganizer(email, page, size);
+        List<Events> upcomingEvents = organizerService.findUpcomingEvents(email);
+        List<Events> pastEvents = organizerService.findPastEvents(email);
+        List<Events> currentEvents = organizerService.findCurrentEvents(email);
         model.addAttribute("eventPage", events);
+        model.addAttribute("upcomingEvents", upcomingEvents);
+        model.addAttribute("pastEvents", pastEvents);
+        model.addAttribute("currentEvents", currentEvents);
         return "org/index";
     }
 

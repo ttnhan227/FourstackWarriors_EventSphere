@@ -18,4 +18,7 @@ public interface OrganizerService {
     List<Registrations> findEventRegistration(int id);
     Events editEvent(Events event);
     boolean deleteEvent(Events event);
+    List<Events> findUpcomingEvents(String email);
+    List<Events> findPastEvents(String email);
+    List<Events> findCurrentEvents(String email);
 }

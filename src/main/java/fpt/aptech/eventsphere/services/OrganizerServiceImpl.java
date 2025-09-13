@@ -192,6 +192,21 @@ public class OrganizerServiceImpl implements OrganizerService {
         return true;
     }
 
+    @Override
+    public List<Events> findUpcomingEvents(String email) {
+        return eventRepository.findUpcomingEventsByOrganizer(email);
+    }
+
+    @Override
+    public List<Events> findPastEvents(String email) {
+        return eventRepository.findPastEventsByOrganizer(email);
+    }
+
+    @Override
+    public List<Events> findCurrentEvents(String email) {
+        return eventRepository.findCurrentEventsByOrganizer(email);
+    }
+
     public byte[] generateQRCode(String text, int width, int height) throws WriterException, IOException {
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
         BitMatrix bitMatrix = qrCodeWriter.encode(text, BarcodeFormat.QR_CODE, width, height);
