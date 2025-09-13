@@ -1,6 +1,7 @@
 package fpt.aptech.eventsphere.controllers;
 
 import fpt.aptech.eventsphere.models.Events;
+import fpt.aptech.eventsphere.models.Registrations;
 import fpt.aptech.eventsphere.repositories.EventRepository;
 import fpt.aptech.eventsphere.services.ParticipantService;
 import org.slf4j.Logger;
@@ -118,9 +119,16 @@ public class ParticipantEventController {
             if (event != null) {
                 logger.info("Found event: {}", event.getTitle());
                 
-                // Check if current user is registered for this event
+                // Check if current user is registered for this event and get registration details
                 boolean isRegistered = participantService.isUserRegisteredForEvent(id);
                 int availableSeats = participantService.getAvailableSeats(id);
+                
+                // Get registration status and date if user is registered
+                if (isRegistered) {
+                    Registrations registration = participantService.getRegistrationForEvent(id);
+                    model.addAttribute("registrationStatus", registration.getStatus().name());
+                    model.addAttribute("registrationDate", registration.getRegisteredOn());
+                }
                 
                 model.addAttribute("event", event);
                 model.addAttribute("isRegistered", isRegistered);

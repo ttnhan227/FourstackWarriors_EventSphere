@@ -51,8 +51,9 @@
         <section class="auth-section" style="margin: 1.5em 0;">
             <ul class="actions stacked" style="margin-bottom: 0;">
                 <li style="text-align: center;" th:if="${#authorization.expression('isAuthenticated()')}">
-                    <span class="welcome-text">Welcome, <span
-                            th:text="${#authentication.principal.username}"></span>!</span>
+                    <span class="welcome-text">Welcome, 
+                        <span th:text="${#authentication.name}"></span>!
+                    </span>
                 </li>
                 <li th:if="${#authorization.expression('isAuthenticated()')}">
                     <form method="post" style="margin: 0;" th:action="@{/logout}">
@@ -91,6 +92,8 @@
                 </li>
                 <li th:if="${#authorization.expression('hasRole(''ORGANIZER'')')}">
                     <a th:href="@{/organizer/createVenue}">Create new Venue</a>
+                <li th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                    <a th:href="@{/admin/index}">Admin Dashboard</a>
                 </li>
                 <li><a th:href="@{/generic}">Generic</a></li>
                 <li><a th:href="@{/elements}">Elements</a></li>

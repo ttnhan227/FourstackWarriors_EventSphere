@@ -172,11 +172,14 @@
                 
                 <div class="form-floating mb-3">
                     <input type="email" class="form-control" id="email" name="email" 
-                           th:field="*{email}" placeholder="name@example.com" required>
+                           th:field="*{email}" placeholder="name@example.com" 
+                           th:readonly="${isOAuth2User}" required>
                     <label for="email">Email address</label>
                     <div class="invalid-feedback">Please enter a valid email address.</div>
+                    <small th:if="${isOAuth2User}" class="text-muted">Email cannot be changed for OAuth accounts.</small>
                 </div>
                 
+                <!-- Password fields for all users -->
                 <div class="form-floating mb-2">
                     <input type="password" class="form-control" id="password" name="password" 
                            th:field="*{password}" placeholder="Password" required
@@ -192,7 +195,7 @@
                         <li>At least one uppercase letter</li>
                         <li>At least one lowercase letter</li>
                         <li>At least one number</li>
-                        <li>At least one special character</li>
+                        <li>At least one special character (@$!%*?&)</li>
                     </ul>
                 </div>
                 
@@ -202,6 +205,10 @@
                     <label for="confirmPassword">Confirm Password</label>
                     <div class="invalid-feedback">Passwords must match.</div>
                 </div>
+                
+                <!-- Hidden field for OAuth users to bypass validation -->
+                <input type="hidden" name="isOAuth2User" th:value="${isOAuth2User}" />
+                <input type="hidden" id="isOAuth2User" name="isOAuth2User" th:value="${isOAuth2User}">
                 
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-primary btn-register mb-3">
