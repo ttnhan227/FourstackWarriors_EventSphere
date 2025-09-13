@@ -92,37 +92,38 @@
                 <!-- Pagination -->
                 <ul class="pagination" th:if="${events.totalPages > 1}">
                     <li>
-                        <a class="button small" th:href="@{${'/' + #httpServletRequest.requestURI + '?page=0' +
-                                      (category != null ? '&category=' + category : '')}}">
+                        <a class="button small" th:with="baseUrl=${isPast ? '/participant/events/past' : '/participant/events/list'}"
+                           th:href="@{${baseUrl}(page=0, category=${category != null ? category : ''})}">
                             « First
                         </a>
                     </li>
                     <li>
                         <a th:class="${events.first} ? 'button small disabled' : 'button small'"
-                           th:href="@{${'/' + #httpServletRequest.requestURI + '?page=' + (events.number - 1) +
-                                      (category != null ? '&category=' + category : '')}}">
+                           th:with="baseUrl=${isPast ? '/participant/events/past' : '/participant/events/list'}"
+                           th:href="@{${baseUrl}(page=${events.number - 1}, category=${category != null ? category : ''})}">
                             ‹ Prev
                         </a>
                     </li>
 
                     <li th:each="i : ${#numbers.sequence(1, events.totalPages)}">
                         <a th:class="${i - 1 == events.number} ? 'button small primary' : 'button small'"
-                           th:href="@{${'/' + #httpServletRequest.requestURI + '?page=' + (i - 1) +
-                                      (category != null ? '&category=' + category : '')}}"
+                           th:with="baseUrl=${isPast ? '/participant/events/past' : '/participant/events/list'}"
+                           th:href="@{${baseUrl}(page=${i - 1}, category=${category != null ? category : ''})}"
                            th:text="${i}">
                         </a>
                     </li>
 
                     <li>
                         <a th:class="${events.last} ? 'button small disabled' : 'button small'"
-                           th:href="@{${'/' + #httpServletRequest.requestURI + '?page=' + (events.number + 1) +
-                                      (category != null ? '&category=' + category : '')}}">
+                           th:with="baseUrl=${isPast ? '/participant/events/past' : '/participant/events/list'}"
+                           th:href="@{${baseUrl}(page=${events.number + 1}, category=${category != null ? category : ''})}">
                             Next ›
                         </a>
                     </li>
                     <li>
-                        <a class="button small" th:href="@{${'/' + #httpServletRequest.requestURI + '?page=' + (events.totalPages - 1) +
-                                      (category != null ? '&category=' + category : '')}}">
+                        <a class="button small" 
+                           th:with="baseUrl=${isPast ? '/participant/events/past' : '/participant/events/list'}"
+                           th:href="@{${baseUrl}(page=${events.totalPages - 1}, category=${category != null ? category : ''})}">
                             Last »
                         </a>
                     </li>
