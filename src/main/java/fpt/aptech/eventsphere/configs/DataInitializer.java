@@ -28,11 +28,11 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         System.out.println("\n===== Starting Data Initialization =====");
-        
+
         // Initialize roles if none exist
         long roleCount = roleRepository.count();
         System.out.println("Found " + roleCount + " existing roles");
-        if (roleCount == 0) {      
+        if (roleCount == 0) {
             System.out.println("Initializing roles...");
             initializeRoles();
             System.out.println("Roles initialized");
@@ -105,7 +105,7 @@ public class DataInitializer implements CommandLineRunner {
 
         UserDetails organizer1Details = createUserDetails(
                 organizer1,
-                "Administrator Event",
+                "Bùi Công Tú",
                 "+84912345678",
                 "Student Affairs",
                 "ORG001",
@@ -268,7 +268,7 @@ public class DataInitializer implements CommandLineRunner {
             );
             event5 = eventRepository.save(event5);
             System.out.println("Created 5 sample events");
-            
+
             // Get participant users for notifications
             System.out.println("Looking up participant users...");
             try {
@@ -276,7 +276,7 @@ public class DataInitializer implements CommandLineRunner {
                         .orElseThrow(() -> new RuntimeException("Participant user 1 not found"));
                 Users participant2 = userRepository.findByEmail("student2@fpt.edu.vn")
                         .orElseThrow(() -> new RuntimeException("Participant user 2 not found"));
-                
+
                 System.out.println("Seeding notifications...");
                 seedNotifications(participant1, participant2, event1, event2);
                 System.out.println("Notifications seeded successfully");
@@ -286,53 +286,53 @@ public class DataInitializer implements CommandLineRunner {
             }
         }
     }
-    
+
     private void seedNotifications(Users participant1, Users participant2, Events event1, Events event2) {
         // Create sample notifications
         List<Notification> notifications = List.of(
-            // Upcoming event reminder
-            Notification.builder()
-                .user(participant1)
-                .title("Upcoming: " + event1.getTitle())
-                .message("Don't forget! " + event1.getTitle() + " is starting in 24 hours.")
-                .type(Notification.NotificationType.EVENT_REMINDER)
-                .relatedEntityId((long) event1.getEventId())
-                .relatedEntityType("EVENT")
-                .actionUrl("/events/" + event1.getEventId())
-                .build(),
-                
-            // Registration confirmation
-            Notification.builder()
-                .user(participant1)
-                .title("Registration Confirmed")
-                .message("Your registration for " + event2.getTitle() + " has been confirmed.")
-                .type(Notification.NotificationType.EVENT_REGISTRATION)
-                .relatedEntityId((long) event2.getEventId())
-                .relatedEntityType("EVENT")
-                .actionUrl("/events/" + event2.getEventId())
-                .build(),
-                
-            // System announcement
-            Notification.builder()
-                .user(participant2)
-                .title("Welcome to EventSphere!")
-                .message("Thank you for joining EventSphere. Start exploring events now!")
-                .type(Notification.NotificationType.SYSTEM_ALERT)
-                .actionUrl("/events")
-                .build(),
-                
-            // Event update
-            Notification.builder()
-                .user(participant1)
-                .title("Event Update: " + event1.getTitle())
-                .message("The venue for " + event1.getTitle() + " has been updated to Room B2.1.")
-                .type(Notification.NotificationType.EVENT_UPDATED)
-                .relatedEntityId((long) event1.getEventId())
-                .relatedEntityType("EVENT")
-                .actionUrl("/events/" + event1.getEventId())
-                .build()
+                // Upcoming event reminder
+                Notification.builder()
+                        .user(participant1)
+                        .title("Upcoming: " + event1.getTitle())
+                        .message("Don't forget! " + event1.getTitle() + " is starting in 24 hours.")
+                        .type(Notification.NotificationType.EVENT_REMINDER)
+                        .relatedEntityId((long) event1.getEventId())
+                        .relatedEntityType("EVENT")
+                        .actionUrl("/events/" + event1.getEventId())
+                        .build(),
+
+                // Registration confirmation
+                Notification.builder()
+                        .user(participant1)
+                        .title("Registration Confirmed")
+                        .message("Your registration for " + event2.getTitle() + " has been confirmed.")
+                        .type(Notification.NotificationType.EVENT_REGISTRATION)
+                        .relatedEntityId((long) event2.getEventId())
+                        .relatedEntityType("EVENT")
+                        .actionUrl("/events/" + event2.getEventId())
+                        .build(),
+
+                // System announcement
+                Notification.builder()
+                        .user(participant2)
+                        .title("Welcome to EventSphere!")
+                        .message("Thank you for joining EventSphere. Start exploring events now!")
+                        .type(Notification.NotificationType.SYSTEM_ALERT)
+                        .actionUrl("/events")
+                        .build(),
+
+                // Event update
+                Notification.builder()
+                        .user(participant1)
+                        .title("Event Update: " + event1.getTitle())
+                        .message("The venue for " + event1.getTitle() + " has been updated to Room B2.1.")
+                        .type(Notification.NotificationType.EVENT_UPDATED)
+                        .relatedEntityId((long) event1.getEventId())
+                        .relatedEntityType("EVENT")
+                        .actionUrl("/events/" + event1.getEventId())
+                        .build()
         );
-        
+
         notificationRepository.saveAll(notifications);
         System.out.println("Created " + notifications.size() + " sample notifications");
     }
