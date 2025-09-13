@@ -178,8 +178,8 @@ public class OrganizerController {
             throw new Exception("Only JPEG, PNG, and GIF images are allowed.");
         }
 
-        // Validate file size (e.g., max 5MB)
-        long maxFileSize = 100 * 1024 * 1024; // 5MB in bytes
+        // Validate file size (e.g., max 50MB)
+        long maxFileSize = 50 * 1024 * 1024; // 50MB in bytes
         if (imageFile.getSize() > maxFileSize) {
             throw new Exception("Image file size exceeds 100MB limit.");
         }
