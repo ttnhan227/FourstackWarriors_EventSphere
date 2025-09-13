@@ -27,7 +27,7 @@ public class OrganizerController {
 
     private final OrganizerService organizerService;
     private final RegistrationMapper registrationMapper = new RegistrationMapper();
-    private final String UPLOAD_DIR = "src/main/resources/static/images/";
+    private final String UPLOAD_DIR = "src/main/resources/static/images/events";
 
     @Autowired
     public OrganizerController(OrganizerService organizerService) {
@@ -197,6 +197,6 @@ public class OrganizerController {
         Files.write(filePath, imageFile.getBytes());
 
         // Return the relative URL
-        return "/images/" + fileName;
+        return "/images/events/" + fileName;
     }
 }
