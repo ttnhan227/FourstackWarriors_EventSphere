@@ -21,25 +21,25 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
-@Service
+@Service    
 public class OrganizerServiceImpl implements OrganizerService {
 
     EventRepository eventRepository;
     EventSeatingRepository eventSeatingRepository;
-    VenueRepository  venueRepository;
     UserRepository userRepository;
+    VenueRepository venueRepository;
     @Autowired
     EmailServiceImpl emailServiceImpl;
     @Autowired
     public OrganizerServiceImpl(EventRepository eventRepository,
-                                EventSeatingRepository eventSeatingRepository,
                                 VenueRepository venueRepository,
+                                EventSeatingRepository eventSeatingRepository,
                                 UserRepository userRepository) {
 
         this.eventRepository = eventRepository;
         this.eventSeatingRepository = eventSeatingRepository;
-        this.venueRepository = venueRepository;
         this.userRepository = userRepository;
+        this.venueRepository = venueRepository;
     }
 
     @Override
@@ -205,6 +205,128 @@ public class OrganizerServiceImpl implements OrganizerService {
     @Override
     public List<Events> findCurrentEvents(String email) {
         return eventRepository.findCurrentEventsByOrganizer(email);
+    }
+    
+    @Override
+    public Registrations findRegistrationById(int registrationId) {
+        Registrations registration = eventRepository.findRegistrationById(registrationId);
+        if (registration == null) {
+            throw new IllegalArgumentException("Registration not found");
+        }
+        return registration;
+    }
+    
+    @Override
+    @Transactional
+    public Registrations confirmRegistration(int registrationId, int eventId) {
+        Registrations registration = findRegistrationById(registrationId);
+            
+        if (registration.getEvent().getEventId() != eventId) {
+            throw new IllegalArgumentException("Registration does not belong to the specified event");
+        }
+        
+        if (registration.getStatus() == Registrations.RegistrationStatus.CONFIRMED) {
+            return registration; // Already confirmed
+        }
+        
+        // Check seat availability
+        EventSeating seating = eventSeatingRepository.findByEventId(eventId);
+        if (seating != null && seating.getAvailableSeat() <= 0) {
+            throw new IllegalStateException("No seats available for confirmation");
+        }
+        
+        // Update status
+        registration.setStatus(Registrations.RegistrationStatus.CONFIRMED);
+        
+        // Update seat count if needed
+        if (seating != null) {
+            seating.setSeatsBooked(seating.getSeatsBooked() + 1);
+            eventSeatingRepository.save(seating);
+        }
+        
+        // Save the user to cascade the registration update
+        registration.getStudent().getRegistrations().add(registration);
+        userRepository.save(registration.getStudent());
+        
+        return registration;
+    }
+    
+    @Override
+    @Transactional
+    public Registrations cancelRegistration(int registrationId, int eventId) {
+        Registrations registration = findRegistrationById(registrationId);
+            
+        if (registration.getEvent().getEventId() != eventId) {
+            throw new IllegalArgumentException("Registration does not belong to the specified event");
+        }
+        
+        if (registration.getStatus() == Registrations.RegistrationStatus.CANCELLED) {
+            return registration; // Already cancelled
+        }
+        
+        // Update seat count if it was confirmed
+        if (registration.getStatus() == Registrations.RegistrationStatus.CONFIRMED) {
+            EventSeating seating = eventSeatingRepository.findByEventId(eventId);
+            if (seating != null && seating.getSeatsBooked() > 0) {
+                seating.setSeatsBooked(seating.getSeatsBooked() - 1);
+                eventSeatingRepository.save(seating);
+            }
+        }
+        
+        // Update status
+        registration.setStatus(Registrations.RegistrationStatus.CANCELLED);
+        
+        // Save the user to cascade the registration update
+        registration.getStudent().getRegistrations().add(registration);
+        userRepository.save(registration.getStudent());
+        
+        return registration;
+    }
+    
+    @Override
+    @Transactional
+    public Registrations updateRegistrationStatus(int registrationId, int eventId, String status) {
+        Registrations registration = findRegistrationById(registrationId);
+            
+        if (registration.getEvent().getEventId() != eventId) {
+            throw new IllegalArgumentException("Registration does not belong to the specified event");
+        }
+        
+        Registrations.RegistrationStatus newStatus = Registrations.RegistrationStatus.valueOf(status.toUpperCase());
+        Registrations.RegistrationStatus oldStatus = registration.getStatus();
+        
+        if (oldStatus == newStatus) {
+            return registration; // No change needed
+        }
+        
+        // Handle seat count changes
+        EventSeating seating = eventSeatingRepository.findByEventId(eventId);
+        if (seating != null) {
+            // If changing to CONFIRMED from another status
+            if (newStatus == Registrations.RegistrationStatus.CONFIRMED && 
+                oldStatus != Registrations.RegistrationStatus.CONFIRMED) {
+                if (seating.getAvailableSeat() <= 0) {
+                    throw new IllegalStateException("No seats available for confirmation");
+                }
+                seating.setSeatsBooked(seating.getSeatsBooked() + 1);
+                eventSeatingRepository.save(seating);
+            } 
+            // If changing from CONFIRMED to another status
+            else if (oldStatus == Registrations.RegistrationStatus.CONFIRMED && 
+                    newStatus != Registrations.RegistrationStatus.CONFIRMED) {
+                seating.setSeatsBooked(Math.max(0, seating.getSeatsBooked() - 1));
+                eventSeatingRepository.save(seating);
+            }
+        }
+        
+        // Update the status
+        registration.setStatus(newStatus);
+        
+        // Save the user to cascade the registration update
+        registration.getStudent().getRegistrations().add(registration);
+        userRepository.save(registration.getStudent());
+        
+        return registration;
     }
 
     public byte[] generateQRCode(String text, int width, int height) throws WriterException, IOException {

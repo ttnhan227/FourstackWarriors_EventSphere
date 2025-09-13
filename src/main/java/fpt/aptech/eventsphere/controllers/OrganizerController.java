@@ -122,7 +122,30 @@ public class OrganizerController {
         List<RegistrationDTO> regDTOList = registrationMapper.toDTOList(registrationsList);
         model.addAttribute("event", event);
         model.addAttribute("registration", regDTOList);
+        model.addAttribute("statuses", Registrations.RegistrationStatus.values());
         return "org/detail";
+    }
+
+    @PostMapping("/registrations/{registrationId}/confirm")
+    public String confirmRegistration(@PathVariable int registrationId, 
+                                    @RequestParam("eventId") int eventId) {
+        organizerService.confirmRegistration(registrationId, eventId);
+        return "redirect:/organizer/detail/" + eventId;
+    }
+
+    @PostMapping("/registrations/{registrationId}/cancel")
+    public String cancelRegistration(@PathVariable int registrationId,
+                                   @RequestParam("eventId") int eventId) {
+        organizerService.cancelRegistration(registrationId, eventId);
+        return "redirect:/organizer/detail/" + eventId;
+    }
+
+    @PostMapping("/registrations/{registrationId}/status")
+    public String updateRegistrationStatus(@PathVariable int registrationId,
+                                        @RequestParam("eventId") int eventId,
+                                        @RequestParam("status") String status) {
+        organizerService.updateRegistrationStatus(registrationId, eventId, status);
+        return "redirect:/organizer/detail/" + eventId;
     }
 
     @GetMapping("/edit/{id}")

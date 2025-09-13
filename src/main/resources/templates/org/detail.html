@@ -110,7 +110,7 @@
             display: none;
             padding: 2em 1.5em;
             background: #ffffff;
-            border-radius: 0 0.25em 0.25em 0.25em;
+            border-radius: 0 0 0.25em 0.25em;
             box-shadow: 0 0 0.25em rgba(0,0,0,0.1);
         }
 
@@ -138,6 +138,75 @@
 
         .tab-pane tr:hover {
             background: rgba(230, 235, 237, 0.3);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25em 0.5em;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-confirmed {
+            background-color: #e6f7e6;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+        
+        .status-pending {
+            background-color: #fff8e1;
+            color: #ff8f00;
+            border: 1px solid #ffe082;
+        }
+        
+        .status-cancelled {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+        
+        .status-waitlist {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #90caf9;
+        }
+        
+        /* Action Buttons */
+        .actions .button-group {
+            display: flex;
+            gap: 0.25rem;
+            align-items: center;
+        }
+        
+        .inline-form {
+            display: inline-block;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .status-form {
+            display: inline-block;
+            margin: 0;
+            padding: 0;
+            min-width: 120px;
+        }
+        
+        .status-select {
+            padding: 0.25rem;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+        
+        .status-select:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
         }
     </style>
 </head>
@@ -190,24 +259,89 @@
                     </div>
                 </section>
                 <section id="registration" class="tab-pane">
-                    <table class="">
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Registered at</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                        <tr th:each="reg: ${registration}">
-                            <td th:text="${reg.user.userDetail.fullName}"></td>
-                            <td th:text="${reg.user.email}"></td>
-                            <td th:text="${reg.user.userDetail.phone}"></td>
-                            <td th:text="${#temporals.format(reg.registeredOn, 'yyyy/MM/dd HH:mm')}"></td>
-                            <td th:text="${reg.status}"></td>
-                            <td><a th:href="@{#}">Actions</a></td>
-                        </tr>
-                    </table>
+                    <div class="table-wrapper">
+                        <table class="alt">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Registered at</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="reg : ${registration}">
+                                    <td th:text="${reg.user.userDetail.fullName}">John Doe</td>
+                                    <td th:text="${reg.user.email}">john@example.com</td>
+                                    <td th:text="${reg.user.userDetail.phone ?: 'N/A'}">123-456-7890</td>
+                                    <td th:text="${#temporals.format(reg.registeredOn, 'yyyy/MM/dd HH:mm')}">01/01/2023 10:00</td>
+                                    <td>
+                                        <span class="status-badge" 
+                                              th:classappend="${reg.status == 'CONFIRMED'} ? 'status-confirmed' : 
+                                                             (${reg.status == 'PENDING'} ? 'status-pending' : 
+                                                             (${reg.status == 'CANCELLED'} ? 'status-cancelled' : 'status-waitlist'))"
+                                              th:text="${reg.status}">PENDING</span>
+                                    </td>
+                                    <td class="actions">
+                                        <div class="button-group">
+                                            <!-- Quick Action Buttons -->
+                                            <form th:if="${reg.status != 'PENDING'}" 
+                                                  th:action="@{/organizer/registrations/{id}/status(id=${reg.registrationId})}" 
+                                                  method="post" 
+                                                  class="inline-form"
+                                                  th:action-append-params="eventId"
+                                                  style="display: inline-block; margin: 0 2px;">
+                                                <input type="hidden" name="eventId" th:value="${event.eventId}" />
+                                                <input type="hidden" name="status" value="PENDING" />
+                                                <button type="submit" class="icon solid fa-clock" 
+                                                        style="background: none; border: none; color: #FFC107; cursor: pointer;"
+                                                        title="Set to Pending"></button>
+                                            </form>
+                                            
+                                            <form th:if="${reg.status != 'CONFIRMED'}" 
+                                                  th:action="@{/organizer/registrations/{id}/confirm(id=${reg.registrationId})}" 
+                                                  method="post" 
+                                                  class="inline-form"
+                                                  th:action-append-params="eventId"
+                                                  style="display: inline-block; margin: 0 2px;">
+                                                <input type="hidden" name="eventId" th:value="${event.eventId}" />
+                                                <button type="submit" class="icon solid fa-check" 
+                                                        style="background: none; border: none; color: #4CAF50; cursor: pointer;"
+                                                        title="Confirm Registration"></button>
+                                            </form>
+                                            
+                                            <form th:if="${reg.status != 'WAITLIST'}" 
+                                                  th:action="@{/organizer/registrations/{id}/status(id=${reg.registrationId})}" 
+                                                  method="post" 
+                                                  class="inline-form"
+                                                  th:action-append-params="eventId"
+                                                  style="display: inline-block; margin: 0 2px;">
+                                                <input type="hidden" name="eventId" th:value="${event.eventId}" />
+                                                <input type="hidden" name="status" value="WAITLIST" />
+                                                <button type="submit" class="icon solid fa-list" 
+                                                        style="background: none; border: none; color: #2196F3; cursor: pointer;"
+                                                        title="Move to Waitlist"></button>
+                                            </form>
+                                            
+                                            <form th:if="${reg.status != 'CANCELLED'}" 
+                                                  th:action="@{/organizer/registrations/{id}/cancel(id=${reg.registrationId})}" 
+                                                  method="post" 
+                                                  class="inline-form"
+                                                  th:action-append-params="eventId"
+                                                  style="display: inline-block; margin: 0 2px;">
+                                                <input type="hidden" name="eventId" th:value="${event.eventId}" />
+                                                <button type="submit" class="icon solid fa-times" 
+                                                        style="background: none; border: none; color: #f44336; cursor: pointer;"
+                                                        title="Cancel Registration"></button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </section>
             </div>
         </div>
