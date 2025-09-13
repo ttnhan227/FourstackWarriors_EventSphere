@@ -70,7 +70,7 @@ public interface EventRepository extends JpaRepository<Events, Integer> {
                 JOIN o.roles r 
                 WHERE o.email = :email 
                   AND r.roleId = 2 
-                  AND e.startDate >= CURRENT_DATE 
+                  AND e.startDate >= CURRENT_TIMESTAMP 
                 ORDER BY e.startDate
             """)
     List<Events> findUpcomingEventsByOrganizer(@Param("email") String email);
@@ -82,7 +82,7 @@ public interface EventRepository extends JpaRepository<Events, Integer> {
                 JOIN o.roles r 
                 WHERE o.email = :email 
                   AND r.roleId = 2 
-                  AND e.endDate < CURRENT_DATE 
+                  AND e.endDate < current_timestamp 
                 ORDER BY e.endDate DESC
             """)
     List<Events> findPastEventsByOrganizer(@Param("email") String email);
@@ -94,8 +94,8 @@ public interface EventRepository extends JpaRepository<Events, Integer> {
                 JOIN o.roles r 
                 WHERE o.email = :email 
                   AND r.roleId = 2 
-                  AND e.startDate <= CURRENT_DATE 
-                  AND e.endDate > CURRENT_DATE 
+                  AND e.startDate <= current_timestamp 
+                  AND e.endDate > current_timestamp 
                 ORDER BY e.startDate
             """)
     List<Events> findCurrentEventsByOrganizer(@Param("email") String email);
