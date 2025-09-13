@@ -136,34 +136,34 @@
                             </label>
                             <div th:errors="*{eventSeating.waitlistEnabled}" class="error"></div>
                         </div>
-                        <div class="col-12">
-                            <h3>Activities</h3>
-                            <div id="activities-container">
-                                <div th:each="activity, stat : ${event.activities}" class="row activity-section">
-                                    <section>
-                                        <div class="col-12">
-                                            <input type="text" th:field="*{activities[__${stat.index}__].description}" id="activity-desc-__${stat.index}__" placeholder="Activity Description" required />
-                                            <span th:errors="*{activities[__${stat.index}__].description}" class="error"></span>
-                                        </div>
-                                    </section>
-                                    <section class="row">
-                                        <div class="col-6">
-                                            <input type="datetime-local" th:field="*{activities[__${stat.index}__].startTime}" id="activity-start-__${stat.index}__" required />
-                                            <span th:errors="*{activities[__${stat.index}__].startTime}" class="error"></span>
-                                        </div>
-                                        <div class="col-6">
-                                            <input type="datetime-local" th:field="*{activities[__${stat.index}__].endTime}" id="activity-end-__${stat.index}__" required />
-                                            <span th:errors="*{activities[__${stat.index}__].endTime}" class="error"></span>
-                                        </div>
-                                    </section>
-                                    <button type="button" onclick="this.parentElement.remove()" style="min-width: 100px;
-                                    margin-left: 10px;
-                                    text-align: center;
-                                    padding: 0 0 0 0">Remove</button>
-                                </div>
-                            </div>
-                            <button type="button" onclick="addActivity()">Add Activity</button>
-                        </div>
+<!--                        <div class="col-12">-->
+<!--                            <h3>Activities</h3>-->
+<!--                            <div id="activities-container">-->
+<!--                                <div th:each="activity, stat : ${event.activities}" class="row activity-section">-->
+<!--                                    <section>-->
+<!--                                        <div class="col-12">-->
+<!--                                            <input type="text" th:field="*{activities[__${stat.index}__].description}" id="activity-desc-__${stat.index}__" placeholder="Activity Description" required />-->
+<!--                                            <span th:errors="*{activities[__${stat.index}__].description}" class="error"></span>-->
+<!--                                        </div>-->
+<!--                                    </section>-->
+<!--                                    <section class="row">-->
+<!--                                        <div class="col-6">-->
+<!--                                            <input type="datetime-local" th:field="*{activities[__${stat.index}__].startTime}" id="activity-start-__${stat.index}__" required />-->
+<!--                                            <span th:errors="*{activities[__${stat.index}__].startTime}" class="error"></span>-->
+<!--                                        </div>-->
+<!--                                        <div class="col-6">-->
+<!--                                            <input type="datetime-local" th:field="*{activities[__${stat.index}__].endTime}" id="activity-end-__${stat.index}__" required />-->
+<!--                                            <span th:errors="*{activities[__${stat.index}__].endTime}" class="error"></span>-->
+<!--                                        </div>-->
+<!--                                    </section>-->
+<!--                                    <button type="button" onclick="this.parentElement.remove()" style="min-width: 100px;-->
+<!--                                    margin-left: 10px;-->
+<!--                                    text-align: center;-->
+<!--                                    padding: 0 0 0 0">Remove</button>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                            <button type="button" onclick="addActivity()">Add Activity</button>-->
+<!--                        </div>-->
                         <div class="col-12">
                             <ul class="actions">
                                 <li><input type="submit" value="Create" class="primary"/></li>
@@ -182,40 +182,41 @@
 <script th:src="@{/js/breakpoints.min.js}"></script>
 <script th:src="@{/js/util.js}"></script>
 <script th:src="@{/js/main.js}"></script>
-<script>
-    var activityIndex = [[${#lists.size(event.activities)}]] || 0;
-
-    function addActivity() {
-        var container = document.getElementById('activities-container');
-        var activityDiv = document.createElement('div');
-        activityDiv.className = 'row activity-section';
-        activityDiv.innerHTML = `
-            <section>
-                <div class="col-12">
-                    <input type="text" name="activities[${activityIndex}].description" id="activity-desc-${activityIndex}" placeholder="Activity Description" required />
-                    <span class="error"></span>
-                </div>
-            </section>
-            <section class="row">
-                <div class="col-6">
-                    <input type="datetime-local" name="activities[${activityIndex}].startTime" id="activity-start-${activityIndex}" required />
-                    <span class="error"></span>
-                </div>
-                <div class="col-6">
-                    <input type="datetime-local" name="activities[${activityIndex}].endTime" id="activity-end-${activityIndex}" required />
-                    <span class="error"></span>
-                </div>
-            </section>
-            <button type="button" onclick="this.parentElement.remove()" style="min-width: 100px;
-                                    margin-left: 10px;
-                                    text-align: center;
-                                    padding: 0 0 0 0">
-                                    Remove
-            </button>
-            `;
-        container.appendChild(activityDiv);
-        activityIndex++;
-    }
-</script>
+<!--<script th:inline="javascript">-->
+<!--    /*<![CDATA[*/-->
+<!--    var activityIndex = /*[[${event.activities != null ? #lists.size(event.activities) : 0}]]*/ 0;-->
+<!--    /*]]>*/-->
+<!--    function addActivity() {-->
+<!--        var container = document.getElementById('activities-container');-->
+<!--        var activityDiv = document.createElement('div');-->
+<!--        activityDiv.className = 'row activity-section';-->
+<!--        activityDiv.innerHTML = `-->
+<!--            <section>-->
+<!--                <div class="col-12">-->
+<!--                    <input type="text" name="activities[${activityIndex}].description" id="activity-desc-${activityIndex}" placeholder="Activity Description" required />-->
+<!--                    <span class="error"></span>-->
+<!--                </div>-->
+<!--            </section>-->
+<!--            <section class="row">-->
+<!--                <div class="col-6">-->
+<!--                    <input type="datetime-local" name="activities[${activityIndex}].startTime" id="activity-start-${activityIndex}" required />-->
+<!--                    <span class="error"></span>-->
+<!--                </div>-->
+<!--                <div class="col-6">-->
+<!--                    <input type="datetime-local" name="activities[${activityIndex}].endTime" id="activity-end-${activityIndex}" required />-->
+<!--                    <span class="error"></span>-->
+<!--                </div>-->
+<!--            </section>-->
+<!--            <button type="button" onclick="this.parentElement.remove()" style="min-width: 100px;-->
+<!--                                    margin-left: 10px;-->
+<!--                                    text-align: center;-->
+<!--                                    padding: 0 0 0 0">-->
+<!--                                    Remove-->
+<!--            </button>-->
+<!--            `;-->
+<!--        container.appendChild(activityDiv);-->
+<!--        activityIndex++;-->
+<!--    }-->
+<!--</script>-->
 </body>
 </html>
