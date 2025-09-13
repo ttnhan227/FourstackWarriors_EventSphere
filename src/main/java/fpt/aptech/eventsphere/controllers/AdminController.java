@@ -1,12 +1,23 @@
 package fpt.aptech.eventsphere.controllers;
 
+<<<<<<< Updated upstream
 import fpt.aptech.eventsphere.dto.admin.AdminDashboardDTO;
 import fpt.aptech.eventsphere.dto.admin.UserManagementDTO;
 import fpt.aptech.eventsphere.dto.admin.UserSearchRequestDTO;
 import fpt.aptech.eventsphere.models.Users;
+=======
+import fpt.aptech.eventsphere.dto.admin.*;
+import fpt.aptech.eventsphere.models.*;
+import fpt.aptech.eventsphere.models.admin.EventsModel;
+import fpt.aptech.eventsphere.models.admin.EventsModel.Status;
+>>>>>>> Stashed changes
 import fpt.aptech.eventsphere.repositories.admin.*;
-import fpt.aptech.eventsphere.repositories.admin.AdminEventRepository;
 import fpt.aptech.eventsphere.services.Admin.AdminDashboardService;
+<<<<<<< Updated upstream
+=======
+import fpt.aptech.eventsphere.services.Admin.AdminEventService;
+import fpt.aptech.eventsphere.services.Admin.EventModerationService;
+>>>>>>> Stashed changes
 import fpt.aptech.eventsphere.services.Admin.UserManagementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -14,8 +25,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.*;
 
 @Controller
@@ -37,6 +47,8 @@ public class AdminController {
     @Autowired
     private UserManagementService userManagementService;
 
+    @Autowired
+    private AdminEventService adminEventService;
 
     public AdminController(
             AdminUserRepository adminUserRepository,
@@ -233,10 +245,29 @@ public class AdminController {
 
     @GetMapping("/events")
     public String eventManagement(Model model) {
+<<<<<<< Updated upstream
         model.addAttribute("title", "Event Management");
         model.addAttribute("upcomingEvents", adminEventRepository.findUpcomingEvents(LocalDateTime.now()));
         model.addAttribute("pastEvents", adminEventRepository.findPastEvents(LocalDateTime.now()));
         return "admin/events";
+=======
+        AdminDashboardDTO dashboardData = adminDashboardService.getDashboardData();
+
+        model.addAttribute("title", "Event Management");
+        model.addAttribute("events", adminEventModelRepository.findAll());
+        model.addAttribute("pendingEvents", dashboardData.getPendingEvents());
+        model.addAttribute("totalEvents", dashboardData.getTotalEvents());
+        model.addAttribute("approvedEvents", dashboardData.getApprovedEvents());
+        model.addAttribute("pendingEvents", dashboardData.getPendingEvents());
+        model.addAttribute("rejectedEvents", dashboardData.getRejectedEvents());
+        model.addAttribute("eventsThisMonth", dashboardData.getEventsThisMonth());
+        model.addAttribute("eventGrowthRate", dashboardData.getEventGrowthRate());
+
+
+        model.addAttribute("searchDTO", new AdminEventSearchDTO());
+
+        return "admin/event";
+>>>>>>> Stashed changes
     }
 
     @GetMapping("/feedback")
