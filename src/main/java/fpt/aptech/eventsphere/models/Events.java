@@ -3,11 +3,15 @@ package fpt.aptech.eventsphere.models;
 import fpt.aptech.eventsphere.validations.ValidDateRange;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
@@ -64,16 +68,28 @@ public class Events {
     @JoinColumn(name = "organizer_id", nullable = false)
     private Users organizer;
     // One-to-many relationships
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @BatchSize(size = 50) // Load registrations in batches of 50
     private List<Registrations> registrations = new ArrayList<>();
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attendance> attendances = new ArrayList<>();
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Feedback> feedbacks = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private EventStatus status = EventStatus.PENDING;
     //one to one
     @OneToOne(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     @Valid
     private EventSeating eventSeating;
+    //Many-to-one with Host
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "host_id")
+    private Host host;
+    //One-to-many with Activity
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Valid
+    private List<Activity> activities = new ArrayList<>();
 
     //set eventseating and set event
     public void setEventSeating(EventSeating eventSeating) {
@@ -82,16 +98,6 @@ public class Events {
             eventSeating.setEvent(this);
         }
     }
-
-    //Many-to-one with Host
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "host_id")
-    private Host host;
-
-    //One-to-many with Activity
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Valid
-    private List<Activity> activities = new ArrayList<>();
 
     // Utility method to add activity
     public void addActivity(Activity activity) {
@@ -229,6 +235,12 @@ public class Events {
                 (status == EventStatus.PUBLISHED || status == EventStatus.ONGOING)) {
             this.status = calculatedStatus;
         }
+    }
+
+    public enum EventStatus {
+        PENDING,
+        APPROVED,
+        REJECTED
     }
 
     public enum EventStatus {

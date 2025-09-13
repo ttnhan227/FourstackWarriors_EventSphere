@@ -1,40 +1,45 @@
 <th:block th:fragment="sidebar">
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
-        <a href="#" class="brand-link">
+        <a class="brand-link" href="#">
             <span class="brand-text font-weight-light">EventSphere Admin</span>
         </a>
         <div class="sidebar">
             <nav>
                 <ul class="nav nav-pills nav-sidebar flex-column">
                     <li class="nav-item">
-                        <a th:href="@{/admin/index}" class="nav-link">
-                            <i class="nav-icon fas fa-tachometer-alt"></i><p>Dashboard</p>
+                        <a class="nav-link" th:href="@{/admin/index}">
+                            <i class="nav-icon fas fa-tachometer-alt"></i>
+                            <p>Dashboard</p>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a th:href="@{/admin/users}" class="nav-link">
-                            <i class="nav-icon fas fa-users"></i><p>User Management</p>
+                        <a class="nav-link" th:href="@{/admin/users}">
+                            <i class="nav-icon fas fa-users"></i>
+                            <p>User Management</p>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a th:href="@{/admin/events}" class="nav-link">
-                            <i class="nav-icon fas fa-calendar-alt"></i><p>Event Management</p>
+                        <a class="nav-link" th:href="@{/admin/events}">
+                            <i class="nav-icon fas fa-calendar-alt"></i>
+                            <p>Event Management</p>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a th:href="@{/admin/feedback}" class="nav-link">
-                            <i class="nav-icon fas fa-comments"></i><p>Feedback Management</p>
+                        <a class="nav-link" th:href="@{/admin/feedback}">
+                            <i class="nav-icon fas fa-comments"></i>
+                            <p>Feedback Management</p>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a th:href="@{/admin/reports}" class="nav-link">
-                            <i class="nav-icon fas fa-chart-bar"></i><p>Reports</p>
+                        <a class="nav-link" th:href="@{/admin/reports}">
+                            <i class="nav-icon fas fa-chart-bar"></i>
+                            <p>Reports</p>
                         </a>
                     </li>
 
-<!--                    logout-->
+                    <!--                    logout-->
                     <li class="nav-item">
-                        <a th:href="@{/logout}" class="nav-link">
+                        <a class="nav-link" th:href="@{/logout}">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </a>
                     </li>

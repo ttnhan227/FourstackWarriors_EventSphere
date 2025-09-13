@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="admin/layouts/main :: layout(~{::content})">
+<div th:fragment="content">
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0" th:text="${title}">Edit Event</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="/admin/events">Event Management</a></li>
+                        <li class="breadcrumb-item"><a th:href="'/admin/events/' + ${event.id}" th:text="${event.name}"></a></li>
+                        <li class="breadcrumb-item active">Edit</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="content">
+        <div class="container-fluid">
+            <!-- Error Alert -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                <h5><i class="icon fas fa-ban"></i> Error!</h5>
+                <span th:text="${error}"></span>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Event
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form id="eventForm" th:action="'/admin/events/' + ${event.id} + '/update'" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        
+                        <div class="form-group">
+                            <label for="title">Event Title</label>
+                            <input type="text" class="form-control" id="title" name="title" th:value="${event.name}" required>
+                            <div class="invalid-feedback">Please provide a title for the event.</div>
+                        </div>
+
+                        <div class="form-group mt-3">
+                            <label for="description">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" required th:text="${event.description}"></textarea>
+                            <div class="invalid-feedback">Please provide a description for the event.</div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="category">Category</label>
+                                    <select class="form-control select2" id="category" name="category" required>
+                                        <option value="">Select a category</option>
+                                        <option th:each="cat : ${categories}" 
+                                                th:value="${cat}" 
+                                                th:text="${cat}"
+                                                th:selected="${event.category == cat}">
+                                        </option>
+                                    </select>
+                                    <div class="invalid-feedback">Please select a category.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="status">Status</label>
+                                    <select class="form-control" id="status" name="status" required>
+                                        <option th:each="status : ${statusOptions}" 
+                                                th:value="${status}" 
+                                                th:text="${status}"
+                                                th:selected="${event.status == status}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="startDate">Start Date & Time</label>
+                                    <input type="datetime-local" class="form-control" id="startDate" name="startDate" 
+                                           th:value="${#temporals.format(event.startDate, 'yyyy-MM-dd') + 'T' + #temporals.format(event.startDate, 'HH:mm')}" required>
+                                    <div class="invalid-feedback">Please provide a start date and time.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="endDate">End Date & Time</label>
+                                    <input type="datetime-local" class="form-control" id="endDate" name="endDate"
+                                           th:value="${#temporals.format(event.endDate, 'yyyy-MM-dd') + 'T' + #temporals.format(event.endDate, 'HH:mm')}" required>
+                                    <div class="invalid-feedback">Please provide an end date and time.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-3">
+                            <label for="imageFile">Event Image</label>
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="imageFile" name="imageFile" accept="image/*" onchange="previewImage(this)">
+                                <label class="custom-file-label" for="imageFile" th:if="${event.imageUrl}" th:data-url="${event.imageUrl}" id="currentImageLabel">Choose file...</label>
+                                <label class="custom-file-label" for="imageFile" th:unless="${event.imageUrl}">Choose file...</label>
+                            </div>
+                            <small class="form-text text-muted">Leave empty to keep the current image. Max size: 10MB. Allowed formats: JPG, PNG, GIF.</small>
+                            <div class="mt-2" id="imagePreviewContainer">
+                                <img id="imagePreview" th:if="${event.imageUrl}" th:src="'/' + ${event.imageUrl}" alt="Event image preview" style="max-height: 200px; max-width: 100%;" class="img-thumbnail">
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                            <a th:href="'/admin/events/' + ${event.id}" class="btn btn-secondary ml-2">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Include Select2 for better select UI -->
+<div th:fragment="page-script">
+    <script th:src="@{/admin/plugins/select2/js/select2.full.min.js}"></script>
+    <script th:src="@{/admin/plugins/bs-custom-file-input/bs-custom-file-input.min.js}"></script>
+    <script>
+        $(function () {
+            // Initialize bs-custom-file-input
+            bsCustomFileInput.init();
+            
+            // Update file input label when file is selected
+            $('.custom-file-input').on('change', function() {
+                let fileName = $(this).val().split('\\').pop();
+                $(this).next('.custom-file-label').html(fileName);
+            });
+            
+            // Initialize Select2
+            $('.select2').select2({
+                theme: 'bootstrap4',
+                width: '100%'
+            });
+
+            // Form submission with AJAX
+            $('#eventForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                if (this.checkValidity() === false) {
+                    e.stopPropagation();
+                    $(this).addClass('was-validated');
+                    return false;
+                }
+                
+                var formData = new FormData(this);
+                
+                $.ajax({
+                    url: $(this).attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            toastr.success(response.message);
+                            
+                            // Update image preview if a new image was uploaded
+                            if (response.imageUrl) {
+                                $('#imageFile').next('.custom-file-label').text('Current: ' + response.imageUrl.split('/').pop());
+                                $('.img-thumbnail').attr('src', response.imageUrl).parent().show();
+                            }
+                            
+                            // Redirect to event details page after a short delay
+                            setTimeout(function() {
+                                window.location.href = window.location.pathname.replace('/edit', '');
+                            }, 1500);
+                        } else {
+                            toastr.error(response.message || 'Failed to update event');
+                        }
+                    },
+                    error: function(xhr) {
+                        var errorMsg = 'An error occurred while updating the event';
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            if (response.message) {
+                                errorMsg = response.message;
+                            }
+                        } catch (e) {}
+                        toastr.error(errorMsg);
+                    }
+                });
+            });
+
+            // Set minimum end date based on start date
+            $('#startDate').on('change', function() {
+                $('#endDate').attr('min', $(this).val());
+            });
+            
+            // Image preview function
+            window.previewImage = function(input) {
+                const preview = document.getElementById('imagePreview');
+                const previewContainer = document.getElementById('imagePreviewContainer');
+                const file = input.files[0];
+                
+                if (file) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        if (!preview) {
+                            const img = document.createElement('img');
+                            img.id = 'imagePreview';
+                            img.style.maxHeight = '200px';
+                            img.style.maxWidth = '100%';
+                            img.className = 'img-thumbnail mt-2';
+                            img.alt = 'Image preview';
+                            img.src = e.target.result;
+                            previewContainer.innerHTML = '';
+                            previewContainer.appendChild(img);
+                        } else {
+                            preview.src = e.target.result;
+                        }
+                    };
+                    
+                    reader.readAsDataURL(file);
+                    
+                    // Update file input label
+                    const fileName = input.files[0].name;
+                    $(input).next('.custom-file-label').text(fileName);
+                }
+            };
+        });
+
+        // Set current image filename on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentImageLabel = document.getElementById('currentImageLabel');
+            if (currentImageLabel) {
+                const imageUrl = currentImageLabel.getAttribute('data-url');
+                if (imageUrl) {
+                    const fileName = imageUrl.split('/').pop();
+                    currentImageLabel.textContent = 'Current: ' + fileName;
+                }
+            }
+        });
+    </script>
+</div>
+</html>

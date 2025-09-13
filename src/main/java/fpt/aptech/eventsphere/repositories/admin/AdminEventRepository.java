@@ -1,84 +1,106 @@
 package fpt.aptech.eventsphere.repositories.admin;
 
 import fpt.aptech.eventsphere.models.Events;
-import fpt.aptech.eventsphere.models.admin.EventsModel;
-import fpt.aptech.eventsphere.models.admin.EventsModel.Status;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.swing.text.html.Option;
 import java.time.LocalDateTime;
-import java.time.LocalDate;
-import java.util.Collection;
+import fpt.aptech.eventsphere.dto.admin.EventWithCountDTO;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+
 public interface AdminEventRepository extends JpaRepository<Events, Integer> {
 
-    @Query("select count(e) from Events e where e.startDate > current_timestamp")
-    long countPendEvent();
+    Logger logger = LoggerFactory.getLogger(AdminEventRepository.class);
 
-    @Query("SELECT COUNT(e) FROM Events e WHERE e.startDate <= CURRENT_TIMESTAMP AND e.endDate >= CURRENT_TIMESTAMP")
-    long countApprovedEvents();
+    @Query("""
+                SELECT NEW fpt.aptech.eventsphere.dto.admin.EventWithCountDTO(
+                    e,
+                    (SELECT COUNT(r) FROM Registrations r WHERE r.event = e AND r.status = 'CONFIRMED')
+                )
+                FROM Events e 
+                LEFT JOIN e.organizer o
+                LEFT JOIN e.venue v
+                WHERE ((:keyword IS NULL OR :keyword = '') OR (LOWER(e.title) LIKE %:keyword% OR LOWER(e.description) LIKE %:keyword%))
+                AND ((:category IS NULL OR :category = 'all' OR :category = '') OR e.category = :category)
+                AND ((:organizerName IS NULL OR :organizerName = '') OR (o.email IS NOT NULL AND LOWER(o.email) LIKE %:organizerName%))
+                AND (:status IS NULL OR e.status = :status)
+                GROUP BY e
+            """)
+    Page<EventWithCountDTO> searchEvents(
+            @Param("keyword") String keyword,
+            @Param("category") String category,
+            @Param("organizerName") String organizerName,
+            @Param("status") Events.EventStatus status,
+            Pageable pageable
+    );
 
-    @Query("SELECT COUNT(e) FROM Events e WHERE e.endDate < CURRENT_TIMESTAMP")
-    long countRejectedEvents();
+    default Page<EventWithCountDTO> searchEventsWithLogging(String keyword, String category, String organizerName, Events.EventStatus status, Pageable pageable) {
+        try {
+            logger.debug("Executing searchEvents with params - keyword: '{}', category: '{}', organizerName: '{}', status: '{}', page: {}, size: {}, sort: {}",
+                    keyword, category, organizerName, status,
+                    pageable.getPageNumber(), pageable.getPageSize(),
+                    pageable.getSort());
 
-    @Query("SELECT COUNT(e) FROM Events e WHERE e.startDate >= CURRENT_TIMESTAMP")
-    long countUpcomingEvents();
+            Page<EventWithCountDTO> result = searchEvents(keyword, category, organizerName, status, pageable);
+            
+            // Log the results
+            logger.debug("Found {} events ({} total)", result.getNumberOfElements(), result.getTotalElements());
+            if (result.hasContent()) {
+                EventWithCountDTO first = result.getContent().get(0);
+                Events event = first.getEvent();
+                logger.debug("First event - ID: {}, Title: '{}', Start Date: {}, Status: {}, Organizer: {}, Confirmed: {}",
+                        event.getEventId(),
+                        event.getTitle(),
+                        event.getStartDate(),
+                        event.getStatus(),
+                        event.getOrganizer() != null ? event.getOrganizer().getEmail() : "null",
+                        first.getConfirmedCount());
+            }
+            
+            return result;
+        } catch (Exception e) {
+            logger.error("Error in searchEventsWithLogging: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
 
-    @Query("SELECT COUNT(e) FROM Events e WHERE e.endDate < CURRENT_TIMESTAMP")
-    long countPastEvents();
+    @Query(value = "SELECT DISTINCT e.category FROM Events e ORDER BY e.category")
+    List<String> findAllEventCategories();
 
-    @Query("SELECT COUNT(e) FROM Events e WHERE e.endDate < CURRENT_TIMESTAMP")
-    long countCompletedEvents();
+    @Query("""
+            SELECT NEW fpt.aptech.eventsphere.dto.admin.EventWithCountDTO(
+                e,
+                (SELECT COUNT(r) FROM Registrations r WHERE r.event = e AND r.status = 'CONFIRMED')
+            )
+            FROM Events e 
+            LEFT JOIN e.organizer o 
+            LEFT JOIN e.venue v 
+            WHERE e.eventId = :eventId""")
+    Optional<EventWithCountDTO> findEventWithRegistrations(@Param("eventId") int eventId);
 
-    @Query("SELECT COUNT(e) FROM Events e WHERE e.startDate <= CURRENT_TIMESTAMP AND e.endDate >= CURRENT_TIMESTAMP")
-    long countOngoingEvents();
+    @Query("SELECT COUNT(e) FROM Events e WHERE e.status = :status")
+    long countByStatus(@Param("status") Events.EventStatus status);
 
-    @Query("SELECT COUNT(e) FROM Events e WHERE DATE(e.startDate) = :today")
-    long countByDate(@Param("today") LocalDate today);
+    @Modifying
+    @Transactional
+    @Query("UPDATE Events e SET e.title = :title, e.description = :description, e.category = :category, e.startDate = :startDate, e.endDate = :endDate, e.imageUrl = :imageUrl WHERE e.eventId = :eventId")
+    int updateEventDetails(
+            @Param("eventId") int eventId,
+            @Param("title") String title,
+            @Param("description") String description,
+            @Param("category") String category,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            @Param("imageUrl") String imageUrl
+    );
 
-    @Query("SELECT COUNT(e) FROM Events e WHERE DATE(e.startDate) = :today")
-    long countCreatedToday(@Param("today") LocalDate today);
-
-    @Query("SELECT COUNT(e) FROM Events e WHERE e.startDate >= :startDate")
-    long countByCreatedAtAfter(@Param("startDate") LocalDateTime startDate);
-
-    @Query("SELECT COALESCE(ud.department, 'Unknown'), COUNT(e) FROM Events e LEFT JOIN e.organizer o LEFT JOIN o.userDetails ud GROUP BY ud.department")
-    List<Object[]> countEventsByDepartment();
-
-    @Query("SELECT AVG(CAST(f.rating AS double)) FROM Events e JOIN e.feedbacks f WHERE f.rating > 0")
-    Double getAverageEventRating();
-
-    // Chart Data
-    @Query("SELECT DATE(e.startDate) as date, COUNT(e) as count FROM Events e WHERE e.startDate >= :startDate GROUP BY DATE(e.startDate) ORDER BY DATE(e.startDate)")
-    List<Object[]> getEventCreationStats(@Param("startDate") LocalDateTime startDate);
-
-    @Query("SELECT YEAR(e.startDate) as year, MONTH(e.startDate) as month, COUNT(e) as count FROM Events e WHERE e.startDate >= :startDate GROUP BY YEAR(e.startDate), MONTH(e.startDate) ORDER BY YEAR(e.startDate), MONTH(e.startDate)")
-    List<Object[]> getMonthlyEventStats(@Param("startDate") LocalDateTime startDate);
-
-    @Query("SELECT COUNT(e) FROM Events e WHERE e.startDate >= :startDate AND e.startDate < :endDate")
-    long countEventsBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
-
-    @Query("SELECT e FROM Events e WHERE e.startDate >= :today ORDER BY e.startDate ASC")
-    List<Events> findUpcomingEvents(@Param("today") LocalDateTime today);
-
-    @Query("SELECT e FROM Events e WHERE e.endDate < :today ORDER BY e.endDate DESC")
-    List<Events> findPastEvents(@Param("today") LocalDateTime today);
-
-    @Query("SELECT COUNT(e) FROM Events e WHERE e.startDate = CURRENT_DATE")
-    long countTodayEvents();
-
-    @Query("SELECT COUNT(e) FROM Events e WHERE e.startDate >= :weekStart AND e.startDate < :weekEnd")
-    long countThisWeekEvents(@Param("weekStart") LocalDateTime weekStart, @Param("weekEnd") LocalDateTime weekEnd);
-
-    @Query("SELECT COUNT(e) FROM Events e WHERE YEAR(e.startDate) = YEAR(CURRENT_DATE) AND MONTH(e.startDate) = MONTH(CURRENT_DATE)")
-    long countThisMonthEvents();
-
-    List<Events> findAllByStatus(Events.EventStatus status);
 }

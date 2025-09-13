@@ -3,72 +3,76 @@ package fpt.aptech.eventsphere.controllers;
 import fpt.aptech.eventsphere.dto.admin.*;
 import fpt.aptech.eventsphere.models.Events;
 import fpt.aptech.eventsphere.models.Users;
-import fpt.aptech.eventsphere.models.admin.EventsModel;
-import fpt.aptech.eventsphere.models.admin.EventsModel.Status;
-import fpt.aptech.eventsphere.repositories.admin.*;
-import fpt.aptech.eventsphere.repositories.admin.AdminEventRepository;
+import fpt.aptech.eventsphere.repositories.admin.AdminFeedbackRepository;
+import fpt.aptech.eventsphere.repositories.admin.AdminUserRepository;
 import fpt.aptech.eventsphere.services.Admin.AdminDashboardService;
-import fpt.aptech.eventsphere.services.Admin.EventModerationService;
+import fpt.aptech.eventsphere.services.Admin.EventManagementService;
 import fpt.aptech.eventsphere.services.Admin.UserManagementService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.annotation.PostConstruct;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.*;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.springframework.util.StringUtils;
 
 @Controller
 @RequestMapping("/admin")
 @PreAuthorize("hasRole('ADMIN')")
+@Slf4j
 public class AdminController {
     @Autowired
     private final AdminUserRepository adminUserRepository;
 
     @Autowired
-    private final AdminEventRepository adminEventRepository;
-
-    @Autowired
     private final AdminFeedbackRepository adminFeedbackRepository;
 
     @Autowired
-    private final AdminEventModelRepository adminEventModelRepository;
-
-
-    @Autowired
-    private AdminDashboardService adminDashboardService;
-
+    private final AdminDashboardService adminDashboardService;
 
     @Autowired
-    private EventModerationService eventServiceAnhTu;
-
+    private final EventManagementService eventManagementService;
 
     @Autowired
     private UserManagementService userManagementService;
-    @Autowired
-    private EventModerationService eventModerationService;
-
 
     public AdminController(
-            AdminUserRepository adminUserRepository,
-            AdminEventRepository adminEventRepository, 
-            AdminFeedbackRepository adminFeedbackRepository,
             AdminDashboardService adminDashboardService,
-            AdminEventModelRepository adminEventModelRepository) {
-        this.adminUserRepository = adminUserRepository;
-        this.adminEventRepository = adminEventRepository;
-        this.adminFeedbackRepository = adminFeedbackRepository;
+            UserManagementService userManagementService,
+            EventManagementService eventManagementService,
+            AdminUserRepository adminUserRepository,
+            AdminFeedbackRepository adminFeedbackRepository) {
         this.adminDashboardService = adminDashboardService;
-        this.adminEventModelRepository = adminEventModelRepository;
-
+        this.userManagementService = userManagementService;
+        this.eventManagementService = eventManagementService;
+        this.adminUserRepository = adminUserRepository;
+        this.adminFeedbackRepository = adminFeedbackRepository;
     }
 
     @GetMapping("/index")
     public String adminDashboard(Model model) {
         try {
             AdminDashboardDTO dashboardData = adminDashboardService.getDashboardData();
+
+            // Debug log để kiểm tra dữ liệu
+            System.out.println("=== DEBUG DASHBOARD DATA ===");
+            System.out.println("Total Users: " + dashboardData.getTotalUsers());
+            System.out.println("Active Users: " + dashboardData.getActiveUsers());
+            System.out.println("Suspended Users: " + dashboardData.getSuspendedUsers());
+            System.out.println("New Users This Month: " + dashboardData.getNewUsersThisMonth());
 
             model.addAttribute("title", "Admin Dashboard");
             model.addAttribute("dashboard", dashboardData);
@@ -120,8 +124,6 @@ public class AdminController {
             model.addAttribute("error", "Error loading dashboard: " + e.getMessage());
             model.addAttribute("title", "Admin Dashboard");
             model.addAttribute("totalUsers", adminUserRepository.countByIsActiveTrueAndIsDeletedFalse());
-            model.addAttribute("totalEvents", adminEventRepository.countUpcomingEvents());
-            model.addAttribute("completedEvents", adminEventRepository.countCompletedEvents());
             model.addAttribute("averageRating", adminFeedbackRepository.getAverageRating());
         }
         return "admin/index";
@@ -140,11 +142,13 @@ public class AdminController {
             Model model) {
 
         try {
+            // Create search request
             UserSearchRequestDTO searchRequest = new UserSearchRequestDTO();
             searchRequest.setKeyword(keyword);
             searchRequest.setDepartment(department);
             searchRequest.setRole(role);
 
+            // Handle status filter
             if ("active".equals(status)) {
                 searchRequest.setIsActive(true);
             } else if ("inactive".equals(status)) {
@@ -156,8 +160,10 @@ public class AdminController {
             searchRequest.setPage(page);
             searchRequest.setSize(size);
 
+            // Get paginated results
             Page<UserManagementDTO> usersPage = userManagementService.searchAndSortUsers(searchRequest);
 
+            // Get departments and roles for dropdowns
             List<String> departments = userManagementService.getAllDepartments();
             List<String> roles = userManagementService.getAllRoles();
 
@@ -166,11 +172,13 @@ public class AdminController {
             model.addAttribute("departments", departments);
             model.addAttribute("roles", roles);
 
+            // Pagination info
             model.addAttribute("currentPage", page);
             model.addAttribute("totalPages", usersPage.getTotalPages());
             model.addAttribute("totalItems", usersPage.getTotalElements());
             model.addAttribute("pageSize", size);
 
+            // Search parameters for maintaining state
             model.addAttribute("keyword", keyword);
             model.addAttribute("selectedDepartment", department);
             model.addAttribute("selectedRole", role);
@@ -178,6 +186,7 @@ public class AdminController {
             model.addAttribute("sortBy", sortBy);
             model.addAttribute("sortDirection", sortDirection);
 
+            // Statistics
             model.addAttribute("totalUsers", userManagementService.getTotalUserCount());
             model.addAttribute("activeUsers", userManagementService.getActiveUserCount());
             model.addAttribute("inactiveUsers", userManagementService.getInactiveUserCount());
@@ -232,105 +241,6 @@ public class AdminController {
         return response;
     }
 
-//    @GetMapping("/events")
-//    public String eventManagement(Model model) {
-//        try{
-//            AdminDashboardDTO dashboardData = adminDashboardService.getDashboardData();
-//
-//            model.addAttribute("title", "Event Management");
-//
-//            model.addAttribute("totalEvents", dashboardData.getTotalEvents());
-//            model.addAttribute("completedEvents", dashboardData.getCompletedEvents());
-//            model.addAttribute("eventsThisMonth", dashboardData.getEventsThisMonth());
-//            model.addAttribute("eventGrowthRate", dashboardData.getEventGrowthRate());
-//
-//            model.addAttribute("pendingEvents", dashboardData.getPendingEvents());
-//            model.addAttribute("approveEvents", dashboardData.getApprovedEvents());
-//            model.addAttribute("rejectEvents", dashboardData.getRejectedEvents());
-//
-//            model.addAttribute("editEvents", adminEventModelRepository.countByStatus(EventsModel.Status.CHANGE_REQUESTED));
-//            model.addAttribute("cancelEvents", adminEventModelRepository.countByStatus(EventsModel.Status.CANCELLED));
-//            model.addAttribute("doneEvents", adminEventModelRepository.countByStatus(EventsModel.Status.FINISHED));
-//
-//            model.addAttribute("upcomingEvents", adminEventRepository.findUpcomingEvents(LocalDateTime.now()));
-//            model.addAttribute("pastEvents", adminEventRepository.findPastEvents(LocalDateTime.now()));
-//
-//            return "admin/event";
-//
-//        } catch (Exception e) {
-//            model.addAttribute("error", "Error loading list events: " + e.getMessage());
-//            return "admin/event";
-//        }
-//    }
-@GetMapping("/events")
-public String eventManagement(
-        @RequestParam(defaultValue = "") String keyword,
-        @RequestParam(defaultValue = "all") String category,
-        @RequestParam(defaultValue = "") String organizerName,
-        @RequestParam(defaultValue = "all") String status,
-        @RequestParam(defaultValue = "startDate") String sortBy,
-        @RequestParam(defaultValue = "desc") String sortDirection,
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size,
-        Model model) {
-    try {
-        AdminDashboardDTO dashboardData = adminDashboardService.getDashboardData();
-
-        // Create search request for all events
-        EventModelSearchDTO searchRequest = new EventModelSearchDTO();
-        searchRequest.setKeyword(keyword.isEmpty() ? null : keyword);
-        searchRequest.setStatus(status.equals("all") ? null : Status.valueOf(status.toUpperCase()));
-        searchRequest.setCategory(category.equals("all") ? null : category);
-        searchRequest.setOrganizerName(organizerName.isEmpty() ? null : organizerName);
-        searchRequest.setSortBy(sortBy);
-        searchRequest.setSortDirection(sortDirection);
-        searchRequest.setPage(page);
-        searchRequest.setSize(size);
-
-        Page<EventModerationDTO> eventsPage = eventModerationService.searchAndSortAllEvents(searchRequest);
-
-
-
-        model.addAttribute("title", "Event Management");
-        model.addAttribute("events", eventsPage.getContent());
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", eventsPage.getTotalPages());
-        model.addAttribute("totalItems", eventsPage.getTotalElements());
-        model.addAttribute("pageSize", size);
-
-        // Search parameters
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("selectedCategory", category);
-        model.addAttribute("selectedStatus", status);
-        model.addAttribute("organizerName", organizerName);
-        model.addAttribute("sortBy", sortBy);
-        model.addAttribute("sortDirection", sortDirection);
-
-        // Dashboard statistics
-        model.addAttribute("totalEvents", dashboardData.getTotalEvents());
-        model.addAttribute("completedEvents", dashboardData.getCompletedEvents());
-        model.addAttribute("eventsThisMonth", dashboardData.getEventsThisMonth());
-        model.addAttribute("eventGrowthRate", dashboardData.getEventGrowthRate());
-        model.addAttribute("pendingEvents", dashboardData.getPendingEvents());
-        model.addAttribute("approveEvents", dashboardData.getApprovedEvents());
-        model.addAttribute("rejectEvents", dashboardData.getRejectedEvents());
-        model.addAttribute("editEvents", adminEventModelRepository.countByStatus(EventsModel.Status.CHANGE_REQUESTED));
-        model.addAttribute("cancelEvents", adminEventModelRepository.countByStatus(EventsModel.Status.CANCELLED));
-        model.addAttribute("doneEvents", adminEventModelRepository.countByStatus(EventsModel.Status.FINISHED));
-
-
-
-
-        return "admin/event";
-
-
-    } catch (Exception e) {
-        model.addAttribute("error", "Error loading events: " + e.getMessage());
-        model.addAttribute("events", List.of());
-        model.addAttribute("totalItems", 0);
-        return "admin/event";
-    }
-}
 
     @GetMapping("/feedback")
     public String feedbackManagement(Model model) {
@@ -338,199 +248,224 @@ public String eventManagement(
         return "admin/feedback";
     }
 
-    @GetMapping("/reports")
-    public String reports(Model model) {
-        model.addAttribute("title", "Reports");
-        return "admin/reports";
-    }
-
-    @GetMapping("/events/pending")
-    public String pendingEvents(
-            @RequestParam(defaultValue = "") String keyword,
-            @RequestParam(defaultValue = "all") String category,
-            @RequestParam(defaultValue = "") String organizerName,
-            @RequestParam(defaultValue = "submitAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDirection,
+    @GetMapping("/events")
+    public String events(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String organizerName,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "startDate") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDirection,
             Model model) {
+
         try {
-            // Load dashboard statistics
-            AdminDashboardDTO dashboardData = adminDashboardService.getDashboardData();
+            // Log incoming request
+            log.info("Processing events request - page: {}, size: {}, keyword: '{}', category: '{}', organizerName: '{}', status: '{}', sortBy: '{}', sortDirection: '{}'",
+                    page, size, keyword, category, organizerName, status, sortBy, sortDirection);
 
-            model.addAttribute("totalEvents", dashboardData.getTotalEvents());
-            model.addAttribute("pendingEvents", dashboardData.getPendingEvents());
-            model.addAttribute("approvedEvents", dashboardData.getApprovedEvents());
-            model.addAttribute("rejectedEvents", dashboardData.getRejectedEvents());
-            model.addAttribute("completedEvents", dashboardData.getCompletedEvents());
+            // Ensure sortBy has a default value
+            String safeSortBy = (sortBy == null || sortBy.isEmpty()) ? "startDate" : sortBy;
 
-            // Use helper to load event list with status = PENDING
-            return handleEventsByStatus(
-                    Status.PENDING,
-                    keyword,
-                    category,
-                    organizerName,
-                    sortBy,
-                    sortDirection,
-                    page,
-                    size,
-                    model,
-                    "admin/events-pending"
-            );
+            // Create search request
+            EventSearchRequestDTO searchRequest = new EventSearchRequestDTO();
+            searchRequest.setPage(page);
+            searchRequest.setSize(size);
+            searchRequest.setKeyword(keyword);
+            searchRequest.setCategory(category);
+            searchRequest.setOrganizerName(organizerName);
+            searchRequest.setStatus(status);
+            searchRequest.setSortBy(safeSortBy);
+            searchRequest.setSortDirection(sortDirection);
+
+            // Get paginated events
+            Page<EventManagementDTO> eventsPage = eventManagementService.searchAndSortEvents(searchRequest);
+
+            // Get event statistics
+            Map<String, Long> eventStats = eventManagementService.getEventStatistics();
+
+            // Add attributes to model with default values
+            model.addAttribute("title", "Event Management");
+            model.addAttribute("events", eventsPage != null ? eventsPage.getContent() : List.of());
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalItems", eventsPage != null ? eventsPage.getTotalElements() : 0);
+            model.addAttribute("totalPages", eventsPage != null ? eventsPage.getTotalPages() : 1);
+            model.addAttribute("pageSize", size > 0 ? size : 10);
+
+            // Add search parameters to model
+            model.addAttribute("keyword", keyword);
+            model.addAttribute("selectedCategory", category);
+            model.addAttribute("organizerName", organizerName);
+            model.addAttribute("status", status);
+            model.addAttribute("sortBy", safeSortBy);
+            model.addAttribute("sortDirection", sortDirection);
+
+            // Add statistics to model
+            model.addAttribute("totalEvents", eventStats.get("totalEvents"));
+            model.addAttribute("pendingEvents", eventStats.get("pendingEvents"));
+            model.addAttribute("approvedEvents", eventStats.get("approvedEvents"));
+            model.addAttribute("rejectedEvents", eventStats.get("rejectedEvents"));
+
+            // Get all categories for filter dropdown
+            List<String> categories = eventManagementService.getAllEventCategories();
+            model.addAttribute("categories", categories);
+
+            // Add status options for the filter
+            model.addAttribute("statusOptions", Events.EventStatus.values());
+
+            log.info("Successfully processed events request. Found {} events.", eventsPage.getTotalElements());
 
         } catch (Exception e) {
-            model.addAttribute("error", "Error loading pending events: " + e.getMessage());
+            log.error("Error processing events request: {}", e.getMessage(), e);
+            log.error("Error loading events: {}", e.getMessage(), e);
+            model.addAttribute("error", "Error loading events: " + e.getMessage());
             model.addAttribute("events", List.of());
-            return "admin/events-pending";
+            model.addAttribute("categories", List.of());
         }
-    }
 
-    @GetMapping("/events/approved")
-    public String approvedEvents(
-            @RequestParam(defaultValue = "") String keyword,
-            @RequestParam(defaultValue = "all") String category,
-            @RequestParam(defaultValue = "") String organizerName,
-            @RequestParam(defaultValue = "submitAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDirection,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            Model model) {
-        try {
-            AdminDashboardDTO dashboardData = adminDashboardService.getDashboardData();
-
-            model.addAttribute("totalEvents", dashboardData.getTotalEvents());
-            model.addAttribute("pendingEvents", dashboardData.getPendingEvents());
-            model.addAttribute("approvedEvents", dashboardData.getApprovedEvents());
-            model.addAttribute("rejectedEvents", dashboardData.getRejectedEvents());
-            model.addAttribute("completedEvents", dashboardData.getCompletedEvents());
-
-            return handleEventsByStatus(
-                    Status.APPROVED,
-                    keyword,
-                    category,
-                    organizerName,
-                    sortBy,
-                    sortDirection,
-                    page,
-                    size,
-                    model,
-                    "admin/events-approved"
-            );
-
-        } catch (Exception e) {
-            model.addAttribute("error", "Error loading approved events: " + e.getMessage());
-            model.addAttribute("events", List.of());
-            return "admin/events-approved";
-        }
-    }
-
-    @GetMapping("/events/rejected")
-    public String rejectedEvents(
-            @RequestParam(defaultValue = "") String keyword,
-            @RequestParam(defaultValue = "all") String category,
-            @RequestParam(defaultValue = "") String organizerName,
-            @RequestParam(defaultValue = "submitAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDirection,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            Model model) {
-        try {
-            AdminDashboardDTO dashboardData = adminDashboardService.getDashboardData();
-
-            model.addAttribute("totalEvents", dashboardData.getTotalEvents());
-            model.addAttribute("pendingEvents", dashboardData.getPendingEvents());
-            model.addAttribute("approvedEvents", dashboardData.getApprovedEvents());
-            model.addAttribute("rejectedEvents", dashboardData.getRejectedEvents());
-            model.addAttribute("completedEvents", dashboardData.getCompletedEvents());
-
-            return handleEventsByStatus(
-                    Status.REJECTED,
-                    keyword,
-                    category,
-                    organizerName,
-                    sortBy,
-                    sortDirection,
-                    page,
-                    size,
-                    model,
-                    "admin/events-rejected"
-            );
-
-        } catch (Exception e) {
-            model.addAttribute("error", "Error loading rejected events: " + e.getMessage());
-            model.addAttribute("events", List.of());
-            return "admin/events-rejected";
-        }
+        return "admin/events";
     }
 
     @GetMapping("/events/{id}")
     public String viewEventDetails(@PathVariable Integer id, Model model) {
         try {
-            Optional<EventModerationDTO> eventOpt = eventModerationService.getEventModerationById(id);
-            if (eventOpt.isPresent()) {
-                model.addAttribute("event", eventOpt.get());
-                model.addAttribute("title", "Event Details");
-                return "admin/events-detail";
+            log.info("Fetching event details for ID: {}", id);
+            EventManagementDTO event = eventManagementService.getEventById(id);
+            if (event == null) {
+                log.warn("Event not found with ID: {}", id);
+                model.addAttribute("error", "Event not found with ID: " + id);
+                return "redirect:/admin/events";
+            }
+            log.debug("Found event: {} (ID: {})", event.getName(), event.getId());
+            model.addAttribute("event", event);
+            model.addAttribute("title", "Event Details - " + event.getName());
+            return "admin/events-detail";
+        } catch (Exception e) {
+            log.error("Error fetching event details for ID {}: {}", id, e.getMessage(), e);
+            model.addAttribute("error", "Error loading event details: " + e.getMessage());
+            return "redirect:/admin/events";
+        }
+    }
+
+
+    @GetMapping("/events/{id}/edit")
+    public String editEvent(@PathVariable Integer id, Model model) {
+        try {
+            log.info("Fetching event for editing - ID: {}", id);
+            EventManagementDTO event = eventManagementService.getEventById(id);
+            if (event == null) {
+                log.warn("Event not found for editing - ID: {}", id);
+                model.addAttribute("error", "Event not found with ID: " + id);
+                return "redirect:/admin/events";
+            }
+            
+            log.debug("Found event for editing: {} (ID: {})", event.getName(), event.getId());
+            model.addAttribute("event", event);
+            model.addAttribute("title", "Edit Event - " + event.getName());
+            model.addAttribute("categories", eventManagementService.getAllEventCategories());
+            model.addAttribute("statusOptions", Events.EventStatus.values());
+            
+            return "admin/events-edit";
+        } catch (Exception e) {
+            log.error("Error fetching event for editing - ID: {} - Error: {}", id, e.getMessage(), e);
+            model.addAttribute("error", "Error loading event for editing: " + e.getMessage());
+            return "redirect:/admin/events";
+        }
+    }
+    
+    @Value("${app.upload.dir}")
+    private String uploadDir;
+    
+    @PostConstruct
+    public void init() {
+        try {
+            log.info("Configuring upload directory: {}", uploadDir);
+            Path uploadPath = Paths.get(uploadDir, "events");
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+                log.info("Created upload directory: {}", uploadPath.toAbsolutePath());
             } else {
-                model.addAttribute("error", "Event not found");
-                return "error/404";
+                log.info("Using existing upload directory: {}", uploadPath.toAbsolutePath());
+            }
+        } catch (IOException e) {
+            log.error("Could not create upload directory: {}", e.getMessage(), e);
+        }
+    }
+    
+    @PostMapping("/events/{id}/update")
+    public String updateEventDetails(
+            @PathVariable int id,
+            @RequestParam String title,
+            @RequestParam String description,
+            @RequestParam String category,
+            @RequestParam LocalDateTime startDate,
+            @RequestParam LocalDateTime endDate,
+            @RequestParam(required = false) String status,
+            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+            RedirectAttributes redirectAttributes) {
+        
+        try {
+            // Handle file upload if a new image is provided
+            String imageUrl = handleFileUpload(imageFile);
+            
+            // Update event details with the new image URL
+            boolean success = eventManagementService.updateEventDetails(
+                    id, title, description, category, startDate, endDate, imageUrl);
+            
+            if (success) {
+                redirectAttributes.addFlashAttribute("success", "Event details updated successfully");
+                return "redirect:/admin/events/" + id;
+            } else {
+                redirectAttributes.addFlashAttribute("error", "Failed to update event details. Please try again.");
+                return "redirect:/admin/events/" + id + "/edit";
             }
         } catch (Exception e) {
-            model.addAttribute("error", "Error loading event details: " + e.getMessage());
-            return "error/error";
+            log.error("Error updating event details: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("error", "Error updating event: " + e.getMessage());
+            return "redirect:/admin/events/" + id + "/edit";
         }
     }
-
-
-    private String handleEventsByStatus(
-            Status status,
-            String keyword, String category,
-            String organizerName, String sortBy,
-            String sortDirection, int page,
-            int size, Model model, String s) {
-        try {
-            EventModelSearchDTO searchRequest = new EventModelSearchDTO();
-            searchRequest.setKeyword(keyword);
-            searchRequest.setStatus(status);
-            searchRequest.setCategory(category);
-            searchRequest.setOrganizerName(organizerName);
-            searchRequest.setSortBy(sortBy);
-            searchRequest.setSortDirection(sortDirection);
-            searchRequest.setPage(page);
-            searchRequest.setSize(size);
-
-            Page<EventModerationDTO> eventsPage = eventModerationService.searchAndSortAllEvents(searchRequest);
-            model.addAttribute("title", getStatusTitle(status));
-            model.addAttribute("events", eventsPage.getContent());
-//            model.addAttribute("categories", categories);
-            model.addAttribute("currentPage", page);
-            model.addAttribute("totalPages", eventsPage.getTotalPages());
-            model.addAttribute("totalItems", eventsPage.getTotalElements());
-            model.addAttribute("pageSize", size);
-            model.addAttribute("status", status);
-
-            // Search parameters
-            model.addAttribute("keyword", keyword);
-            model.addAttribute("selectedCategory", category);
-            model.addAttribute("organizerName", organizerName);
-            model.addAttribute("sortBy", sortBy);
-            model.addAttribute("sortDirection", sortDirection);
-
-        } catch (Exception e) {
-            model.addAttribute("error", "Error loading event details: " + e.getMessage());
-            model.addAttribute("events", List.of());
+    
+    /**
+     * Handles file upload and returns the new filename if successful
+     */
+    private String handleFileUpload(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) {
+            return null;
         }
-        return s;
-    }
-
-    private String getStatusTitle(Status status) {
-        switch (status) {
-            case PENDING: return "Pending Events";
-            case APPROVED: return "Approved Events";
-            case REJECTED: return "Rejected Events";
-            case CHANGE_REQUESTED: return "Change Requested Events";
-            default: return "Events";
+        
+        // Clean and validate the filename
+        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+        if (originalFilename == null || originalFilename.isEmpty()) {
+            throw new RuntimeException("Invalid file name");
         }
+        
+        // Extract file extension
+        String fileExtension = "";
+        if (originalFilename.contains(".")) {
+            fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+        }
+        
+        // Generate a unique filename
+        String newFilename = "event_" + System.currentTimeMillis() + fileExtension;
+        
+        // Use the configured upload directory with 'events' subfolder
+        Path uploadPath = Paths.get(uploadDir, "events");
+        
+        // Validate file type
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new RuntimeException("Only image files are allowed");
+        }
+        
+        // Save the file
+        Path filePath = uploadPath.resolve(newFilename);
+        try (InputStream inputStream = file.getInputStream()) {
+            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+        }
+        
+        log.info("Successfully uploaded file: {}", filePath);
+        return "events/" + newFilename;
     }
-
 }

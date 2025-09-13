@@ -89,7 +89,6 @@
     }
     function toggleUserStatus(userId) {
         if (confirm('Are you sure you want to change this user\'s status?')) {
-            // Hiển thị loading
             const button = document.querySelector(`tr[data-user-id="${userId}"] .action-cell button`);
             const originalText = button.innerHTML;
             button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
