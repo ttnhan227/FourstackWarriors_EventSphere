@@ -32,9 +32,9 @@ public class EmailServiceImpl implements EmailService {
     public void sendEmailWithAttachment(List<String> recipients, String subject, String body, byte[] attachment, String attachmentName) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true); // true indicates multipart message
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-            helper.setFrom("your-email@example.com"); // Set a proper 'from' address
+            helper.setFrom("abc@example.com");
             helper.setTo(recipients.toArray(new String[0]));
             helper.setSubject(subject);
             helper.setText(body);
