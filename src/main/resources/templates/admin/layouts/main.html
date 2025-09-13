@@ -84,7 +84,7 @@
     function changePageSize(newSize) {
         const url = new URL(window.location);
         url.searchParams.set('size', newSize);
-        url.searchParams.set('page', '0'); // Reset to first page
+        url.searchParams.set('page', '0');
         window.location.href = url.toString();
     }
     function toggleUserStatus(userId) {
@@ -110,9 +110,8 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Response:', data); // Debug log
+                    console.log('Response:', data);
                     if (data.success) {
-                        // Cập nhật status badge
                         const row = document.querySelector(`tr[data-user-id="${userId}"]`);
                         const statusCell = row.querySelector('.status-cell');
                         const actionCell = row.querySelector('.action-cell');
@@ -125,7 +124,6 @@
                             actionCell.innerHTML = '<button type="button" class="btn btn-sm btn-success" onclick="toggleUserStatus(' + userId + ')">Activate</button>';
                         }
 
-                        // Hiển thị thông báo thành công
                         showAlert('success', data.message);
                     } else {
                         button.innerHTML = originalText;
@@ -135,7 +133,6 @@
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    // Khôi phục button về trạng thái ban đầu
                     button.innerHTML = originalText;
                     button.disabled = false;
                     showAlert('error', 'Error updating user status');
@@ -144,7 +141,6 @@
     }
 
     function showAlert(type, message) {
-        // Tạo alert element
         const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
         const alertHtml = `
             <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
@@ -155,7 +151,6 @@
             </div>
         `;
 
-        // Thêm alert vào đầu content
         const contentHeader = document.querySelector('.content-header');
         contentHeader.insertAdjacentHTML('afterend', alertHtml);
 

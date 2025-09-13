@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="admin/layouts/main :: layout(~{::content})">
+<div th:fragment="content">
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">Pending Events</h1>
+                    <p class="text-muted">
+                        <i class="fas fa-clock"></i>
+                        <span th:text="${totalItems != null ? totalItems : 0}">0</span> events awaiting review
+                    </p>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="/admin/index">Home</a></li>
+                        <li class="breadcrumb-item"><a href="/admin/events">Events</a></li>
+                        <li class="breadcrumb-item active">Pending</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="content">
+        <div class="container-fluid">
+
+            <div class="row mb-3">
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-warning">
+                        <div class="inner">
+                            <h3 th:text="${totalEvents != null ? totalEvents : 0}">0</h3>
+                            <p>Total Pending</p>
+                        </div>
+                        <div class="icon"><i class="fas fa-clock"></i></div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-info">
+                        <div class="inner">
+                            <h3 th:text="${events != null ? events.size() : 0}">0</h3>
+                            <p>Currently Showing</p>
+                        </div>
+                        <div class="icon"><i class="fas fa-list"></i></div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-success">
+                        <div class="inner">
+                            <h3 id="todaySubmissions">0</h3>
+                            <p>Today's Submissions</p>
+                        </div>
+                        <div class="icon"><i class="fas fa-calendar-day"></i></div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-secondary">
+                        <div class="inner">
+                            <h3 id="avgProcessingTime">-</h3>
+                            <p>Avg Processing Time</p>
+                        </div>
+                        <div class="icon"><i class="fas fa-stopwatch"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body d-flex justify-content-between">
+                            <a href="/admin/events/pending" class="btn btn-warning">
+                                <i class="fas fa-clock"></i> Pending
+                            </a>
+                            <a href="/admin/events/approved" class="btn btn-outline-success">
+                                <i class="fas fa-check-circle"></i> Approved
+                            </a>
+                            <a href="/admin/events/rejected" class="btn btn-outline-danger">
+                                <i class="fas fa-times-circle"></i> Rejected
+                            </a>
+                            <a href="/admin/events" class="btn btn-outline-info">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <i class="icon fas fa-ban"></i> <span th:text="${error}"></span>
+            </div>
+            <div th:if="${success}" class="alert alert-success alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <i class="icon fas fa-check"></i> <span th:text="${success}"></span>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-search"></i> Search & Filter</h3>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="mb-3">
+                        <div class="form-row">
+                            <div class="form-group col-md-3">
+                                <label>Keyword</label>
+                                <input type="text" class="form-control" name="keyword" th:value="${keyword}">
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label>Category</label>
+                                <select class="form-control" name="category">
+                                    <option value="all">All</option>
+                                    <option th:each="cat : ${categories}"
+                                            th:value="${cat}" th:text="${cat}"
+                                            th:selected="${selectedCategory == cat}"></option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label>Organizer</label>
+                                <input type="text" class="form-control" name="organizerName" th:value="${organizerName}">
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label>Sort By</label>
+                                <select class="form-control" name="sortBy">
+                                    <option value="submitAt">Submit Date</option>
+                                    <option value="title">Title</option>
+                                    <option value="category">Category</option>
+                                    <option value="startDate">Start Date</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label>Order</label>
+                                <select class="form-control" name="sortDirection">
+                                    <option value="desc">Newest First</option>
+                                    <option value="asc">Oldest First</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-1 align-self-end">
+                                <button type="submit" class="btn btn-primary btn-block">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div th:if="${events == null || events.isEmpty()}" class="text-center py-5">
+                        <i class="fas fa-calendar-times fa-4x text-muted"></i>
+                        <h4>No pending events found</h4>
+                    </div>
+
+                    <div th:unless="${events == null || events.isEmpty()}">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="thead-light">
+                                <tr>
+                                    <th>#ID</th>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Organizer</th>
+                                    <th>Submit Date</th>
+                                    <th>Event Date</th>
+                                    <th>Venue</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="event : ${events}">
+                                    <td th:text="${event.eventModelId}"></td>
+                                    <td>
+                                        <a th:href="@{'/admin/events/' + ${event.eventModelId}}"
+                                           th:text="${event.title}"></a>
+                                    </td>
+                                    <td th:text="${event.category}"></td>
+                                    <td th:text="${event.organizerName}"></td>
+                                    <td th:text="${#temporals.format(event.submitAt, 'dd/MM/yyyy HH:mm')}"></td>
+                                    <td>
+                                        <span th:text="${#temporals.format(event.startDate, 'dd/MM/yyyy')}"></span>
+                                    </td>
+                                    <td th:text="${event.venueName}"></td>
+                                    <td><span class="badge badge-warning">Pending</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-success"
+                                                    th:onclick="'showApproveModal(' + ${event.eventModelId} + ', \'' + ${event.title} + '\')'">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-warning"
+                                                    th:onclick="'showRequestChangeModal(' + ${event.eventModelId} + ', \'' + ${event.title} + '\')'">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-danger"
+                                                    th:onclick="'showRejectModal(' + ${event.eventModelId} + ', \'' + ${event.title} + '\')'">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <nav th:if="${totalPages != null && totalPages > 1}">
+                        <ul class="pagination justify-content-center">
+                            <li th:class="${currentPage == 0 ? 'page-item disabled' : 'page-item'}">
+                                <a class="page-link"
+                                   th:href="@{/admin/events/pending(page=${currentPage - 1}, size=${pageSize}, keyword=${keyword})}">Previous</a>
+                            </li>
+                            <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:class="${i == currentPage ? 'page-item active' : 'page-item'}">
+                                <a class="page-link"
+                                   th:href="@{/admin/events/pending(page=${i}, size=${pageSize}, keyword=${keyword})}"
+                                   th:text="${i+1}"></a>
+                            </li>
+                            <li th:class="${(currentPage+1) >= totalPages ? 'page-item disabled' : 'page-item'}">
+                                <a class="page-link" th:href="@{/admin/events/pending(page=${currentPage + 1}, size=${pageSize}, keyword=${keyword})}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="modal fade" id="approveModal" tabindex="-1">
+        <div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Approve Event</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>You are about to approve: <strong id="approveEventTitle"></strong></p>
+                <textarea class="form-control" id="approveComments" placeholder="Optional comments"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-success" onclick="approveEvent()">Approve</button>
+            </div>
+        </div></div>
+    </div>
+
+    <div class="modal fade" id="rejectModal" tabindex="-1">
+        <div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Reject Event</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Reject event: <strong id="rejectEventTitle"></strong></p>
+                <textarea class="form-control" id="rejectComments" placeholder="Reason required" required></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-danger" onclick="rejectEvent()">Reject</button>
+            </div>
+        </div></div>
+    </div>
+
+    <div class="modal fade" id="requestChangeModal" tabindex="-1">
+        <div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">Request Changes</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Request changes for: <strong id="changeEventTitle"></strong></p>
+                <textarea class="form-control" id="requestChangeComments" placeholder="Specify required changes" required></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-warning" onclick="requestChange()">Send Request</button>
+            </div>
+        </div></div>
+    </div>
+
+    <script>
+        let currentEventId = null;
+
+        function showApproveModal(id, title) {
+            currentEventId = id;
+            $('#approveEventTitle').text(title);
+            $('#approveModal').modal('show');
+        }
+        function showRejectModal(id, title) {
+            currentEventId = id;
+            $('#rejectEventTitle').text(title);
+            $('#rejectModal').modal('show');
+        }
+        function showRequestChangeModal(id, title) {
+            currentEventId = id;
+            $('#changeEventTitle').text(title);
+            $('#requestChangeModal').modal('show');
+        }
+
+        function approveEvent() {
+            const comments = $('#approveComments').val();
+            $.post(`/admin/events/${currentEventId}/approve`, {comments})
+                .done(() => location.reload())
+                .fail(() => alert('Error approving event'));
+        }
+        function rejectEvent() {
+            const comments = $('#rejectComments').val();
+            if (!comments) { alert('Reason required'); return; }
+            $.post(`/admin/events/${currentEventId}/reject`, {comments})
+                .done(() => location.reload())
+                .fail(() => alert('Error rejecting event'));
+        }
+        function requestChange() {
+            const comments = $('#requestChangeComments').val();
+            if (!comments) { alert('Change details required'); return; }
+            $.post(`/admin/events/${currentEventId}/request-change`, {comments})
+                .done(() => location.reload())
+                .fail(() => alert('Error requesting change'));
+        }
+    </script>
+</div>
+</html>

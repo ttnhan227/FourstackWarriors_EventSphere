@@ -48,17 +48,14 @@ public class AdminDashboardService {
                 e.printStackTrace();
             }
 
-            // Set values với null check
             dashboard.setTotalUsers(BigDecimal.valueOf(totalUsersCount));
             dashboard.setActiveUsers(BigDecimal.valueOf(activeUsersCount));
             dashboard.setSuspendedUsers(BigDecimal.valueOf(suspendedUsersCount));
 
-            // Debug after setting
             System.out.println("Dashboard totalUsers: " + dashboard.getTotalUsers());
             System.out.println("Dashboard activeUsers: " + dashboard.getActiveUsers());
             System.out.println("Dashboard suspendedUsers: " + dashboard.getSuspendedUsers());
 
-            // Set other user stats
             dashboard.setNewUsersThisMonth(getUsersCountThisMonth());
             dashboard.setUserGrowthRate(calculateUserGrowthRate());
 
@@ -66,7 +63,6 @@ public class AdminDashboardService {
             System.err.println("Error in getDashboardData: " + e.getMessage());
             e.printStackTrace();
 
-            // Fallback values
             dashboard.setTotalUsers(BigDecimal.ZERO);
             dashboard.setActiveUsers(BigDecimal.ZERO);
             dashboard.setSuspendedUsers(BigDecimal.ZERO);
@@ -74,10 +70,9 @@ public class AdminDashboardService {
             dashboard.setUserGrowthRate(BigDecimal.ZERO);
         }
 
-        // Event Statistics
         try {
             dashboard.setTotalEvents(BigDecimal.valueOf(adminEventRepository.count()));
-            dashboard.setPendingEvents(BigDecimal.valueOf(adminEventRepository.countPendingEvents()));
+            dashboard.setPendingEvents(BigDecimal.valueOf(adminEventRepository.countPendEvent()));
             dashboard.setApprovedEvents(BigDecimal.valueOf(adminEventRepository.countApprovedEvents()));
             dashboard.setRejectedEvents(BigDecimal.valueOf(adminEventRepository.countRejectedEvents()));
             dashboard.setEventsThisMonth(getEventsCountThisMonth());
@@ -92,7 +87,6 @@ public class AdminDashboardService {
             dashboard.setEventGrowthRate(BigDecimal.ZERO);
         }
 
-        // Department Statistics
         try {
             dashboard.setUsersByDepartment(getUsersByDepartment());
             dashboard.setEventsByDepartment(getEventsByDepartment());
@@ -104,7 +98,6 @@ public class AdminDashboardService {
             dashboard.setDepartmentDetails(new ArrayList<>());
         }
 
-        // Recent Activities
         try {
             dashboard.setTodayRegistrations(getTodayRegistrations());
             dashboard.setTodayEventCreations(getTodayEventCreations());
@@ -116,7 +109,6 @@ public class AdminDashboardService {
             dashboard.setPendingFeedbackReviews(BigDecimal.ZERO);
         }
 
-        // Performance Metrics
         try {
             dashboard.setAverageEventRating(getAverageEventRating());
             dashboard.setTotalRegistrations(getTotalRegistrations());
@@ -130,7 +122,6 @@ public class AdminDashboardService {
             dashboard.setCertificatesIssued(BigDecimal.ZERO);
         }
 
-        // System Alerts
         try {
             dashboard.setSystemAlerts(getSystemAlerts());
             dashboard.setCriticalAlerts(getCriticalAlerts());
@@ -140,7 +131,6 @@ public class AdminDashboardService {
             dashboard.setCriticalAlerts(BigDecimal.ZERO);
         }
 
-        // Charts Data
         try {
             dashboard.setUserRegistrationChart(getUserRegistrationChartData());
             dashboard.setEventCreationChart(getEventCreationChartData());
@@ -316,7 +306,7 @@ public class AdminDashboardService {
             ));
         }
 
-        long pendingEvents = adminEventRepository.countPendingEvents();
+        long pendingEvents = adminEventRepository.countPendEvent();
         if (pendingEvents > 5) {
             alerts.add(new SystemAlertDTO(
                     "pending_events",

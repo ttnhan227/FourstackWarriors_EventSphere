@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="admin/layouts/main :: layout(~{::content})">
+<div th:fragment="content">
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">Chi tiết sự kiện</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="/admin/index">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a href="/admin/events">Sự kiện</a></li>
+                        <li class="breadcrumb-item active">Chi tiết</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="content">
+        <div class="container-fluid">
+            <!-- Error Alert -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                <h5><i class="icon fas fa-ban"></i> Lỗi!</h5>
+                <span th:text="${error}"></span>
+            </div>
+
+            <div class="row">
+                <!-- Event Information Card -->
+                <div class="col-md-8">
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-calendar-alt mr-2"></i>
+                                Thông tin sự kiện
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <!-- Event Image -->
+                            <div class="row mb-4" th:if="${event}">
+                                <div class="col-md-12 text-center">
+                                    <img th:if="${event.imageUrl != null && !event.imageUrl.isEmpty()}"
+                                         th:src="${event.imageUrl}"
+                                         class="img-fluid rounded"
+                                         style="max-height: 300px; max-width: 100%; object-fit: cover;"
+                                         alt="Hình ảnh sự kiện">
+                                    <div th:unless="${event.imageUrl != null && !event.imageUrl.isEmpty()}"
+                                         class="bg-secondary rounded d-flex align-items-center justify-content-center"
+                                         style="height: 300px;">
+                                        <i class="fas fa-calendar-alt fa-5x text-white"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Event Details -->
+                            <div th:if="${event}">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h4 class="text-primary mb-3" th:text="${event.title}">Tên sự kiện</h4>
+
+                                        <div class="mb-3">
+                                            <strong><i class="fas fa-tag mr-2"></i>Thể loại:</strong>
+                                            <span class="badge badge-info ml-2" th:text="${event.category}">Category</span>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <strong><i class="fas fa-map-marker-alt mr-2"></i>Địa điểm:</strong>
+                                            <span th:text="${event.venueName != null ? event.venueName : 'Chưa xác định'}">Venue</span>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <strong><i class="fas fa-users mr-2"></i>Sức chứa:</strong>
+                                            <span th:text="${event.totalSeats != null ? event.totalSeats + ' người' : 'Không giới hạn'}">Capacity</span>
+                                            <span th:if="${event.seatsBooked != null}" class="text-muted ml-2">
+                                                (<span th:text="${event.seatsBooked}">0</span> đã đăng ký)
+                                            </span>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <strong><i class="fas fa-clock mr-2"></i>Thời gian:</strong><br>
+                                            <span class="text-success">
+                                                <i class="fas fa-play-circle mr-1"></i>Bắt đầu:
+                                                <span th:text="${#temporals.format(event.startDate, 'dd/MM/yyyy HH:mm')}">Start Date</span>
+                                            </span><br>
+                                            <span class="text-danger">
+                                                <i class="fas fa-stop-circle mr-1"></i>Kết thúc:
+                                                <span th:text="${#temporals.format(event.endDate, 'dd/MM/yyyy HH:mm')}">End Date</span>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <strong><i class="fas fa-user mr-2"></i>Người tổ chức:</strong><br>
+                                            <span th:text="${event.organizerName}">Organizer Name</span><br>
+                                            <small class="text-muted" th:text="${event.organizerEmail}">organizer@email.com</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <strong><i class="fas fa-info-circle mr-2"></i>Trạng thái:</strong>
+                                            <span th:switch="${event.status.name()}">
+                                                <span th:case="'PENDING'" class="badge badge-warning badge-lg">Chờ duyệt</span>
+                                                <span th:case="'APPROVED'" class="badge badge-success badge-lg">Đã duyệt</span>
+                                                <span th:case="'REJECTED'" class="badge badge-danger badge-lg">Từ chối</span>
+                                                <span th:case="'CHANGE_REQUESTED'" class="badge badge-info badge-lg">Yêu cầu sửa đổi</span>
+                                                <span th:case="'CANCELLED'" class="badge badge-dark badge-lg">Đã hủy</span>
+                                                <span th:case="'FINISHED'" class="badge badge-secondary badge-lg">Hoàn thành</span>
+                                                <span th:case="*" class="badge badge-secondary badge-lg" th:text="${event.status}">Unknown</span>
+                                            </span>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <strong><i class="fas fa-calendar-plus mr-2"></i>Ngày tạo:</strong>
+                                            <span th:text="${#temporals.format(event.submitAt, 'dd/MM/yyyy HH:mm')}">Submit Date</span>
+                                        </div>
+
+                                        <div class="mb-3" th:if="${event.updatedAt != null}">
+                                            <strong><i class="fas fa-edit mr-2"></i>Cập nhật lần cuối:</strong>
+                                            <span th:text="${#temporals.format(event.updatedAt, 'dd/MM/yyyy HH:mm')}">Updated Date</span>
+                                        </div>
+
+                                        <div class="mb-3" th:if="${event.reviewByEmail != null && !event.reviewByEmail.isEmpty()}">
+                                            <strong><i class="fas fa-user-check mr-2"></i>Được duyệt bởi:</strong>
+                                            <span th:text="${event.reviewByEmail}">Admin Email</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Event Description -->
+                                <div class="mt-4">
+                                    <h5><i class="fas fa-file-alt mr-2"></i>Mô tả sự kiện:</h5>
+                                    <div class="bg-light p-3 rounded">
+                                        <p th:text="${event.description}" style="white-space: pre-wrap;">Event Description</p>
+                                    </div>
+                                </div>
+
+                                <!-- Admin Comments -->
+                                <div class="mt-4" th:if="${event.adminComment != null && !event.adminComment.isEmpty()}">
+                                    <h5><i class="fas fa-comment mr-2"></i>Nhận xét của Admin:</h5>
+                                    <div class="alert alert-info">
+                                        <p th:text="${event.adminComment}" style="white-space: pre-wrap;">Admin Comments</p>
+                                    </div>
+                                </div>
+
+                                <!-- Organizer Comments -->
+                                <div class="mt-4" th:if="${event.organizerComment != null && !event.organizerComment.isEmpty()}">
+                                    <h5><i class="fas fa-reply mr-2"></i>Phản hồi của người tổ chức:</h5>
+                                    <div class="alert alert-secondary">
+                                        <p th:text="${event.organizerComment}" style="white-space: pre-wrap;">Organizer Comments</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- No Event Found -->
+                            <div th:unless="${event}" class="text-center py-5">
+                                <i class="fas fa-exclamation-triangle fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Không tìm thấy thông tin sự kiện</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Panel -->
+                <div class="col-md-4">
+                    <div class="card card-info">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-cogs mr-2"></i>
+                                Hành động
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div th:if="${event}">
+                                <!-- Pending Status Actions -->
+                                <div th:if="${event.status.name() == 'PENDING'}" class="mb-3">
+                                    <button type="button" class="btn btn-success btn-block"
+                                            th:onclick="'showApproveModal(' + ${event.eventModelId} + ')'">
+                                        <i class="fas fa-check mr-2"></i>Duyệt sự kiện
+                                    </button>
+                                    <button type="button" class="btn btn-warning btn-block"
+                                            th:onclick="'showRequestChangeModal(' + ${event.eventModelId} + ')'">
+                                        <i class="fas fa-edit mr-2"></i>Yêu cầu chỉnh sửa
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-block"
+                                            th:onclick="'showRejectModal(' + ${event.eventModelId} + ')'">
+                                        <i class="fas fa-times mr-2"></i>Từ chối
+                                    </button>
+                                </div>
+
+                                <!-- Other Status Info -->
+                                <div th:unless="${event.status.name() == 'PENDING'}" class="mb-3">
+                                    <div class="alert alert-info text-center">
+                                        <i class="fas fa-info-circle mr-2"></i>
+                                        <strong>Sự kiện đã được xử lý</strong><br>
+                                        <small>Trạng thái hiện tại:
+                                            <span th:switch="${event.status.name()}">
+                                                <span th:case="'APPROVED'">Đã duyệt</span>
+                                                <span th:case="'REJECTED'">Đã từ chối</span>
+                                                <span th:case="'CHANGE_REQUESTED'">Yêu cầu chỉnh sửa</span>
+                                                <span th:case="'CANCELLED'">Đã hủy</span>
+                                                <span th:case="'FINISHED'">Hoàn thành</span>
+                                                <span th:case="*" th:text="${event.status}">Unknown</span>
+                                            </span>
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <!-- Navigation Actions -->
+                                <hr>
+                                <div class="btn-group-vertical btn-block">
+                                    <a href="/admin/events" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left mr-2"></i>Quay lại danh sách
+                                    </a>
+                                    <a href="/admin/events/pending" class="btn btn-outline-warning">
+                                        <i class="fas fa-clock mr-2"></i>Sự kiện chờ duyệt
+                                    </a>
+                                    <a href="/admin/events/approved" class="btn btn-outline-success">
+                                        <i class="fas fa-check mr-2"></i>Sự kiện đã duyệt
+                                    </a>
+                                    <a href="/admin/events/rejected" class="btn btn-outline-danger">
+                                        <i class="fas fa-times mr-2"></i>Sự kiện bị từ chối
+                                    </a>
+                                </div>
+
+                                <!-- Quick Stats -->
+                                <hr>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="info-box">
+                                            <span class="info-box-icon bg-info"><i class="fas fa-calendar-day"></i></span>
+                                            <div class="info-box-content">
+                                                <span class="info-box-text">Thời lượng</span>
+                                                <span class="info-box-number" th:text="${T(java.time.temporal.ChronoUnit).HOURS.between(event.startDate, event.endDate)} + 'h'">Duration</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="info-box">
+                                            <span class="info-box-icon bg-success"><i class="fas fa-users"></i></span>
+                                            <div class="info-box-content">
+                                                <span class="info-box-text">Đăng ký</span>
+                                                <span class="info-box-number" th:text="${event.seatsBooked != null ? event.seatsBooked : 0}">0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modals -->
+    <!-- Approve Modal -->
+    <div class="modal fade" id="approveModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check mr-2"></i>Duyệt sự kiện
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-success">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <strong>Xác nhận duyệt sự kiện này?</strong><br>
+                        <small>Sự kiện sẽ được công khai và mở đăng ký sau khi duyệt.</small>
+                    </div>
+                    <form id="approveForm">
+                        <div class="form-group">
+                            <label>Nhận xét của Admin (Tùy chọn):</label>
+                            <textarea class="form-control" id="approveComments" rows="3"
+                                      placeholder="Thêm nhận xét cho người tổ chức..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-success" onclick="approveEvent()">
+                        <i class="fas fa-check mr-2"></i>Duyệt sự kiện
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Modal -->
+    <div class="modal fade" id="rejectModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-times mr-2"></i>Từ chối sự kiện
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        <strong>Xác nhận từ chối sự kiện này?</strong><br>
+                        <small>Hành động này sẽ thông báo cho người tổ chức về lý do từ chối.</small>
+                    </div>
+                    <form id="rejectForm">
+                        <div class="form-group">
+                            <label>Lý do từ chối <span class="text-danger">*</span>:</label>
+                            <textarea class="form-control" id="rejectComments" rows="4" required
+                                      placeholder="Vui lòng nêu rõ lý do từ chối sự kiện này..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger" onclick="rejectEvent()">
+                        <i class="fas fa-times mr-2"></i>Từ chối sự kiện
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Change Modal -->
+    <div class="modal fade" id="requestChangeModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit mr-2"></i>Yêu cầu chỉnh sửa
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <strong>Yêu cầu người tổ chức chỉnh sửa sự kiện</strong><br>
+                        <small>Sự kiện sẽ được trả về cho người tổ chức để chỉnh sửa theo yêu cầu.</small>
+                    </div>
+                    <form id="requestChangeForm">
+                        <div class="form-group">
+                            <label>Nội dung cần chỉnh sửa <span class="text-danger">*</span>:</label>
+                            <textarea class="form-control" id="requestChangeComments" rows="4" required
+                                      placeholder="Nêu rõ những gì cần được chỉnh sửa..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-warning" onclick="requestChange()">
+                        <i class="fas fa-paper-plane mr-2"></i>Gửi yêu cầu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentEventId = null;
+
+        function showApproveModal(eventId) {
+            currentEventId = eventId;
+            $('#approveComments').val('');
+            $('#approveModal').modal('show');
+        }
+
+        function showRejectModal(eventId) {
+            currentEventId = eventId;
+            $('#rejectComments').val('');
+            $('#rejectModal').modal('show');
+        }
+
+        function showRequestChangeModal(eventId) {
+            currentEventId = eventId;
+            $('#requestChangeComments').val('');
+            $('#requestChangeModal').modal('show');
+        }
+
+        function approveEvent() {
+            if (!currentEventId) return;
+
+            const comments = $('#approveComments').val();
+
+            $.post('/admin/events/' + currentEventId + '/approve', {
+                comments: comments
+            })
+                .done(function(response) {
+                    if (response.success) {
+                        alert('Sự kiện đã được duyệt thành công!');
+                        location.reload();
+                    } else {
+                        alert('Lỗi: ' + response.message);
+                    }
+                })
+                .fail(function() {
+                    alert('Có lỗi xảy ra khi duyệt sự kiện');
+                })
+                .always(function() {
+                    $('#approveModal').modal('hide');
+                });
+        }
+
+        function rejectEvent() {
+            if (!currentEventId) return;
+
+            const comments = $('#rejectComments').val();
+            if (!comments.trim()) {
+                alert('Vui lòng nêu lý do từ chối');
+                return;
+            }
+
+            $.post('/admin/events/' + currentEventId + '/reject', {
+                comments: comments
+            })
+                .done(function(response) {
+                    if (response.success) {
+                        alert('Sự kiện đã bị từ chối!');
+                        location.reload();
+                    } else {
+                        alert('Lỗi: ' + response.message);
+                    }
+                })
+                .fail(function() {
+                    alert('Có lỗi xảy ra khi từ chối sự kiện');
+                })
+                .always(function() {
+                    $('#rejectModal').modal('hide');
+                });
+        }
+
+        function requestChange() {
+            if (!currentEventId) return;
+
+            const comments = $('#requestChangeComments').val();
+            if (!comments.trim()) {
+                alert('Vui lòng nêu rõ nội dung cần chỉnh sửa');
+                return;
+            }
+
+            $.post('/admin/events/' + currentEventId + '/request-change', {
+                comments: comments
+            })
+                .done(function(response) {
+                    if (response.success) {
+                        alert('Yêu cầu chỉnh sửa đã được gửi thành công!');
+                        location.reload();
+                    } else {
+                        alert('Lỗi: ' + response.message);
+                    }
+                })
+                .fail(function() {
+                    alert('Có lỗi xảy ra khi gửi yêu cầu chỉnh sửa');
+                })
+                .always(function() {
+                    $('#requestChangeModal').modal('hide');
+                });
+        }
+    </script>
+</div>
+</html>

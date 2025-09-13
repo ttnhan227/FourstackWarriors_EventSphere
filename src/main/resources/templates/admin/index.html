@@ -20,7 +20,6 @@
     <section class="content">
         <div class="container-fluid">
 
-            <!-- Cảnh báo hệ thống -->
             <div th:if="${systemAlerts != null and !#lists.isEmpty(systemAlerts)}" class="row mb-3">
                 <div class="col-12">
                     <div th:each="alert : ${systemAlerts}"
@@ -36,7 +35,6 @@
                 </div>
             </div>
 
-            <!-- Thống kê người dùng -->
             <div class="row">
                 <div class="col-lg-3 col-6">
                     <div class="small-box bg-info">
@@ -113,7 +111,6 @@
                 </div>
             </div>
 
-            <!-- Thống kê sự kiện -->
             <div class="row">
                 <div class="col-lg-3 col-6">
                     <div class="small-box bg-primary">
@@ -183,7 +180,6 @@
                 </div>
             </div>
 
-            <!-- Hoạt động hôm nay -->
             <div class="row mb-4">
                 <div class="col-md-12">
                     <div class="card">
@@ -233,8 +229,7 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Phòng ban hiệu suất cao -->
+            <!-- phòng ban -->
             <div class="row mb-4">
                 <div class="col-md-12">
                     <div class="card">
@@ -277,7 +272,7 @@
                 </div>
             </div>
 
-            <!-- Biểu đồ thống kê -->
+            <!-- chart -->
             <div class="row">
                 <div class="col-md-6">
                     <div class="card">
@@ -302,7 +297,7 @@
                 </div>
             </div>
 
-            <!-- Phân bố theo phòng ban -->
+            <!-- theophòng ban -->
             <div class="row">
                 <div class="col-md-6">
                     <div class="card">
@@ -327,7 +322,6 @@
                 </div>
             </div>
 
-            <!-- Cập nhật lần cuối -->
             <div class="row mt-3">
                 <div class="col-12">
                     <small class="text-muted float-right">
@@ -341,9 +335,7 @@
         </div>
     </section>
 
-    <!-- JavaScript để xử lý biểu đồ -->
     <script th:inline="javascript">
-        // Truyền dữ liệu từ server xuống JavaScript
         window.dashboardData = {
             userRegistrationChart: /*[[${userRegistrationChart}]]*/ [],
             eventCreationChart: /*[[${eventCreationChart}]]*/ [],

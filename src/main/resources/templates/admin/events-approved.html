@@ -5,16 +5,17 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">Event Management</h1>
+                    <h1 class="m-0">Approved Events</h1>
                     <p class="text-muted">
-                        <i class="fas fa-calendar-alt"></i>
-                        Manage all events in the system
+                        <i class="fas fa-check-circle text-success"></i>
+                        <span th:text="${totalItems != null ? totalItems : 0}">0</span> events have been approved
                     </p>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item"><a href="/admin/index">Home</a></li>
-                        <li class="breadcrumb-item active">Events</li>
+                        <li class="breadcrumb-item"><a href="/admin/events">Events</a></li>
+                        <li class="breadcrumb-item active">Approved</li>
                     </ol>
                 </div>
             </div>
@@ -29,93 +30,94 @@
                 <span th:text="${error}"></span>
             </div>
 
-            <!-- Event Statistics Cards -->
-            <div class="row">
-                <div class="col-lg-3 col-6">
-                    <div class="small-box bg-warning">
-                        <div class="inner">
-                            <h3 th:text="${pendingEvents != null ? pendingEvents : 0}">0</h3>
-                            <p>Pending Review</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <a href="/admin/events/pending" class="small-box-footer">
-                            More info <i class="fas fa-arrow-circle-right"></i>
-                        </a>
-                    </div>
-                </div>
+            <div th:if="${success}" class="alert alert-success alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                <h5><i class="icon fas fa-check"></i> Success!</h5>
+                <span th:text="${success}"></span>
+            </div>
+
+            <div class="row mb-4">
                 <div class="col-lg-3 col-6">
                     <div class="small-box bg-success">
                         <div class="inner">
-                            <h3 th:text="${approveEvents != null ? approveEvents : 0}">0</h3>
-                            <p>Approved Events</p>
+                            <h3 th:text="${totalItems != null ? totalItems : 0}">0</h3>
+                            <p>Total Approved Events</p>
                         </div>
                         <div class="icon">
                             <i class="fas fa-check-circle"></i>
                         </div>
-                        <a href="/admin/events/approved" class="small-box-footer">
-                            More info <i class="fas fa-arrow-circle-right"></i>
-                        </a>
+                        <div class="small-box-footer">
+                            <span>All approved events</span>
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6">
-                    <div class="small-box bg-danger">
+                    <div class="small-box bg-info">
                         <div class="inner">
-                            <h3 th:text="${rejectEvents != null ? rejectEvents : 0}">0</h3>
-                            <p>Rejected Events</p>
+                            <h3 id="upcomingCount">-</h3>
+                            <p>Upcoming Events</p>
                         </div>
                         <div class="icon">
-                            <i class="fas fa-times-circle"></i>
-                        </div>
-                        <a href="/admin/events/rejected" class="small-box-footer">
-                            More info <i class="fas fa-arrow-circle-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-6">
-                    <div class="small-box bg-primary">
-                        <div class="inner">
-                            <h3 th:text="${totalEvents != null ? totalEvents : 0}">0</h3>
-                            <p>Total Events</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-calendar"></i>
+                            <i class="fas fa-calendar-plus"></i>
                         </div>
                         <div class="small-box-footer">
-                            <span>All events in system</span>
+                            <span>Not started yet</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-warning">
+                        <div class="inner">
+                            <h3 id="ongoingCount">-</h3>
+                            <p>Currently Ongoing</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
+                        <div class="small-box-footer">
+                            <span>In progress now</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-secondary">
+                        <div class="inner">
+                            <h3 id="completedCount">-</h3>
+                            <p>Completed Events</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-flag-checkered"></i>
+                        </div>
+                        <div class="small-box-footer">
+                            <span>Successfully finished</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Quick Actions -->
             <div class="row mb-3">
                 <div class="col-md-12">
                     <div class="card">
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-3">
-                                    <a href="/admin/events/pending" class="btn btn-warning btn-block">
-                                        <i class="fas fa-clock"></i> Review Pending Events
-                                        <span class="badge badge-light ml-1" th:text="${pendingEvents}">0</span>
+                                    <a href="/admin/events/pending" class="btn btn-outline-warning btn-block">
+                                        <i class="fas fa-clock"></i> Pending Events
                                     </a>
                                 </div>
                                 <div class="col-md-3">
-                                    <a href="/admin/events/approved" class="btn btn-success btn-block">
-                                        <i class="fas fa-check-circle"></i> View Approved Events
-                                        <span class="badge badge-light ml-1" th:text="${approveEvents}">0</span>
+                                    <a href="/admin/events/approved" class="btn btn-success btn-block active">
+                                        <i class="fas fa-check-circle"></i> Approved Events
                                     </a>
                                 </div>
                                 <div class="col-md-3">
-                                    <a href="/admin/events/rejected" class="btn btn-danger btn-block">
-                                        <i class="fas fa-times-circle"></i> View Rejected Events
-                                        <span class="badge badge-light ml-1" th:text="${rejectEvents}">0</span>
+                                    <a href="/admin/events/rejected" class="btn btn-outline-danger btn-block">
+                                        <i class="fas fa-times-circle"></i> Rejected Events
                                     </a>
                                 </div>
                                 <div class="col-md-3">
-                                    <a href="/admin/reports" class="btn btn-info btn-block">
-                                        <i class="fas fa-chart-bar"></i> Event Reports
+                                    <a href="/admin/events" class="btn btn-outline-info btn-block">
+                                        <i class="fas fa-arrow-left"></i> Back to Events
                                     </a>
                                 </div>
                             </div>
@@ -124,11 +126,10 @@
                 </div>
             </div>
 
-            <!-- Search & Filter -->
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">
-                        <i class="fas fa-search"></i> Search & Filter Events
+                        <i class="fas fa-search"></i> Search & Filter Approved Events
                     </h3>
                     <div class="card-tools">
                         <button type="button" class="btn btn-tool" data-card-widget="collapse">
@@ -137,7 +138,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <form method="get" class="mb-3">
+                    <form method="get" class="mb-4">
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="form-group">
@@ -172,15 +173,12 @@
                             </div>
                             <div class="col-md-2">
                                 <div class="form-group">
-                                    <label><i class="fas fa-filter"></i> Status</label>
-                                    <select class="form-control" name="status">
-                                        <option value="all" th:selected="${selectedStatus == 'all' or selectedStatus == null}">All Status</option>
-                                        <option value="PENDING" th:selected="${selectedStatus == 'PENDING'}">Pending</option>
-                                        <option value="APPROVED" th:selected="${selectedStatus == 'APPROVED'}">Approved</option>
-                                        <option value="REJECTED" th:selected="${selectedStatus == 'REJECTED'}">Rejected</option>
-                                        <option value="CHANGE_REQUESTED" th:selected="${selectedStatus == 'CHANGE_REQUESTED'}">Change Requested</option>
-                                        <option value="FINISHED" th:selected="${selectedStatus == 'FINISHED'}">Finished</option>
-                                        <option value="CANCELLED" th:selected="${selectedStatus == 'CANCELLED'}">Cancelled</option>
+                                    <label><i class="fas fa-filter"></i> Event Status</label>
+                                    <select class="form-control" name="eventStatus">
+                                        <option value="all">All Status</option>
+                                        <option value="upcoming">Upcoming</option>
+                                        <option value="ongoing">Currently Ongoing</option>
+                                        <option value="completed">Completed</option>
                                     </select>
                                 </div>
                             </div>
@@ -189,10 +187,9 @@
                                     <label><i class="fas fa-sort"></i> Sort By</label>
                                     <select class="form-control" name="sortBy">
                                         <option value="startDate" th:selected="${sortBy == 'startDate'}">Event Date</option>
-                                        <option value="submitAt" th:selected="${sortBy == 'submitAt'}">Submit Date</option>
+                                        <option value="submitAt" th:selected="${sortBy == 'submitAt'}">Approval Date</option>
                                         <option value="title" th:selected="${sortBy == 'title'}">Event Name</option>
                                         <option value="category" th:selected="${sortBy == 'category'}">Category</option>
-                                        <option value="status" th:selected="${sortBy == 'status'}">Status</option>
                                         <option value="organizerName" th:selected="${sortBy == 'organizerName'}">Organizer</option>
                                     </select>
                                 </div>
@@ -204,7 +201,7 @@
                                         <button type="submit" class="btn btn-primary btn-sm">
                                             <i class="fas fa-search"></i>
                                         </button>
-                                        <a href="/admin/events" class="btn btn-secondary btn-sm">
+                                        <a href="/admin/events/approved" class="btn btn-secondary btn-sm">
                                             <i class="fas fa-times"></i>
                                         </a>
                                     </div>
@@ -212,21 +209,43 @@
                             </div>
                         </div>
                     </form>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                Showing <strong th:text="${events != null ? events.size() : 0}">0</strong> of
+                                <strong th:text="${totalItems != null ? totalItems : 0}">0</strong> approved events
+                                <span th:if="${keyword != null and !keyword.isEmpty()}">(filtered by: "<span th:text="${keyword}"></span>")</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="float-right">
+                                <div class="btn-group">
+                                    <button class="btn btn-outline-info btn-sm" onclick="exportToExcel()">
+                                        <i class="fas fa-file-excel"></i> Export Excel
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="location.reload()">
+                                        <i class="fas fa-sync-alt"></i> Refresh
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Events List -->
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">
-                        <i class="fas fa-list"></i> All Events
-                        <span class="badge badge-info" th:text="${events != null ? events.size() : 0}">0</span>
+                        <i class="fas fa-list"></i> Approved Events List
+                        <span class="badge badge-success" th:text="${events != null ? events.size() : 0}">0</span>
                     </h3>
                     <div class="card-tools">
                         <div class="input-group input-group-sm" style="width: 150px;">
                             <select class="form-control" onchange="changePageSize(this.value)">
                                 <option value="10" th:selected="${pageSize == 10}">10 items/page</option>
-                                <option value="20" th:selected="${pageSize == 20}">20 items/page</option>
+                                <option value="25" th:selected="${pageSize == 25}">25 items/page</option>
                                 <option value="50" th:selected="${pageSize == 50}">50 items/page</option>
                                 <option value="100" th:selected="${pageSize == 100}">100 items/page</option>
                             </select>
@@ -236,25 +255,54 @@
                 <div class="card-body table-responsive p-0">
                     <div th:if="${events == null || events.isEmpty()}" class="text-center py-5">
                         <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No events found</h5>
+                        <h5 class="text-muted">No approved events found</h5>
                         <p class="text-muted">
                             <span th:if="${keyword != null and !keyword.isEmpty()}">Try searching with different keywords or</span>
-                            <a href="/admin/events" class="text-info">clear filters</a>
+                            <a href="/admin/events/approved" class="text-info">clear filters</a>
                         </p>
                     </div>
-
 
                     <table th:unless="${events == null || events.isEmpty()}" class="table table-hover text-nowrap">
                         <thead class="thead-light">
                         <tr>
                             <th style="width: 5%">#</th>
-                            <th style="width: 25%">Event Name</th>
-                            <th style="width: 12%">Category</th>
-                            <th style="width: 15%">Organizer</th>
-                            <th style="width: 12%">Event Date</th>
-                            <th style="width: 8%">Seats</th>
-                            <th style="width: 10%">Status</th>
-                            <th style="width: 13%">Actions</th>
+                            <th style="width: 25%">
+                                <i class="fas fa-calendar-alt"></i> Event Name
+                                <a th:href="@{/admin/events/approved(keyword=${keyword}, category=${selectedCategory}, organizerName=${organizerName}, sortBy='title', sortDirection=${sortBy == 'title' and sortDirection == 'asc' ? 'desc' : 'asc'}, page=${currentPage}, size=${pageSize})}"
+                                   class="text-decoration-none">
+                                    <i th:class="${sortBy == 'title' and sortDirection == 'asc'} ? 'fas fa-sort-up' : (${sortBy == 'title' and sortDirection == 'desc'} ? 'fas fa-sort-down' : 'fas fa-sort')"></i>
+                                </a>
+                            </th>
+                            <th style="width: 12%">
+                                <i class="fas fa-tags"></i> Category
+                                <a th:href="@{/admin/events/approved(keyword=${keyword}, category=${selectedCategory}, organizerName=${organizerName}, sortBy='category', sortDirection=${sortBy == 'category' and sortDirection == 'asc' ? 'desc' : 'asc'}, page=${currentPage}, size=${pageSize})}"
+                                   class="text-decoration-none">
+                                    <i th:class="${sortBy == 'category' and sortDirection == 'asc'} ? 'fas fa-sort-up' : (${sortBy == 'category' and sortDirection == 'desc'} ? 'fas fa-sort-down' : 'fas fa-sort')"></i>
+                                </a>
+                            </th>
+                            <th style="width: 15%">
+                                <i class="fas fa-user"></i> Organizer
+                                <a th:href="@{/admin/events/approved(keyword=${keyword}, category=${selectedCategory}, organizerName=${organizerName}, sortBy='organizerName', sortDirection=${sortBy == 'organizerName' and sortDirection == 'asc' ? 'desc' : 'asc'}, page=${currentPage}, size=${pageSize})}"
+                                   class="text-decoration-none">
+                                    <i th:class="${sortBy == 'organizerName' and sortDirection == 'asc'} ? 'fas fa-sort-up' : (${sortBy == 'organizerName' and sortDirection == 'desc'} ? 'fas fa-sort-down' : 'fas fa-sort')"></i>
+                                </a>
+                            </th>
+                            <th style="width: 12%">
+                                <i class="fas fa-clock"></i> Start Date
+                                <a th:href="@{/admin/events/approved(keyword=${keyword}, category=${selectedCategory}, organizerName=${organizerName}, sortBy='startDate', sortDirection=${sortBy == 'startDate' and sortDirection == 'asc' ? 'desc' : 'asc'}, page=${currentPage}, size=${pageSize})}"
+                                   class="text-decoration-none">
+                                    <i th:class="${sortBy == 'startDate' and sortDirection == 'asc'} ? 'fas fa-sort-up' : (${sortBy == 'startDate' and sortDirection == 'desc'} ? 'fas fa-sort-down' : 'fas fa-sort')"></i>
+                                </a>
+                            </th>
+                            <th style="width: 10%">
+                                <i class="fas fa-users"></i> Registration
+                            </th>
+                            <th style="width: 8%">
+                                <i class="fas fa-info-circle"></i> Status
+                            </th>
+                            <th style="width: 13%">
+                                <i class="fas fa-cogs"></i> Actions
+                            </th>
                         </tr>
                         </thead>
                         <tbody>
@@ -268,7 +316,7 @@
                                          class="img-circle elevation-2 mr-2"
                                          style="width: 30px; height: 30px; object-fit: cover;">
                                     <i th:unless="${event.imageUrl != null and !event.imageUrl.isEmpty()}"
-                                       class="fas fa-calendar-alt fa-lg text-muted mr-2"></i>
+                                       class="fas fa-calendar-alt fa-2x text-muted mr-2"></i>
                                     <div>
                                         <strong th:text="${event.title}">Event Name</strong>
                                         <br>
@@ -306,9 +354,28 @@
                                 <span th:unless="${event.totalSeats != null and event.seatsBooked != null}" class="text-muted">-</span>
                             </td>
                             <td class="text-center">
-                                <span th:class="'badge badge-' + ${event.statusColor}" th:text="${event.statusDisplay}">Status</span>
-                                <br>
-                                <small class="text-muted" th:if="${event.submitAt != null}" th:text="${#temporals.format(event.submitAt, 'dd/MM/yyyy')}">Date</small>
+                                <div th:if="${event.startDate != null and event.endDate != null}">
+                                        <span th:if="${#temporals.createNow().isBefore(event.startDate)}"
+                                              class="badge badge-info"
+                                              data-toggle="tooltip"
+                                              title="Upcoming event">
+                                            <i class="fas fa-calendar-plus"></i> Upcoming
+                                        </span>
+                                    <span th:if="${!#temporals.createNow().isBefore(event.startDate) and #temporals.createNow().isBefore(event.endDate)}"
+                                          class="badge badge-warning"
+                                          data-toggle="tooltip"
+                                          title="Currently ongoing">
+                                            <i class="fas fa-play-circle"></i> Ongoing
+                                        </span>
+                                    <span th:if="${!#temporals.createNow().isBefore(event.endDate)}"
+                                          class="badge badge-secondary"
+                                          data-toggle="tooltip"
+                                          title="Event completed">
+                                            <i class="fas fa-flag-checkered"></i> Completed
+                                        </span>
+                                </div>
+                                <span th:unless="${event.startDate != null and event.endDate != null}"
+                                      class="badge badge-light">Not defined</span>
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
@@ -318,60 +385,20 @@
                                        title="View details">
                                         <i class="fas fa-eye"></i>
                                     </a>
-
-                                    <!-- Pending events actions -->
-                                    <div th:if="${event.status.name() == 'PENDING'}" class="btn-group" role="group">
-                                        <button type="button"
-                                                class="btn btn-success btn-sm"
-                                                data-toggle="tooltip"
-                                                title="Approve event"
-                                                th:onclick="'approveEvent(' + ${event.eventModelId} + ', \'' + ${event.title} + '\')'">
-                                            <i class="fas fa-check"></i>
-                                        </button>
-                                        <button type="button"
-                                                class="btn btn-warning btn-sm"
-                                                data-toggle="tooltip"
-                                                title="Request changes"
-                                                th:onclick="'requestChange(' + ${event.eventModelId} + ', \'' + ${event.title} + '\')'">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button type="button"
-                                                class="btn btn-danger btn-sm"
-                                                data-toggle="tooltip"
-                                                title="Reject event"
-                                                th:onclick="'rejectEvent(' + ${event.eventModelId} + ', \'' + ${event.title} + '\')'">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </div>
-
-                                    <!-- Approved events actions -->
-                                    <div th:if="${event.status.name() == 'APPROVED'}" class="btn-group" role="group">
-                                        <button type="button"
-                                                class="btn btn-success btn-sm"
-                                                data-toggle="tooltip"
-                                                title="View registrations"
-                                                th:onclick="'viewRegistrations(' + ${event.eventId} + ')'">
-                                            <i class="fas fa-users"></i>
-                                        </button>
-                                        <button type="button"
-                                                class="btn btn-warning btn-sm"
-                                                data-toggle="tooltip"
-                                                title="Request changes"
-                                                th:onclick="'requestChange(' + ${event.eventModelId} + ', \'' + ${event.title} + '\')'">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                    </div>
-
-                                    <!-- Other status actions -->
-                                    <div th:if="${event.status.name() == 'REJECTED' or event.status.name() == 'CHANGE_REQUESTED'}" class="btn-group" role="group">
-                                        <button type="button"
-                                                class="btn btn-success btn-sm"
-                                                data-toggle="tooltip"
-                                                title="Approve event"
-                                                th:onclick="'approveEvent(' + ${event.eventModelId} + ', \'' + ${event.title} + '\')'">
-                                            <i class="fas fa-check"></i>
-                                        </button>
-                                    </div>
+                                    <button type="button"
+                                            class="btn btn-success btn-sm"
+                                            data-toggle="tooltip"
+                                            title="View registrations"
+                                            th:onclick="'viewRegistrations(' + ${event.eventId} + ')'">
+                                        <i class="fas fa-users"></i>
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-warning btn-sm"
+                                            data-toggle="tooltip"
+                                            title="Request changes"
+                                            th:onclick="'requestEventChange(' + ${event.eventModelId} + ', \'' + ${event.title} + '\')'">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -379,7 +406,6 @@
                     </table>
                 </div>
 
-                <!-- Pagination -->
                 <div class="card-footer" th:if="${totalPages != null and totalPages > 1}">
                     <div class="row align-items-center">
                         <div class="col-sm-12 col-md-5">
@@ -395,7 +421,7 @@
                                     <li th:class="${currentPage == 0 ? 'page-item disabled' : 'page-item'}">
                                         <a th:unless="${currentPage == 0}"
                                            class="page-link"
-                                           th:href="@{/admin/events(keyword=${keyword}, category=${selectedCategory}, organizerName=${organizerName}, status=${selectedStatus}, sortBy=${sortBy}, sortDirection=${sortDirection}, page=${currentPage - 1}, size=${pageSize})}">
+                                           th:href="@{/admin/events/approved(keyword=${keyword}, category=${selectedCategory}, organizerName=${organizerName}, sortBy=${sortBy}, sortDirection=${sortDirection}, page=${currentPage - 1}, size=${pageSize})}">
                                             Previous
                                         </a>
                                         <span th:if="${currentPage == 0}" class="page-link">Previous</span>
@@ -405,14 +431,14 @@
                                         th:class="${i == currentPage ? 'page-item active' : 'page-item'}"
                                         th:if="${i >= (currentPage - 2) and i <= (currentPage + 2)}">
                                         <a class="page-link"
-                                           th:href="@{/admin/events(keyword=${keyword}, category=${selectedCategory}, organizerName=${organizerName}, status=${selectedStatus}, sortBy=${sortBy}, sortDirection=${sortDirection}, page=${i}, size=${pageSize})}"
+                                           th:href="@{/admin/events/approved(keyword=${keyword}, category=${selectedCategory}, organizerName=${organizerName}, sortBy=${sortBy}, sortDirection=${sortDirection}, page=${i}, size=${pageSize})}"
                                            th:text="${i + 1}"></a>
                                     </li>
 
                                     <li th:class="${(currentPage + 1) >= totalPages ? 'page-item disabled' : 'page-item'}">
                                         <a th:unless="${(currentPage + 1) >= totalPages}"
                                            class="page-link"
-                                           th:href="@{/admin/events(keyword=${keyword}, category=${selectedCategory}, organizerName=${organizerName}, status=${selectedStatus}, sortBy=${sortBy}, sortDirection=${sortDirection}, page=${currentPage + 1}, size=${pageSize})}">
+                                           th:href="@{/admin/events/approved(keyword=${keyword}, category=${selectedCategory}, organizerName=${organizerName}, sortBy=${sortBy}, sortDirection=${sortDirection}, page=${currentPage + 1}, size=${pageSize})}">
                                             Next
                                         </a>
                                         <span th:if="${(currentPage + 1) >= totalPages}" class="page-link">Next</span>
@@ -426,7 +452,35 @@
         </div>
     </section>
 
-    <script>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const events = /*[[${events}]]*/ [];
+            const now = new Date();
+
+            let upcomingCount = 0;
+            let ongoingCount = 0;
+            let completedCount = 0;
+
+            events.forEach(function(event) {
+                if (event.startDate && event.endDate) {
+                    const startDate = new Date(event.startDate);
+                    const endDate = new Date(event.endDate);
+
+                    if (now < startDate) {
+                        upcomingCount++;
+                    } else if (now >= startDate && now <= endDate) {
+                        ongoingCount++;
+                    } else {
+                        completedCount++;
+                    }
+                }
+            });
+
+            document.getElementById('upcomingCount').textContent = upcomingCount;
+            document.getElementById('ongoingCount').textContent = ongoingCount;
+            document.getElementById('completedCount').textContent = completedCount;
+        });
+
         function changePageSize(newSize) {
             const url = new URL(window.location);
             url.searchParams.set('size', newSize);
@@ -434,31 +488,34 @@
             window.location.href = url.toString();
         }
 
-        function approveEvent(eventModelId, eventTitle) {
-            if (confirm('Approve event "' + eventTitle + '"?')) {
-                // Implement approval logic
-                window.location.href = '/admin/events/' + eventModelId + '?action=approve';
-            }
-        }
-
-        function rejectEvent(eventModelId, eventTitle) {
-            if (confirm('Reject event "' + eventTitle + '"?')) {
-                // Implement rejection logic
-                window.location.href = '/admin/events/' + eventModelId + '?action=reject';
-            }
-        }
-
-        function requestChange(eventModelId, eventTitle) {
-            if (confirm('Request changes for "' + eventTitle + '"?')) {
-                // Implement request change logic
-                window.location.href = '/admin/events/' + eventModelId + '?action=request-change';
-            }
-        }
-
         function viewRegistrations(eventId) {
             window.open('/admin/events/' + eventId + '/registrations', '_blank');
         }
 
+        function viewFeedback(eventId) {
+            window.open('/admin/events/' + eventId + '/feedback', '_blank');
+        }
+
+        function requestEventChange(eventModelId, eventTitle) {
+            if (confirm('Request changes for "' + eventTitle + '"?\n\nThis will notify the event organizer.')) {
+                window.location.href = '/admin/events/' + eventModelId + '?action=request-change';
+            }
+        }
+
+        function duplicateEvent(eventId) {
+            if (confirm('Create a duplicate of this event?')) {
+                window.location.href = '/admin/events/duplicate/' + eventId;
+            }
+        }
+
+        function exportToExcel() {
+            const url = new URL(window.location);
+            url.pathname = '/admin/events/approved/export';
+            window.open(url.toString(), '_blank');
+        }
+    </script>
+
+    <script>
         $(document).ready(function() {
             $('[data-toggle="tooltip"]').tooltip();
         });
