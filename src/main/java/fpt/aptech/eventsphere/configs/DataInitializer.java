@@ -4,6 +4,7 @@ import fpt.aptech.eventsphere.models.*;
 import fpt.aptech.eventsphere.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +22,7 @@ public class DataInitializer implements CommandLineRunner {
     private final VenueRepository venueRepository;
     private final NotificationRepository notificationRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public void run(String... args) throws Exception {
@@ -47,6 +49,12 @@ public class DataInitializer implements CommandLineRunner {
         // Initialize events
         System.out.println("Initializing events...");
         initializeEvents();
+
+        jdbcTemplate.execute("ALTER TABLE events ADD COLUMN IF NOT EXISTS reminder_sent BOOLEAN");
+        jdbcTemplate.execute("UPDATE events SET reminder_sent = FALSE WHERE reminder_sent IS NULL");
+        jdbcTemplate.execute("ALTER TABLE events ALTER COLUMN reminder_sent SET NOT NULL");
+        jdbcTemplate.execute("ALTER TABLE events ALTER COLUMN reminder_sent SET DEFAULT FALSE");
+
         System.out.println("===== Data Initialization Complete =====\n");
     }
 
@@ -339,6 +347,7 @@ public class DataInitializer implements CommandLineRunner {
         event.setEndDate(endDate);
         event.setVenue(venue);
         event.setOrganizer(organizer);
+        event.setReminderSent(false);
 
         // Create and set event seating
         EventSeating seating = new EventSeating();

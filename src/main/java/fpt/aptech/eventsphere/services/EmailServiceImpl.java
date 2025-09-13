@@ -22,6 +22,14 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+import org.springframework.mail.javamail.JavaMailSender;
+
+import java.util.List;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
@@ -35,6 +43,8 @@ public class EmailServiceImpl implements EmailService {
     private static final String APPLICATION_NAME = "EventSphere";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private final OAuth2AuthorizedClientService authorizedClientService;
+    @Autowired
+    private JavaMailSender mailSender;
 
     @Override
     public void sendEmail(String to, String subject, String body) throws Exception {
@@ -48,7 +58,7 @@ public class EmailServiceImpl implements EmailService {
 
         OAuth2AccessToken oauth2AccessToken = client.getAccessToken();
         NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-        
+
         // Create a credential with the access token
         Credential credential = new GoogleCredential()
             .setAccessToken(oauth2AccessToken.getTokenValue());
@@ -74,7 +84,7 @@ public class EmailServiceImpl implements EmailService {
             mimeMessage.setFrom(new InternetAddress("noreply@eventsphere.com", "EventSphere"));
             mimeMessage.addRecipient(jakarta.mail.Message.RecipientType.TO, new InternetAddress(to));
             mimeMessage.setSubject(subject);
-            
+
             // Set content as HTML
             mimeMessage.setContent(body, "text/html; charset=utf-8");
         } catch (java.io.UnsupportedEncodingException e) {
@@ -93,5 +103,34 @@ public class EmailServiceImpl implements EmailService {
         Message message = new Message();
         message.setRaw(encodedEmail);
         return message;
+    }
+
+    @Override
+    public void sendEmailToUsers(List<String> recipients, String subject, String body) {
+        for (String recipient : recipients) {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(recipient);
+            message.setSubject(subject);
+            message.setText(body);
+            mailSender.send(message);
+        }
+    }
+
+    @Override
+    public void sendEmailWithAttachment(List<String> recipients, String subject, String body, byte[] attachment, String attachmentName) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+            helper.setFrom("abc@example.com");
+            helper.setTo(recipients.toArray(new String[0]));
+            helper.setSubject(subject);
+            helper.setText(body);
+            helper.addAttachment(attachmentName, new ByteArrayResource(attachment));
+
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send email with attachment", e);
+        }
     }
 }

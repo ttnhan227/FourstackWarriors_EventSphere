@@ -85,7 +85,7 @@
                 <h1>Create Events</h1>
             </header>
             <section>
-                <form th:action="@{/organizer/create}" th:object="${event}" method="post">
+                <form th:action="@{/organizer/create}" th:object="${event}" method="post" enctype="multipart/form-data">
                     <div class="fields">
 
                         <!-- Full width -->
@@ -125,7 +125,12 @@
                             </div>
                         </div>
 
-                        <!-- Full width again -->
+                        <div class="field">
+                            <label for="image">Image</label>
+                            <input name="imageFile" id="image" type="file" accept="image/*"/>
+                            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+                        </div>
+
                         <div class="field">
                             <label for="venue">Venue</label>
                             <select th:field="*{venue.venueId}" id="venue">
