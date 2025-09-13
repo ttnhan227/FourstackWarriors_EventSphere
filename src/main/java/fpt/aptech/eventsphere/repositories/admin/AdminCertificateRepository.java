@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Repository
-public interface CertificateRepository extends JpaRepository<Certificates, Integer> {
+public interface AdminCertificateRepository extends JpaRepository<Certificates, Integer> {
     //
     long count();
 
