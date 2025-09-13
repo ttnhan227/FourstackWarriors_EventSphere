@@ -29,7 +29,7 @@ public class OrganizerServiceImpl implements OrganizerService {
     VenueRepository  venueRepository;
     UserRepository userRepository;
     @Autowired
-    EmailService emailService;
+    EmailServiceImpl emailServiceImpl;
     @Autowired
     public OrganizerServiceImpl(EventRepository eventRepository,
                                 EventSeatingRepository eventSeatingRepository,
@@ -80,7 +80,7 @@ public class OrganizerServiceImpl implements OrganizerService {
             String subject = "Event Created: " + savedEvent.getTitle();
             String body = "Your event has been successfully created. The QR code for the event details is attached.";
 
-            emailService.sendEmailWithAttachment(List.of(savedEvent.getOrganizer().getEmail()), subject, body, qrCode, "event_qr.png");
+            emailServiceImpl.sendEmailWithAttachment(List.of(savedEvent.getOrganizer().getEmail()), subject, body, qrCode, "event_qr.png");
             return savedEvent;
         } catch (IOException | WriterException e) {
             throw new RuntimeException("Failed to generate QR code or send email", e);
@@ -169,7 +169,7 @@ public class OrganizerServiceImpl implements OrganizerService {
                     venue.getAddress()
             );
 
-            emailService.sendEmailToUsers(emails, subject, body);
+            emailServiceImpl.sendEmailToUsers(emails, subject, body);
         }
 
         try {
@@ -178,7 +178,7 @@ public class OrganizerServiceImpl implements OrganizerService {
             String subject = "Update: Your Event " + existing.getTitle() + " Has Been Modified";
             String body = "The details for your event have been updated. A new QR code is attached.";
 
-            emailService.sendEmailWithAttachment(List.of(existing.getOrganizer().getEmail()), subject, body, qrCode, "updated_event_qr.png");
+            emailServiceImpl.sendEmailWithAttachment(List.of(existing.getOrganizer().getEmail()), subject, body, qrCode, "updated_event_qr.png");
         } catch (IOException | WriterException e) {
             throw new RuntimeException("Failed to generate QR code or send email for edit", e);
         }
