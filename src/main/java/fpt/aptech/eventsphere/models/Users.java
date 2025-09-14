@@ -61,6 +61,9 @@ public class Users {
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Registrations> registrations = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Bookmark> bookmarks = new ArrayList<>();
 
     // n-n với Roles
     @ManyToMany(fetch = FetchType.EAGER)

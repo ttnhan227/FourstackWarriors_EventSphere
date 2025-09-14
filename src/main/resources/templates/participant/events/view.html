@@ -178,8 +178,19 @@
                             <li>
                                 <a class="button icon solid fa-share" href="#">Share</a>
                             </li>
-                            <li>
-                                <a class="button icon solid fa-bookmark" href="#">Save</a>
+                            <li th:if="${#authorization.expression('isAuthenticated()')}">
+                                <form th:action="@{/participant/events/{eventId}/bookmark(eventId=${event.eventId})}" method="post" style="display: inline;">
+                                    <button type="submit" class="button icon" style="background: none; border: none; cursor: pointer; padding: 0 1.5em 0 1.35em; height: 2.75em; line-height: 2.75em;">
+                                        <i th:class="${isBookmarked} ? 'fas fa-bookmark' : 'far fa-bookmark'" style="margin-right: 0.5em;"></i>
+                                        <span th:text="${isBookmarked} ? 'Bookmarked' : 'Bookmark'"></span>
+                                    </button>
+                                </form>
+                            </li>
+                            <li th:unless="${#authorization.expression('isAuthenticated()')}">
+                                <a href="/auth/login" class="button icon">
+                                    <i class="far fa-bookmark" style="margin-right: 0.5em;"></i>
+                                    <span>Login to Bookmark</span>
+                                </a>
                             </li>
                         </ul>
 

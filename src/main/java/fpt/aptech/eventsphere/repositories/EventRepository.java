@@ -60,8 +60,11 @@ public interface EventRepository extends JpaRepository<Events, Integer> {
     @Query("SELECT e FROM Events e WHERE e.startDate >= CURRENT_DATE AND e.category = :category ORDER BY e.startDate")
     List<Events> findUpcomingEventsByCategory(@Param("category") String category);
 
-    @Query("SELECT e FROM Events e LEFT JOIN FETCH e.organizer LEFT JOIN FETCH e.venue WHERE e.eventId = :id")
-    Events findByIdWithOrganizerAndVenue(@Param("id") int id);
+    @Query("SELECT DISTINCT e FROM Events e " +
+            "JOIN FETCH e.organizer o " +
+            "LEFT JOIN FETCH e.venue v " +
+            "WHERE e.eventId = :id")
+    Events findByIdWithOrganizerAndVenue(@Param("id") Integer id);
 
     @Query("select r from Registrations r where r.event.eventId = :id")
     List<Registrations> findEventRegistrations(@Param("id") int id);

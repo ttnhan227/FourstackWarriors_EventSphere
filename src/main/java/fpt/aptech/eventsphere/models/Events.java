@@ -87,6 +87,9 @@ public class Events {
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     @Valid
     private List<Activity> activities = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Bookmark> bookmarks = new ArrayList<>();
 
     //set eventseating and set event
     public void setEventSeating(EventSeating eventSeating) {

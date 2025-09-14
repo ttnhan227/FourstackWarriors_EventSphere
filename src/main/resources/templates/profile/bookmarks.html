@@ -1,0 +1,122 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>My Bookmarks - EventSphere</title>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1, user-scalable=no" name="viewport"/>
+    <link rel="stylesheet" th:href="@{/css/home/main.css}"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+</head>
+<body class="is-preload">
+
+<!-- Wrapper -->
+<div id="wrapper">
+
+    <!-- Main -->
+    <div id="main">
+        <div class="inner">
+
+            <!-- Header -->
+            <header id="header">
+                <a class="logo" th:href="@{/}"><strong>EventSphere</strong> - My Bookmarks</a>
+            </header>
+
+            <!-- Back Button -->
+            <a class="button small icon solid fa-arrow-left" th:href="@{/participant/events/list}"
+               style="margin-bottom:1.5em;">
+                Back to Events
+            </a>
+
+            <!-- Bookmarked Events -->
+            <section>
+                <header class="major">
+                    <h2>My Bookmarked Events</h2>
+                </header>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div th:if="${bookmarks.empty}" class="box">
+                            <p>You haven't bookmarked any events yet.</p>
+                            <a href="/participant/events/list" class="button primary">Browse Events</a>
+                        </div>
+
+                        <div th:each="bookmark : ${bookmarks}" class="box" style="margin-bottom: 2em;">
+                            <div class="row">
+                                <div class="col-3">
+                                    <img th:src="${bookmark.event.imageUrl != null} ? ${bookmark.event.imageUrl} : '/images/events/event-placeholder.jpg'" 
+                                         alt="Event Image" style="width: 100%; height: auto; border-radius: 4px;"/>
+                                </div>
+                                <div class="col-9">
+                                    <h3>
+                                        <a th:href="@{/participant/events/{id}(id=${bookmark.event.eventId})}" 
+                                           th:text="${bookmark.event.title}"></a>
+                                    </h3>
+                                    <p>
+                                        <span class="icon solid fa-calendar-alt"></span>
+                                        <span th:text="${#temporals.format(bookmark.event.startDate, 'MMM d, yyyy h:mm a')}"></span>
+                                        -
+                                        <span th:text="${#temporals.format(bookmark.event.endDate, 'h:mm a')}"></span>
+                                    </p>
+                                    <p>
+                                        <span class="icon solid fa-map-marker-alt"></span>
+                                        <span th:if="${bookmark.event.venue != null}" 
+                                              th:text="${bookmark.event.venue.name}"></span>
+                                        <span th:if="${bookmark.event.venue == null}">Online Event</span>
+                                    </p>
+                                    <p>
+                                        <span class="icon solid fa-tag"></span>
+                                        <span th:text="${bookmark.event.category}"></span>
+                                    </p>
+                                    <div class="mt-2">
+                                        <a th:href="@{/participant/events/{id}(id=${bookmark.event.eventId})}" 
+                                           class="button small">View Details</a>
+                                        <form th:action="@{/participant/events/{eventId}/bookmark(eventId=${bookmark.event.eventId})}" 
+                                              method="post" style="display: inline-block; margin-left: 0.5em;">
+                                            <button type="submit" class="button small icon solid fa-trash-alt">
+                                                Remove
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div th:if="${totalPages > 1}" class="pagination">
+                            <span th:if="${currentPage > 0}">
+                                <a th:href="@{/participant/bookmarks(page=${currentPage - 1})}" class="button small">Previous</a>
+                            </span>
+                            <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                                <a th:if="${i != currentPage}" 
+                                   th:href="@{/participant/bookmarks(page=${i})}" 
+                                   class="button small">
+                                    <span th:text="${i + 1}"></span>
+                                </a>
+                                <span th:if="${i == currentPage}" class="page active">
+                                    <span th:text="${i + 1}" class="button primary small"></span>
+                                </span>
+                            </span>
+                            <span th:if="${currentPage < totalPages - 1}">
+                                <a th:href="@{/participant/bookmarks(page=${currentPage + 1})}" class="button small">Next</a>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div th:replace="~{layout/sidebar-layout :: sidebar}"></div>
+
+</div>
+
+<!-- Scripts -->
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/browser.min.js}"></script>
+<script th:src="@{/js/breakpoints.min.js}"></script>
+<script th:src="@{/js/util.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+
+</body>
+</html>

@@ -169,6 +169,18 @@
             </ul>
         </section>
 
+        <!-- Chatbot -->
+        <section id="chatbot" style="margin: 1.5em;">
+            <header class="major">
+                <h2>Chatbot</h2>
+            </header>
+            <div id="chat-window" style="height:200px; overflow-y:auto; background:#fff; border:1px solid #ccc; padding:10px; margin-bottom:10px;"></div>
+            <form id="chat-form" th:action="@{/chat}" method="post">
+                <input id="chat-input" name="message" type="text" placeholder="Type your message..." style="width:85%; padding:5px;" autocomplete="off"/>
+                <button type="submit" style="width:13%; padding:5px;">Send</button>
+            </form>
+        </section>
+
         <!-- Footer -->
         <footer id="footer">
             <p class="copyright">&copy; Untitled. All rights reserved. Demo Images: <a href="https://unsplash.com">Unsplash</a>.
@@ -184,5 +196,27 @@
 <script th:src="@{/js/breakpoints.min.js}"></script>
 <script th:src="@{/js/util.js}"></script>
 <script th:src="@{/js/main.js}"></script>
+<script>
+document.getElementById('chat-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var inputEl = document.getElementById('chat-input');
+    var message = inputEl.value.trim();
+    if (!message) return;
+    var chatWindow = document.getElementById('chat-window');
+    chatWindow.innerHTML += '<div class="user-msg"><strong>You:</strong> ' + message + '</div>';
+    inputEl.value = '';
+    fetch('/chat', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({message: message})
+    })
+    .then(response => response.json())
+    .then(data => {
+        chatWindow.innerHTML += '<div class="bot-msg"><strong>Bot:</strong> ' + data.response + '</div>';
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    })
+    .catch(function(err) { console.error(err); });
+});
+</script>
 </body>
 </html>
