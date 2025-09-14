@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">Event Feedback</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .star-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .star-rating input[type="radio"] {
+            display: none;
+        }
+        .star-rating label {
+            font-size: 2rem;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .star-rating input[type="radio"]:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: #ffc107;
+        }
+        .event-info {
+            background: #f8f9fa;
+            border-left: 4px solid #28a745;
+        }
+    </style>
+</head>
+<body>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-comments me-2"></i>
+                    <span th:text="${isEdit ? 'Edit Feedback' : 'Add Feedback'}"></span>
+                </h1>
+                <a href="/feedback" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="card event-info mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h4 class="card-title" th:text="${event.title}"></h4>
+                            <p class="card-text" th:text="${event.description}"></p>
+                            <small class="text-muted">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span th:text="${event.venue.name}"></span>
+                            </small>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="badge bg-success mb-2">Completed</div>
+                            <br>
+                            <small class="text-muted">
+                                <i class="fas fa-calendar"></i>
+                                <span th:text="${#temporals.format(event.endDate, 'dd/MM/yyyy')}"></span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <form th:action="${isEdit ? '/feedback/update/' + existingFeedback.feedbackId : '/feedback/submit'}" method="post" id="feedbackForm">
+                        <input type="hidden" name="eventId" th:value="${event.eventId}">
+
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-star text-warning"></i>
+                                <strong>Rating *</strong>
+                            </label>
+                            <div class="star-rating">
+                                <input type="radio" name="rating" value="5" id="star5" th:checked="${existingFeedback != null && existingFeedback.rating == 5}">
+                                <label for="star5"><i class="fas fa-star"></i></label>
+                                <input type="radio" name="rating" value="4" id="star4" th:checked="${existingFeedback != null && existingFeedback.rating == 4}">
+                                <label for="star4"><i class="fas fa-star"></i></label>
+                                <input type="radio" name="rating" value="3" id="star3" th:checked="${existingFeedback != null && existingFeedback.rating == 3}">
+                                <label for="star3"><i class="fas fa-star"></i></label>
+                                <input type="radio" name="rating" value="2" id="star2" th:checked="${existingFeedback != null && existingFeedback.rating == 2}">
+                                <label for="star2"><i class="fas fa-star"></i></label>
+                                <input type="radio" name="rating" value="1" id="star1" th:checked="${existingFeedback != null && existingFeedback.rating == 1}">
+                                <label for="star1"><i class="fas fa-star"></i></label>
+                                <span class="ms-3 text-muted" id="rating-text">Click to rate</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="comments" class="form-label">
+                                <i class="fas fa-comment"></i>
+                                <strong>Comments</strong>
+                            </label>
+                            <textarea class="form-control"
+                                      id="comments"
+                                      name="comments"
+                                      rows="5"
+                                      placeholder="Share your experience about this event..."
+                                      th:text="${existingFeedback != null ? existingFeedback.comments : ''}"></textarea>
+                            <div class="form-text">Optional: Tell us about your experience</div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="/feedback" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-paper-plane"></i>
+                                <span th:text="${isEdit ? 'Update Feedback' : 'Submit Feedback'}"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div th:if="${isEdit && existingFeedback}" class="mt-3">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle"></i>
+                    Last updated: <span th:text="${#temporals.format(existingFeedback.submittedOn, 'dd/MM/yyyy HH:mm')}"></span>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ratingInputs = document.querySelectorAll('input[name="rating"]');
+        const ratingText = document.getElementById('rating-text');
+        const form = document.getElementById('feedbackForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        const ratingTexts = {
+            '1': 'Poor - Very disappointed',
+            '2': 'Fair - Below expectations',
+            '3': 'Good - Met expectations',
+            '4': 'Very Good - Exceeded expectations',
+            '5': 'Excellent - Outstanding experience'
+        };
+
+        ratingInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                ratingText.textContent = ratingTexts[this.value];
+                ratingText.className = 'ms-3 text-warning fw-bold';
+            });
+        });
+
+        const checkedRating = document.querySelector('input[name="rating"]:checked');
+        if (checkedRating) {
+            ratingText.textContent = ratingTexts[checkedRating.value];
+            ratingText.className = 'ms-3 text-warning fw-bold';
+        }
+
+        form.addEventListener('submit', function(e) {
+            const selectedRating = document.querySelector('input[name="rating"]:checked');
+
+            if (!selectedRating) {
+                e.preventDefault();
+                alert('Please select a rating before submitting.');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        });
+    });
+</script>
+</body>
+</html>

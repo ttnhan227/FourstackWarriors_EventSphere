@@ -1,5 +1,6 @@
 package fpt.aptech.eventsphere.models;
 
+import fpt.aptech.eventsphere.validations.NoOffensiveLanguage;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -31,6 +32,7 @@ public class Feedback {
     private int rating;  // 1 to 5
 
     @Lob
+    @NoOffensiveLanguage
     @Column(name = "comments")
     private String comments;
 
