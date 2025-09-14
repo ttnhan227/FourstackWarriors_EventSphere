@@ -164,6 +164,11 @@
                                     <strong>Event Date:</strong><br>
                                     <span th:text="${#temporals.format(event.startDate, 'EEEE, MMMM d, yyyy hh:mm a')}"></span>
                                 </p>
+                                <p th:if="${event.host != null}">
+                                    <span class="icon solid fa-user-plus"></span>
+                                    <strong>Host:</strong><br>
+                                    <span th:text="${event.host.name}"></span>
+                                </p>
                             </div>
                             
                             <!-- Quick Actions -->

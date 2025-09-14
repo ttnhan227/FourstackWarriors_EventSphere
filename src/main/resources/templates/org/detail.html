@@ -282,6 +282,10 @@
                         <input type="text" th:field="*{endDate}" disabled/>
                         <label>Venue</label>
                         <input type="text" th:field="*{venue.name}" th:value="${event.venue.name}" disabled/>
+                        <div th:if="${event.host} != null">
+                            <label>Host</label>
+                            <input type="text" th:field="*{host.name}" th:value="${event.host.name}" disabled/>
+                        </div>
                         <!-- Seating fields -->
                         <label>Total Seats</label>
                         <input type="number" th:field="*{eventSeating.totalSeats}" disabled/>
