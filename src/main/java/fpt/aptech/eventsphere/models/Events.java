@@ -3,7 +3,6 @@ package fpt.aptech.eventsphere.models;
 import fpt.aptech.eventsphere.validations.ValidDateRange;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -50,6 +49,9 @@ public class Events {
     @NotNull(message = "please enter end date")
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime endDate;
+    
+    @Column(name = "certificate_fee", nullable = false, columnDefinition = "numeric(10,2) default 0.00")
+    private Double certificateFee = 0.00;
     @Column(name = "image_url", length = 512)
     private String imageUrl;
     @Enumerated(EnumType.STRING)

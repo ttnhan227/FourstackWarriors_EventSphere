@@ -1,13 +1,12 @@
 package fpt.aptech.eventsphere.services;
 
 import fpt.aptech.eventsphere.dto.CertificateDTO;
-import fpt.aptech.eventsphere.models.Events;
-import fpt.aptech.eventsphere.models.Users;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 public interface CertificateService {
     
@@ -15,13 +14,27 @@ public interface CertificateService {
      * Get all certificates for the current user
      * @return List of CertificateDTO objects
      */
-    List<CertificateDTO> getUserCertificates();
+    /**
+     * Get all certificates for a specific user
+     * @param userId The ID of the user
+     * @return List of CertificateDTO objects
+     */
+    List<CertificateDTO> getUserCertificates(Integer userId);
     
     /**
-     * Get all downloadable certificates for the current user
-     * @return List of downloadable CertificateDTO objects
+     * Get all available certificates that a user can generate
+     * @param userId The ID of the user
+     * @return List of available CertificateDTO objects
      */
-    List<CertificateDTO> getDownloadableCertificates();
+    List<CertificateDTO> getAvailableCertificates(Integer userId);
+    
+    /**
+     * Find a certificate by user ID and event ID
+     * @param userId The ID of the user
+     * @param eventId The ID of the event
+     * @return Optional containing the CertificateDTO if found
+     */
+    Optional<CertificateDTO> findByUserIdAndEventId(Integer userId, Integer eventId);
     
     /**
      * Download a certificate file
@@ -60,4 +73,11 @@ public interface CertificateService {
      * @return The certificate fee amount
      */
     Double getCertificateFee(Integer eventId);
+    
+    /**
+     * Marks a certificate as paid
+     * @param userId ID of the user who owns the certificate
+     * @param certificateId ID of the certificate to mark as paid
+     */
+    void markCertificateAsPaid(Integer userId, Integer certificateId);
 }

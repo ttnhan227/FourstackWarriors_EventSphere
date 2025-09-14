@@ -9,8 +9,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import fpt.aptech.eventsphere.repositories.CertificateRepository;
+
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -24,6 +27,7 @@ public class DataInitializer implements CommandLineRunner {
     private final NotificationRepository notificationRepository;
     private final PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbcTemplate;
+    private final CertificateRepository certificateRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -268,6 +272,13 @@ public class DataInitializer implements CommandLineRunner {
             );
             event5 = eventRepository.save(event5);
             System.out.println("Created 5 sample events");
+            
+            // Seed certificates for past events
+            if (event4 != null && event5 != null) {
+                System.out.println("Seeding certificates for past events...");
+                seedCertificatesForPastEvents(event4, event5);
+                System.out.println("Certificate seeding completed");
+            }
 
             // Get participant users for notifications
             System.out.println("Looking up participant users...");
@@ -351,6 +362,23 @@ public class DataInitializer implements CommandLineRunner {
         event.setVenue(venue);
         event.setOrganizer(organizer);
         event.setReminderSent(false);
+        
+        // Set certificate fee based on event type (example logic)
+        Double certificateFee = 0.0;
+        switch(category) {
+            case "TECH":
+                certificateFee = 19.99;
+                break;
+            case "WORKSHOP":
+                certificateFee = 29.99;
+                break;
+            case "BUSINESS":
+                certificateFee = 24.99;
+                break;
+            default:
+                certificateFee = 0.0; // Free for other types
+        }
+        event.setCertificateFee(certificateFee);
 
         // Create and set event seating
         EventSeating seating = new EventSeating();
@@ -388,6 +416,95 @@ public class DataInitializer implements CommandLineRunner {
         details.setAddress(address);
 
         return userDetailsRepository.save(details);
+    }
+
+    @Transactional
+    private void seedCertificatesForPastEvents(Events event1, Events event2) {
+        // Get all participant users
+        List<Users> participants = userRepository.findAll().stream()
+                .filter(user -> user.getRoles().stream()
+                        .anyMatch(role -> role.getRoleName().equals("PARTICIPANT")))
+                .collect(Collectors.toList());
+
+        if (participants.isEmpty()) {
+            System.out.println("No participant users found for certificate seeding");
+            return;
+        }
+
+        // Create certificates for event1 (Past Tech Meetup)
+        createCertificateForEvent(event1, participants.subList(0, Math.min(3, participants.size())), true);
+        
+        // Create certificates for event2 (Archived Webinar) - some paid, some unpaid
+        List<Users> webinarParticipants = participants.subList(
+            Math.min(1, participants.size() - 1),
+            Math.min(4, participants.size())
+        );
+
+        if (!webinarParticipants.isEmpty()) {
+            // Create paid certificates for the first half of participants
+            int midIndex = webinarParticipants.size() / 2;
+            List<Users> paidParticipants = webinarParticipants.subList(0, midIndex);
+            if (!paidParticipants.isEmpty()) {
+                createCertificateForEvent(event2, paidParticipants, true);
+            }
+
+            // Create unpaid certificates for the second half
+            List<Users> unpaidParticipants = webinarParticipants.subList(midIndex, webinarParticipants.size());
+            if (!unpaidParticipants.isEmpty()) {
+                createCertificateForEvent(event2, unpaidParticipants, false);
+            }
+        }
+    }
+
+    private void createCertificateForEvent(Events event, List<Users> participants, boolean markAsPaid) {
+        if (event == null || participants == null || participants.isEmpty()) {
+            return;
+        }
+        
+        Double certificateFee = event.getCertificateFee() != null ? event.getCertificateFee() : 0.0;
+        
+        for (Users participant : participants) {
+            if (participant == null) continue;
+            
+            try {
+                // Check if certificate already exists using the correct method
+                boolean exists = certificateRepository.existsByStudent_UserIdAndEvent_EventId(
+                    participant.getUserId(), 
+                    event.getEventId()
+                );
+                
+                if (exists) {
+                    System.out.println("Certificate already exists for user " + participant.getEmail() + " and event " + event.getTitle());
+                    continue;
+                }
+                
+                // Create new certificate
+                Certificates cert = new Certificates();
+                cert.setEvent(event);
+                cert.setStudent(participant);
+                cert.setIssuedOn(LocalDateTime.now().minusDays(5));
+                cert.setPaid(markAsPaid);
+                cert.setFeeAmount(certificateFee);
+                cert.setDownloadCount(0);
+                
+                // For demo purposes, set a sample certificate URL
+                if (markAsPaid) {
+                    cert.setCertificateUrl("/certificates/sample_certificate_" + event.getEventId() + "_" + participant.getUserId() + ".pdf");
+                } else {
+                    cert.setCertificateUrl(""); // Empty string instead of null since the field is non-null
+                }
+                
+                certificateRepository.save(cert);
+                System.out.println("Created certificate for " + participant.getEmail() + 
+                               " for event " + event.getTitle() + 
+                               " - Paid: " + markAsPaid + 
+                               " - Fee: " + cert.getFeeAmount());
+            } catch (Exception e) {
+                System.err.println("Error creating certificate for user " + participant.getEmail() + 
+                                " and event " + event.getTitle() + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
     }
 
     @Transactional

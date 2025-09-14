@@ -30,4 +30,13 @@ public class Certificates {
 
     @Column(name = "issued_on", nullable = false)
     private LocalDateTime issuedOn;
+
+    @Column(name = "is_paid", nullable = false)
+    private boolean isPaid = false;
+    
+    @Column(name = "fee_amount", nullable = false)
+    private Double feeAmount = 0.00;
+    
+    @Column(name = "download_count", nullable = false)
+    private Integer downloadCount = 0;
 }

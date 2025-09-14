@@ -1,49 +1,174 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<!DOCTYPE HTML>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>My Certificates</title>
+    <title>My Certificates - EventSphere</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1, user-scalable=no" name="viewport"/>
+    <link rel="stylesheet" th:href="@{/css/home/main.css}"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+    <style>
+        .flash-message {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 1em;
+        }
+
+        .certificate-card {
+            margin-bottom: 2em;
+        }
+
+        .certificate-card h3 {
+            margin: 0;
+        }
+
+        .certificate-card .actions {
+            margin-top: 1em;
+        }
+    </style>
 </head>
-<body>
-    <h1>My Certificates</h1>
-    
-    <!-- Success/Error Messages -->
-    <div th:if="${param.success}" class="alert alert-success">
-        Certificate generated successfully!
-    </div>
-    <div th:if="${param.error}" class="alert alert-danger">
-        Error: <span th:text="${param.error}"></span>
+<body class="is-preload">
+
+<!-- Wrapper -->
+<div id="wrapper">
+
+    <!-- Main -->
+    <div id="main">
+        <div class="inner">
+
+            <!-- Header -->
+            <header id="header">
+                <a class="logo" th:href="@{/}">
+                    <strong>EventSphere</strong> - Certificates
+                </a>
+            </header>
+
+            <!-- Content -->
+            <section>
+                <header class="major">
+                    <h2>My Certificates</h2>
+                </header>
+
+                <!-- Flash Messages -->
+                <div class="flash-message alert alert-success" th:if="${param.success}" role="alert">
+                    <i class="fas fa-check-circle"></i> Certificate generated successfully!
+                </div>
+                <div class="flash-message alert alert-success" th:if="${param.payment == 'success'}" role="alert">
+                    <i class="fas fa-check-circle"></i> Payment processed successfully! Your certificate is now available for download.
+                </div>
+                <div class="flash-message alert alert-warning" th:if="${param.error}" role="alert">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span th:text="${param.error}"></span>
+                </div>
+                <div class="flash-message alert alert-danger" th:if="${param.paymentError}" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span th:text="'Payment error: ' + ${param.paymentError}"></span>
+                </div>
+
+                <!-- Issued Certificates -->
+                <div class="table-responsive mb-5" th:if="${not #lists.isEmpty(certificates)}">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Event</th>
+                                <th>Issued On</th>
+                                <th>Status</th>
+                                <th>Fee</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="cert : ${certificates}" 
+                                th:class="${cert.paid} ? 'table-success' : ''">
+                                <td>
+                                    <h6 class="mb-0" th:text="${cert.eventName}"></h6>
+                                    <small class="text-muted" th:if="${cert.issuedOn}">
+                                        <i class="fas fa-calendar-check"></i>
+                                        <span th:text="${#temporals.format(cert.issuedOn, 'dd MMM yyyy')}"></span>
+                                    </small>
+                                </td>
+                                <td th:text="${#temporals.format(cert.issuedOn, 'dd MMM yyyy')}"></td>
+                                <td>
+                                    <span th:if="${cert.paid}" class="badge bg-success">Paid</span>
+                                    <span th:unless="${cert.paid}" class="badge bg-warning">Payment Pending</span>
+                                </td>
+                                <td>
+                                    <span th:if="${cert.feeAmount > 0}" th:text="'$' + ${#numbers.formatDecimal(cert.feeAmount, 1, 2)}"></span>
+                                    <span th:unless="${cert.feeAmount > 0}" class="text-muted">Free</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a th:if="${cert.paid && cert.certificateUrl != null}" 
+                                           th:href="@{/certificates/download/} + ${cert.certificateId}" 
+                                           class="btn btn-sm btn-success">
+                                            <i class="fas fa-download me-1"></i> Download
+                                        </a>
+                                        <a th:if="${!cert.paid && cert.feeAmount > 0}"
+                                           th:href="@{/certificates/generate/{eventId}(eventId=${cert.eventId})}" 
+                                           class="btn btn-sm btn-warning">
+                                            <i class="fas fa-money-bill-wave me-1"></i> Pay $<span th:text="${#numbers.formatDecimal(cert.feeAmount, 1, 2)}"></span>
+                                        </a>
+                                        <a th:if="${!cert.paid && (cert.feeAmount == null || cert.feeAmount == 0)}"
+                                           th:href="@{/certificates/generate/{eventId}(eventId=${cert.eventId})}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-certificate me-1"></i> Generate Free
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div th:unless="${not #lists.isEmpty(certificates)}">
+                    <p>You don't have any certificates yet.</p>
+                </div>
+
+                <!-- Available Certificates to Generate -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0">Available Certificates</h2>
+                    <a th:href="@{/certificates/available}" class="btn btn-outline-primary">
+                        <i class="fas fa-certificate me-2"></i> View All Available Certificates
+                    </a>
+                </div>
+                
+                <div class="row row-cols-1 row-cols-md-2 g-4 mb-5" th:if="${not #lists.isEmpty(availableCertificates)}">
+                    <div class="col" th:each="cert : ${#lists.subList(availableCertificates, 0, 4)}">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title" th:text="${cert.eventName}"></h5>
+                                <p class="card-text text-muted" th:if="${cert.feeAmount > 0}">
+                                    <i class="fas fa-tag me-2"></i>
+                                    Certificate Fee: $<span th:text="${#numbers.formatDecimal(cert.feeAmount, 1, 2)}"></span>
+                                </p>
+                                <p class="card-text text-muted" th:unless="${cert.feeAmount > 0}">
+                                    <i class="fas fa-tag me-2"></i>
+                                    No fee required
+                                </p>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a th:href="@{/certificates/generate/{id}(id=${cert.eventId})}" 
+                                   class="btn btn-primary w-100">
+                                    <i class="fas fa-certificate me-2"></i> Generate Certificate
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
     </div>
 
-    <!-- Certificates List -->
-    <div th:if="${not #lists.isEmpty(certificates)}">
-        <h2>Your Certificates</h2>
-        <table class="table">
-            <tr th:each="cert : ${certificates}">
-                <td th:text="${cert.eventName}"></td>
-                <td th:text="${#temporals.format(cert.issuedOn, 'dd/MM/yyyy')}"></td>
-                <td>
-                    <a th:href="@{/certificates/download/} + ${cert.certificateId}" 
-                       class="btn btn-primary">Download</a>
-                </td>
-            </tr>
-        </table>
-    </div>
-    <div th:unless="${not #lists.isEmpty(certificates)}">
-        <p>You don't have any certificates yet.</p>
-    </div>
+    <!-- Sidebar -->
+    <div th:replace="~{layout/sidebar-layout :: sidebar}"></div>
 
-    <!-- Available Certificates -->
-    <div th:if="${not #lists.isEmpty(availableCertificates)}">
-        <h2>Available Certificates</h2>
-        <table class="table">
-            <tr th:each="cert : ${availableCertificates}">
-                <td th:text="${cert.eventName}"></td>
-                <td>
-                    <a th:href="@{/certificates/generate/} + ${cert.eventId}" 
-                       class="btn btn-success">Generate Certificate</a>
-                </td>
-            </tr>
-        </table>
-    </div>
+</div>
+
+<!-- Scripts -->
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/browser.min.js}"></script>
+<script th:src="@{/js/breakpoints.min.js}"></script>
+<script th:src="@{/js/util.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+
 </body>
 </html>

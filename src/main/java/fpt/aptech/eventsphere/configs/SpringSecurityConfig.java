@@ -69,7 +69,8 @@ public class SpringSecurityConfig {
                                 "/auth/reset-password",
                                 "/login",
                                 "/oauth2/**",
-                                "/"
+                                "/",
+                                "/certificates/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
