@@ -31,6 +31,7 @@ public class Feedback {
     @Column(name = "rating", nullable = false)
     private int rating;  // 1 to 5
 
+    @Lob
     @NoOffensiveLanguage
     @Column(name = "comments")
     private String comments;

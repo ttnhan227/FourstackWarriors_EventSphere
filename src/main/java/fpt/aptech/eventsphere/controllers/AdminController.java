@@ -6,7 +6,6 @@ import fpt.aptech.eventsphere.models.Users;
 import fpt.aptech.eventsphere.repositories.admin.AdminFeedbackRepository;
 import fpt.aptech.eventsphere.repositories.admin.AdminUserRepository;
 import fpt.aptech.eventsphere.services.Admin.AdminDashboardService;
-import fpt.aptech.eventsphere.services.Admin.AdminFeedbackService;
 import fpt.aptech.eventsphere.services.Admin.EventManagementService;
 import fpt.aptech.eventsphere.services.Admin.UserManagementService;
 import lombok.extern.slf4j.Slf4j;
@@ -50,32 +49,34 @@ public class AdminController {
     @Autowired
     private UserManagementService userManagementService;
 
-    @Autowired
-    private final AdminFeedbackService adminFeedbackService;
-
     public AdminController(
             AdminDashboardService adminDashboardService,
             UserManagementService userManagementService,
             EventManagementService eventManagementService,
             AdminUserRepository adminUserRepository,
-            AdminFeedbackRepository adminFeedbackRepository,
-            AdminFeedbackService adminFeedbackService) {
+            AdminFeedbackRepository adminFeedbackRepository) {
         this.adminDashboardService = adminDashboardService;
         this.userManagementService = userManagementService;
         this.eventManagementService = eventManagementService;
         this.adminUserRepository = adminUserRepository;
         this.adminFeedbackRepository = adminFeedbackRepository;
-        this.adminFeedbackService = adminFeedbackService;
     }
 
     @GetMapping("/index")
     public String adminDashboard(Model model) {
         try {
             AdminDashboardDTO dashboardData = adminDashboardService.getDashboardData();
-            Map<String, Long> eventStats = eventManagementService.getEventStatistics();
+
+            // Debug log để kiểm tra dữ liệu
+            System.out.println("=== DEBUG DASHBOARD DATA ===");
+            System.out.println("Total Users: " + dashboardData.getTotalUsers());
+            System.out.println("Active Users: " + dashboardData.getActiveUsers());
+            System.out.println("Suspended Users: " + dashboardData.getSuspendedUsers());
+            System.out.println("New Users This Month: " + dashboardData.getNewUsersThisMonth());
 
             model.addAttribute("title", "Admin Dashboard");
             model.addAttribute("dashboard", dashboardData);
+
 
             // thống kê người dùng
             model.addAttribute("totalUsers", dashboardData.getTotalUsers());
@@ -85,10 +86,12 @@ public class AdminController {
             model.addAttribute("userGrowthRate", dashboardData.getUserGrowthRate());
 
             // thống kê sự kiện
-            model.addAttribute("totalEvents", eventStats.get("totalEvents"));
-            model.addAttribute("pendingEvents", eventStats.get("pendingEvents"));
-            model.addAttribute("approvedEvents", eventStats.get("approvedEvents"));
-            model.addAttribute("rejectedEvents", eventStats.get("rejectedEvents"));
+            model.addAttribute("totalEvents", dashboardData.getTotalEvents());
+            model.addAttribute("approvedEvents", dashboardData.getApprovedEvents());
+            model.addAttribute("pendingEvents", dashboardData.getPendingEvents());
+            model.addAttribute("rejectedEvents", dashboardData.getRejectedEvents());
+            model.addAttribute("eventsThisMonth", dashboardData.getEventsThisMonth());
+            model.addAttribute("eventGrowthRate", dashboardData.getEventGrowthRate());
 
             // phòng ban hiệu suất cao
             model.addAttribute("departmentDetails", dashboardData.getDepartmentDetails());
@@ -139,11 +142,13 @@ public class AdminController {
             Model model) {
 
         try {
+            // Create search request
             UserSearchRequestDTO searchRequest = new UserSearchRequestDTO();
             searchRequest.setKeyword(keyword);
             searchRequest.setDepartment(department);
             searchRequest.setRole(role);
 
+            // Handle status filter
             if ("active".equals(status)) {
                 searchRequest.setIsActive(true);
             } else if ("inactive".equals(status)) {
@@ -155,8 +160,10 @@ public class AdminController {
             searchRequest.setPage(page);
             searchRequest.setSize(size);
 
+            // Get paginated results
             Page<UserManagementDTO> usersPage = userManagementService.searchAndSortUsers(searchRequest);
 
+            // Get departments and roles for dropdowns
             List<String> departments = userManagementService.getAllDepartments();
             List<String> roles = userManagementService.getAllRoles();
 
@@ -165,12 +172,13 @@ public class AdminController {
             model.addAttribute("departments", departments);
             model.addAttribute("roles", roles);
 
-            // pagin
+            // Pagination info
             model.addAttribute("currentPage", page);
             model.addAttribute("totalPages", usersPage.getTotalPages());
             model.addAttribute("totalItems", usersPage.getTotalElements());
             model.addAttribute("pageSize", size);
 
+            // Search parameters for maintaining state
             model.addAttribute("keyword", keyword);
             model.addAttribute("selectedDepartment", department);
             model.addAttribute("selectedRole", role);
@@ -178,6 +186,7 @@ public class AdminController {
             model.addAttribute("sortBy", sortBy);
             model.addAttribute("sortDirection", sortDirection);
 
+            // Statistics
             model.addAttribute("totalUsers", userManagementService.getTotalUserCount());
             model.addAttribute("activeUsers", userManagementService.getActiveUserCount());
             model.addAttribute("inactiveUsers", userManagementService.getInactiveUserCount());
@@ -236,7 +245,6 @@ public class AdminController {
     @GetMapping("/feedback")
     public String feedbackManagement(Model model) {
         model.addAttribute("title", "Feedback Management");
-        model.addAttribute("listfeedback", adminFeedbackService.getAllFeedbacks());
         return "admin/feedback";
     }
 
@@ -253,11 +261,14 @@ public class AdminController {
             Model model) {
 
         try {
+            // Log incoming request
             log.info("Processing events request - page: {}, size: {}, keyword: '{}', category: '{}', organizerName: '{}', status: '{}', sortBy: '{}', sortDirection: '{}'",
                     page, size, keyword, category, organizerName, status, sortBy, sortDirection);
 
+            // Ensure sortBy has a default value
             String safeSortBy = (sortBy == null || sortBy.isEmpty()) ? "startDate" : sortBy;
 
+            // Create search request
             EventSearchRequestDTO searchRequest = new EventSearchRequestDTO();
             searchRequest.setPage(page);
             searchRequest.setSize(size);
@@ -268,10 +279,13 @@ public class AdminController {
             searchRequest.setSortBy(safeSortBy);
             searchRequest.setSortDirection(sortDirection);
 
+            // Get paginated events
             Page<EventManagementDTO> eventsPage = eventManagementService.searchAndSortEvents(searchRequest);
 
+            // Get event statistics
             Map<String, Long> eventStats = eventManagementService.getEventStatistics();
 
+            // Add attributes to model with default values
             model.addAttribute("title", "Event Management");
             model.addAttribute("events", eventsPage != null ? eventsPage.getContent() : List.of());
             model.addAttribute("currentPage", page);
@@ -279,6 +293,7 @@ public class AdminController {
             model.addAttribute("totalPages", eventsPage != null ? eventsPage.getTotalPages() : 1);
             model.addAttribute("pageSize", size > 0 ? size : 10);
 
+            // Add search parameters to model
             model.addAttribute("keyword", keyword);
             model.addAttribute("selectedCategory", category);
             model.addAttribute("organizerName", organizerName);
@@ -286,6 +301,7 @@ public class AdminController {
             model.addAttribute("sortBy", safeSortBy);
             model.addAttribute("sortDirection", sortDirection);
 
+            // Add statistics to model
             model.addAttribute("totalEvents", eventStats.get("totalEvents"));
             model.addAttribute("pendingEvents", eventStats.get("pendingEvents"));
             model.addAttribute("approvedEvents", eventStats.get("approvedEvents"));
@@ -390,8 +406,10 @@ public class AdminController {
             RedirectAttributes redirectAttributes) {
         
         try {
+            // Handle file upload if a new image is provided
             String imageUrl = handleFileUpload(imageFile);
             
+            // Update event details with the new image URL
             boolean success = eventManagementService.updateEventDetails(
                     id, title, description, category, startDate, endDate, imageUrl);
             
@@ -408,31 +426,40 @@ public class AdminController {
             return "redirect:/admin/events/" + id + "/edit";
         }
     }
-
+    
+    /**
+     * Handles file upload and returns the new filename if successful
+     */
     private String handleFileUpload(MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) {
             return null;
         }
         
+        // Clean and validate the filename
         String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
         if (originalFilename == null || originalFilename.isEmpty()) {
             throw new RuntimeException("Invalid file name");
         }
         
+        // Extract file extension
         String fileExtension = "";
         if (originalFilename.contains(".")) {
             fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
         }
         
+        // Generate a unique filename
         String newFilename = "event_" + System.currentTimeMillis() + fileExtension;
         
+        // Use the configured upload directory with 'events' subfolder
         Path uploadPath = Paths.get(uploadDir, "events");
         
+        // Validate file type
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new RuntimeException("Only image files are allowed");
         }
         
+        // Save the file
         Path filePath = uploadPath.resolve(newFilename);
         try (InputStream inputStream = file.getInputStream()) {
             Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
