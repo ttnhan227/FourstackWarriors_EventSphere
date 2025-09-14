@@ -14,13 +14,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
-import java.util.UUID;
 
 @Service
 public class PdfCertificateService {
 
     private static final BaseColor DARK_BLUE = new BaseColor(13, 71, 161);
-    private static final BaseColor LIGHT_BLUE = new BaseColor(227, 242, 253);
     private static final Font TITLE_FONT = new Font(Font.FontFamily.HELVETICA, 24, Font.BOLD, DARK_BLUE);
     private static final Font HEADER_FONT = new Font(Font.FontFamily.HELVETICA, 16, Font.NORMAL);
     private static final Font NAME_FONT = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD, DARK_BLUE);
@@ -98,69 +96,154 @@ public class PdfCertificateService {
     }
     
     private void addContent(Document document, Users user, Events event, Certificates certificate) throws DocumentException {
-        // Add "This is to certify that"
-        Paragraph p1 = new Paragraph("This is to certify that\n\n", HEADER_FONT);
-        p1.setAlignment(Element.ALIGN_CENTER);
-        document.add(p1);
+        // Add recipient name
+        Paragraph recipient = new Paragraph("This certificate is awarded to", HEADER_FONT);
+        recipient.setAlignment(Element.ALIGN_CENTER);
+        document.add(recipient);
         
-        // Add participant name
-        Paragraph name = new Paragraph(user.getEmail(), NAME_FONT);
+        // Add user's name (using email as identifier)
+        String userName = user.getEmail() != null ? user.getEmail() : "Participant";
+        Paragraph name = new Paragraph(userName, NAME_FONT);
         name.setAlignment(Element.ALIGN_CENTER);
-        name.setSpacingAfter(20);
+        name.setSpacingAfter(15);
         document.add(name);
         
-        // Add event details
-        Paragraph p2 = new Paragraph("has successfully participated in\n\n", HEADER_FONT);
-        p2.setAlignment(Element.ALIGN_CENTER);
-        document.add(p2);
+        // Add participation text
+        Paragraph participation = new Paragraph("has successfully participated in", HEADER_FONT);
+        participation.setAlignment(Element.ALIGN_CENTER);
+        participation.setSpacingAfter(15);
+        document.add(participation);
         
-        // Add event name
-        Paragraph eventName = new Paragraph(event.getTitle(), NAME_FONT);
-        eventName.setAlignment(Element.ALIGN_CENTER);
-        eventName.setSpacingAfter(20);
-        document.add(eventName);
+        // Add event title
+        String title = event.getTitle() != null ? event.getTitle() : "the event";
+        Paragraph eventTitle = new Paragraph("\"" + title + "\"", 
+            new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD, DARK_BLUE));
+        eventTitle.setAlignment(Element.ALIGN_CENTER);
+        eventTitle.setSpacingAfter(10);
+        document.add(eventTitle);
+        
+        // Add event details
+        Paragraph details = new Paragraph();
+        details.setAlignment(Element.ALIGN_CENTER);
         
         // Add event date
-        String eventDate = "held on " + event.getStartDate().format(DateTimeFormatter.ofPattern("MMMM d, yyyy")) + "\n\n";
-        Paragraph p3 = new Paragraph(eventDate, NORMAL_FONT);
-        p3.setAlignment(Element.ALIGN_CENTER);
-        document.add(p3);
+        if (event.getStartDate() != null) {
+            details.add(new Chunk("Held on: " + 
+                event.getStartDate().format(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy")), 
+                NORMAL_FONT));
+            details.add(Chunk.NEWLINE);
+        }
         
-        // Add certificate ID or temporary ID if certificate is null
-        String certIdText = certificate != null ? 
-            "Certificate ID: " + certificate.getCertificateId() : 
-            "Temporary Certificate ID: " + UUID.randomUUID().toString().substring(0, 8);
-        Paragraph certId = new Paragraph(certIdText, ITALIC_FONT);
-        certId.setAlignment(Element.ALIGN_CENTER);
-        document.add(certId);
+        // Add venue if available
+        if (event.getVenue() != null && event.getVenue().getName() != null) {
+            details.add(new Chunk("Venue: " + event.getVenue().getName(), NORMAL_FONT));
+            details.add(Chunk.NEWLINE);
+        }
+        
+        // Add organizer if available (using email as identifier)
+        if (event.getOrganizer() != null) {
+            String organizerName = event.getOrganizer().getEmail() != null ? 
+                event.getOrganizer().getEmail() : "Organizer";
+            details.add(new Chunk("Organized by: " + organizerName, NORMAL_FONT));
+            details.add(Chunk.NEWLINE);
+        }
+        
+        details.setSpacingAfter(30);
+        document.add(details);
+        
+        // Add signatures
+        addSignatures(document, event, certificate);
+    }
+    
+    private void addSignatures(Document document, Events event, Certificates certificate) throws DocumentException {
+        PdfPTable table = new PdfPTable(2);
+        table.setWidthPercentage(80);
+        table.setHorizontalAlignment(Element.ALIGN_CENTER);
+        table.setSpacingBefore(20);
+        
+        // Organizer signature
+        PdfPCell organizerCell = new PdfPCell();
+        organizerCell.setBorder(Rectangle.NO_BORDER);
+        organizerCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        
+        // Add signature line
+        Paragraph organizerLine = new Paragraph("________________________");
+        organizerLine.setAlignment(Element.ALIGN_CENTER);
+        organizerCell.addElement(organizerLine);
+        
+        // Add organizer name (using email as identifier)
+        if (event.getOrganizer() != null) {
+            String organizerName = event.getOrganizer().getEmail() != null ? 
+                event.getOrganizer().getEmail() : "Organizer";
+            Paragraph orgNamePara = new Paragraph(organizerName, NORMAL_FONT);
+            orgNamePara.setAlignment(Element.ALIGN_CENTER);
+            organizerCell.addElement(orgNamePara);
+        }
+        
+        // Add title
+        Paragraph organizerTitle = new Paragraph("Event Organizer", ITALIC_FONT);
+        organizerTitle.setAlignment(Element.ALIGN_CENTER);
+        organizerCell.addElement(organizerTitle);
+        
+        table.addCell(organizerCell);
+        
+        // Date
+        PdfPCell dateCell = new PdfPCell();
+        dateCell.setBorder(Rectangle.NO_BORDER);
+        dateCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        
+        // Add signature line
+        Paragraph dateLine = new Paragraph("________________________");
+        dateLine.setAlignment(Element.ALIGN_CENTER);
+        dateCell.addElement(dateLine);
+        
+        // Add date (use current date if issuedOn is null)
+        java.time.LocalDate issueDate = certificate != null && certificate.getIssuedOn() != null ? 
+            certificate.getIssuedOn().toLocalDate() : java.time.LocalDate.now();
+            
+        Paragraph date = new Paragraph(
+            issueDate.format(DateTimeFormatter.ofPattern("MMMM d, yyyy")), 
+            NORMAL_FONT);
+        date.setAlignment(Element.ALIGN_CENTER);
+        dateCell.addElement(date);
+        
+        // Add title
+        Paragraph dateTitle = new Paragraph("Date", ITALIC_FONT);
+        dateTitle.setAlignment(Element.ALIGN_CENTER);
+        dateCell.addElement(dateTitle);
+        
+        table.addCell(dateCell);
+        
+        document.add(table);
     }
     
     private void addFooter(Document document, Events event) throws DocumentException {
         // Add some space
         document.add(Chunk.NEWLINE);
         document.add(Chunk.NEWLINE);
-        document.add(Chunk.NEWLINE);
         
-        // Add signature line
-        Paragraph signatureLine = new Paragraph();
-        signatureLine.add(Chunk.NEWLINE);
-        signatureLine.add(new Chunk(new LineSeparator(1, 100, BaseColor.BLACK, Element.ALIGN_CENTER, 0)));
-        signatureLine.setAlignment(Element.ALIGN_CENTER);
-        document.add(signatureLine);
+        // Add certificate ID
+        if (event.getEventId() != 0) {
+            String title = event.getTitle() != null ? 
+                event.getTitle().replaceAll("\\s+", "-").toLowerCase() : "event";
+            String certId = String.format("Certificate ID: %s-%d", 
+                title,
+                event.getEventId());
+                
+            Paragraph idParagraph = new Paragraph(certId, 
+                new Font(Font.FontFamily.COURIER, 8, Font.ITALIC, BaseColor.GRAY));
+            idParagraph.setAlignment(Element.ALIGN_RIGHT);
+            document.add(idParagraph);
+        }
         
-        // Add signer name
-        String signerText = "Event Organizer\n" + event.getOrganizer().getEmail();
-        Paragraph signer = new Paragraph(signerText, NORMAL_FONT);
-        signer.setAlignment(Element.ALIGN_CENTER);
-        signer.setSpacingBefore(5);
-        document.add(signer);
-        
-        // Add date
-        String dateText = "Date: " + java.time.LocalDate.now().format(DateTimeFormatter.ofPattern("MMMM d, yyyy"));
-        Paragraph date = new Paragraph(dateText, ITALIC_FONT);
-        date.setAlignment(Element.ALIGN_RIGHT);
-        date.setSpacingBefore(30);
-        document.add(date);
+        // Add terms and conditions
+        Paragraph terms = new Paragraph(
+            "This certificate is issued as a recognition of participation. " +
+            "The authenticity of this certificate can be verified with the event organizers.",
+            new Font(Font.FontFamily.HELVETICA, 8, Font.ITALIC, BaseColor.GRAY));
+        terms.setAlignment(Element.ALIGN_CENTER);
+        terms.setSpacingBefore(20);
+        document.add(terms);
     }
     
     // Simple line separator implementation using iText's built-in LineSeparator

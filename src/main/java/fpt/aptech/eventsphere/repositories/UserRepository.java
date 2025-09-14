@@ -36,4 +36,7 @@ public interface UserRepository extends JpaRepository<Users, Integer> {
     List<Users> findByIsActiveFalse();
 
     List<Users> findByIsDeletedFalse();
+    
+    @Query("SELECT u FROM Users u WHERE u.userId = :userId")
+    Optional<Users> findById(@Param("userId") int userId);
 }

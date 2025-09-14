@@ -11,9 +11,16 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import fpt.aptech.eventsphere.exceptions.ProfilePictureUploadException;
+import fpt.aptech.eventsphere.models.Bookmark;
+import fpt.aptech.eventsphere.repositories.BookmarkRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.validation.Valid;
+import fpt.aptech.eventsphere.models.Users;
 
 @Controller
 @RequestMapping("/profile")
@@ -22,9 +29,12 @@ public class ProfileController {
     private static final Logger logger = LoggerFactory.getLogger(ProfileController.class);
     
     private final ProfileService profileService;
+    private final BookmarkRepository bookmarkRepository;
+    private static final int PAGE_SIZE = 10;
 
-    public ProfileController(ProfileService profileService) {
+    public ProfileController(ProfileService profileService, BookmarkRepository bookmarkRepository) {
         this.profileService = profileService;
+        this.bookmarkRepository = bookmarkRepository;
     }
 
     @GetMapping("")
@@ -87,6 +97,53 @@ public class ProfileController {
             logger.error("Error changing password", e);
             redirectAttributes.addFlashAttribute("error", "Error changing password: " + e.getMessage());
             return "redirect:/profile";
+        }
+    }
+
+    @GetMapping("/bookmarks")
+    public String viewBookmarks(
+            @AuthenticationPrincipal Users user,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            Model model) {
+        try {
+            Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+            Page<Bookmark> bookmarksPage = bookmarkRepository.findByUser(user, pageable);
+            
+            model.addAttribute("bookmarks", bookmarksPage.getContent());
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", bookmarksPage.getTotalPages());
+            
+            return "profile/bookmarks";
+            
+        } catch (Exception e) {
+            logger.error("Error loading bookmarks", e);
+            model.addAttribute("error", "Error loading bookmarks: " + e.getMessage());
+            return "error/error";
+        }
+    }
+    
+    @PostMapping("/bookmarks/remove/{bookmarkId}")
+    public String removeBookmark(
+            @PathVariable("bookmarkId") Long bookmarkId,
+            @AuthenticationPrincipal Users user,
+            RedirectAttributes redirectAttributes) {
+        try {
+            // Verify the bookmark belongs to the current user before deleting
+            bookmarkRepository.findById(bookmarkId).ifPresent(bookmark -> {
+                if (bookmark.getUser().getUserId() == user.getUserId()) {
+                    bookmarkRepository.delete(bookmark);
+                    redirectAttributes.addFlashAttribute("success", "Bookmark removed successfully");
+                } else {
+                    redirectAttributes.addFlashAttribute("error", "You don't have permission to remove this bookmark");
+                }
+            });
+            
+            return "redirect:/profile/bookmarks";
+            
+        } catch (Exception e) {
+            logger.error("Error removing bookmark", e);
+            redirectAttributes.addFlashAttribute("error", "Error removing bookmark: " + e.getMessage());
+            return "redirect:/profile/bookmarks";
         }
     }
 

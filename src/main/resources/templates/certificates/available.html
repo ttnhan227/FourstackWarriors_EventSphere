@@ -1,0 +1,181 @@
+<!DOCTYPE HTML>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Available Certificates</title>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1, user-scalable=no" name="viewport"/>
+    <link rel="stylesheet" th:href="@{/css/home/main.css}"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+    <style>
+        .flash-message {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 1em;
+        }
+
+        .certificate-card {
+            margin-bottom: 2em;
+        }
+
+        .certificate-card h3 {
+            margin: 0;
+        }
+
+        .certificate-card .actions {
+            margin-top: 1em;
+        }
+
+        .status-badge {
+            padding: 0.3em 0.6em;
+            border-radius: 5px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .status-paid {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status-pending {
+            background: #ff9800;
+            color: white;
+        }
+    </style>
+</head>
+<body class="is-preload">
+
+<!-- Wrapper -->
+<div id="wrapper">
+
+    <!-- Main -->
+    <div id="main">
+        <div class="inner">
+
+            <!-- Header -->
+            <header id="header">
+                <a class="logo" th:href="@{/}">
+                    <strong>EventSphere</strong> - Available Certificates
+                </a>
+                <a class="button small" style="margin-left: 1em;" th:href="@{/certificates}">
+                    <i class="fas fa-arrow-left"></i> Back to My Certificates
+                </a>
+            </header>
+
+            <!-- Content -->
+            <section>
+                <header class="major">
+                    <h2>Your Available Certificates</h2>
+                    <p class="text-muted" th:if="${totalFees > 0}">
+                        Total unpaid fees: $<span th:text="${#numbers.formatDecimal(totalFees, 1, 2)}"></span>
+                    </p>
+                </header>
+
+                <!-- Flash Messages -->
+                <div class="flash-message text-success" th:if="${param.success}">
+                    <i class="fas fa-check-circle"></i> Certificate generated successfully!
+                </div>
+                <div class="flash-message text-warning" th:if="${param.error}">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span th:text="${param.error}"></span>
+                </div>
+                <div class="flash-message text-success" th:if="${param.payment}">
+                    <i class="fas fa-credit-card"></i> Payment processed successfully! You can now download your
+                    certificate.
+                </div>
+                <div class="flash-message text-warning" th:if="${param.paymentError}">
+                    <i class="fas fa-exclamation-circle"></i>
+                    Payment error: <span th:text="${param.paymentError}"></span>
+                </div>
+
+                <!-- Certificates List -->
+                <div class="posts" th:if="${not #lists.isEmpty(availableCertificates)}">
+                    <article class="certificate-card" th:each="cert : ${availableCertificates}">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 th:text="${cert.eventName}">Event Name</h3>
+                            <span class="status-badge status-paid" th:if="${cert.paid}">Paid</span>
+                            <span class="status-badge status-pending" th:unless="${cert.paid}">Pending</span>
+                        </div>
+
+                        <p>
+                            <i class="far fa-calendar-check"></i>
+                            Issued on: <span th:text="${#temporals.format(cert.issuedOn, 'MMM dd, yyyy')}">Date</span>
+                        </p>
+                        <p>
+                            <i class="fas fa-dollar-sign"></i>
+                            <span th:if="${cert.feeAmount > 0}"
+                                  th:text="'$' + ${#numbers.formatDecimal(cert.feeAmount, 1, 2)}"></span>
+                            <span class="text-muted" th:unless="${cert.feeAmount > 0}">Free</span>
+                        </p>
+
+                        <!-- Actions -->
+                        <ul class="actions">
+                            <li>
+                                <a class="button primary"
+                                   th:href="@{/certificates/download/{id}(id=${cert.certificateId})}"
+                                   th:if="${cert.paid && cert.certificateUrl != null}">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                            </li>
+                            <li>
+                                <a class="button success"
+                                   th:href="@{/certificates/generate/{id}(id=${cert.eventId})}"
+                                   th:if="${!cert.paid && cert.feeAmount == 0}">
+                                    <i class="fas fa-certificate"></i> Generate
+                                </a>
+                            </li>
+                            <li>
+                                <button class="button"
+                                        onclick="payCertificateFee(this)"
+                                        th:data-certificate-id="${cert.certificateId}"
+                                        th:if="${!cert.paid && cert.feeAmount > 0}">
+                                    <i class="fas fa-credit-card"></i> Pay Now
+                                </button>
+                            </li>
+                        </ul>
+                    </article>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${#lists.isEmpty(availableCertificates)}">
+                    <p class="text-muted">No certificates available for download at this time.</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div th:replace="~{layout/sidebar-layout :: sidebar}"></div>
+
+</div>
+
+<!-- Scripts -->
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/browser.min.js}"></script>
+<script th:src="@{/js/breakpoints.min.js}"></script>
+<script th:src="@{/js/util.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+
+<!-- Payment Script -->
+<script th:inline="javascript">
+    function payCertificateFee(button) {
+        const certificateId = button.getAttribute('data-certificate-id');
+        if (confirm('Are you sure you want to proceed with the payment?')) {
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = '/certificates/' + certificateId + '/pay';
+
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = '_csrf';
+            csrf.value = /*[[${_csrf.token}]]*/ '';
+            form.appendChild(csrf);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
+
+</body>
+</html>

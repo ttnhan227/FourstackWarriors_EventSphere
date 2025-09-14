@@ -1483,6 +1483,18 @@ input[type="submit"],
 input[type="reset"],
 input[type="button"],
 button,
+/* Bookmark Button */
+button.bookmarked {
+  background-color: #f5f5f5;
+  color: #f56a6a;
+  border-color: #f56a6a;
+}
+
+button.bookmarked:hover {
+  background-color: #f56a6a;
+  color: #ffffff;
+}
+
 .button {
   -moz-appearance: none;
   -webkit-appearance: none;
