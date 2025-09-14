@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">My Feedback</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-comments me-2"></i>
+                    My Feedback
+                </h1>
+                <a href="/participant/events" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Events
+                </a>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+                <i class="fas fa-check-circle"></i>
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div th:if="${completedEvents == null || completedEvents.isEmpty()}" class="text-center py-5">
+                <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">No completed events found</h4>
+                <p class="text-muted">You haven't attended any completed events yet.</p>
+                <a href="/participant/events" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Browse Events
+                </a>
+            </div>
+
+            <div th:unless="${completedEvents == null || completedEvents.isEmpty()}">
+                <div class="row">
+                    <div class="col-md-6 mb-4" th:each="event : ${completedEvents}">
+                        <div class="card h-100">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="card-title mb-0" th:text="${event.title}"></h5>
+                                <small>
+                                    <i class="fas fa-calendar"></i>
+                                    <span th:text="${#temporals.format(event.endDate, 'dd/MM/yyyy HH:mm')}"></span>
+                                </small>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text" th:text="${#strings.abbreviate(event.description, 100)}"></p>
+
+                                <div class="mb-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span th:text="${event.venue.name}"></span>
+                                    </small>
+                                </div>
+
+                                <div th:if="${existingFeedbacks.containsKey(event.eventId)}">
+                                    <div class="alert alert-info mb-3">
+                                        <i class="fas fa-star"></i>
+                                        <strong>Your Rating: </strong>
+                                        <span th:each="i : ${#numbers.sequence(1, 5)}">
+                                                <i th:class="${i <= existingFeedbacks.get(event.eventId).rating ? 'fas fa-star text-warning' : 'far fa-star text-muted'}"></i>
+                                            </span>
+                                        <span th:text="${existingFeedbacks.get(event.eventId).rating}"></span>/5
+                                    </div>
+
+                                    <div th:if="${existingFeedbacks.get(event.eventId).comments}" class="mb-3">
+                                        <small class="text-muted">Your comment:</small>
+                                        <p class="fst-italic" th:text="${existingFeedbacks.get(event.eventId).comments}"></p>
+                                    </div>
+
+                                    <a th:href="@{'/feedback/event/' + ${event.eventId}}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-edit"></i> Edit Feedback
+                                    </a>
+                                </div>
+
+                                <div th:unless="${existingFeedbacks.containsKey(event.eventId)}">
+                                    <p class="text-muted mb-3">
+                                        <i class="fas fa-info-circle"></i>
+                                        You haven't provided feedback for this event yet.
+                                    </p>
+
+                                    <a th:href="@{'/feedback/event/' + ${event.eventId}}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-plus"></i> Add Feedback
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
